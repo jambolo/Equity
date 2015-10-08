@@ -1,8 +1,12 @@
 #pragma once
-class Input
-{
-public:
-    Input();
-    virtual ~Input();
-};
 
+namespace Equity {
+
+    class Input
+    {
+    public:
+        Input();
+        virtual ~Input();
+    };
+
+}

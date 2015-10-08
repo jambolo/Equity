@@ -3,9 +3,14 @@
 #include "Base58.h"
 #include "crypto/Sha256.h"
 
+#include <algorithm>
+
+using namespace Equity;
+using namespace Crypto;
+
 std::string Base58Check::operator ()(std::vector<uint8_t> const & input, unsigned version)
 {
-
+    return operator()(&input[0], input.size(), version);
 }
 
 std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsigned version)
@@ -52,4 +57,27 @@ std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsig
     output += workString;
 
     return output;
+}
+
+bool Base58Check::decode(std::string const & input, std::vector<uint8_t> & output, unsigned & version)
+{
+    // Decode the input into binary
+    Base58 base58;
+    std::vector<uint8_t> work;
+    if (!base58.decode(input, work))
+    {
+        return false;
+    }
+
+    // Check the checksum
+    Sha256 sha256;
+    std::vector<uint8_t> check = sha256(sha256(&work[0], work.size() - 4));
+    if (!std::equal(check.begin(), check.begin() + 4, work.end() - 4))
+    {
+        return false;
+    }
+
+    version = work[0];
+    output.assign(work.begin() + 1, work.end() - 4);
+    return true;
 }

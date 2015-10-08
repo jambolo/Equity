@@ -1,8 +1,10 @@
 #include "Base58.h"
 
-//#include <openssl/bn.h>
+#include <openssl/bn.h>
 #include <algorithm>
 #include <array>
+
+using namespace Equity;
 
 static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 static std::array<int, 122 - 49 + 1> const DECODE_MAP =
@@ -25,7 +27,7 @@ static char encode(int x)
     return ENCODE_MAP[x];
 }
 
-static int decode(char c)
+static int decode(int c)
 {
     c -= '1';    // first valid char is '1'
 
@@ -35,6 +37,7 @@ static int decode(char c)
 
     return DECODE_MAP[c];
 }
+
 std::string Base58::operator()(std::vector<uint8_t> const & input)
 {
     return operator()(&input[0], input.size());
@@ -42,19 +45,18 @@ std::string Base58::operator()(std::vector<uint8_t> const & input)
 
 std::string Base58::operator()(uint8_t const * input, size_t length)
 {
-
     BIGNUM *i = BN_new();
     if (!i)
         return "";
 
-    BN_bin2bn(input, length, i);  // Note: input is considered to be big-endian
+    BN_bin2bn(input, (int)length, i);  // Note: input is considered to be big-endian
 
     std::string output;
 
     do
     {
         BN_ULONG r = BN_div_word(i, 58);
-        output.push_back(encode(r));
+        output.push_back(encode((int)r));
     } while (!BN_is_zero(i));
 
     std::reverse(output.begin(), output.end());
@@ -62,12 +64,46 @@ std::string Base58::operator()(uint8_t const * input, size_t length)
     return output;
 }
 
-bool decode(std::string const & input, std::vector<uint8_t> & output)
+bool Base58::decode(std::string const & input, std::vector<uint8_t> & output)
 {
     return decode(input.c_str(), input.length(), output);
 }
 
-bool decode(char const * input, size_t length, std::vector<uint8_t> & output)
+bool Base58::decode(char const * input, size_t length, std::vector<uint8_t> & output)
 {
+    BIGNUM *i = BN_new();
+    if (!i)
+        return false;
 
+    int leadingZeros = 0;
+
+    while (length > 0 && *input == '1')
+    {
+        ++leadingZeros;
+        ++input;
+        --length;
+    }
+
+    BN_zero(i);
+
+    while (length > 0)
+    {
+        int x = ::decode(*input);
+        if (x < 0)
+        {
+            return false;
+        }
+
+        BN_mul_word(i, 58);
+        BN_add_word(i, x);
+
+        ++input;
+        --length;
+    }
+
+    int size = BN_num_bytes(i);
+    output.resize(leadingZeros + size);
+    std::fill_n(output.begin(), leadingZeros, 0);
+    BN_bn2bin(i, &output[leadingZeros]);
+    return true;
 }

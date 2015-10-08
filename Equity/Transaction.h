@@ -1,8 +1,12 @@
 #pragma once
-class Transaction
-{
-public:
-    Transaction();
-    ~Transaction();
-};
 
+namespace Equity {
+
+    class Transaction
+    {
+    public:
+        Transaction();
+        ~Transaction();
+    };
+
+}
