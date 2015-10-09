@@ -11,17 +11,19 @@ namespace Equity {
     {
     public:
         BitcoinAddress(std::string const & s);
-        BitcoinAddress(Crypto::Ripemd::Hash const & k, unsigned network);
+        BitcoinAddress(Crypto::Ripemd160Hash const & k, unsigned n);
 
         std::string toString() const            { return string_; }
         std::vector<uint8_t> toBytes() const    { return data_; }
-        int version() const                     { return version_; }
+        int network() const                     { return network_; }
+        bool valid() const                      { return valid_; }
 
     private:
 
-        std::string string_;
         std::vector<uint8_t> data_;
-        unsigned version_;
+        unsigned network_;
+        std::string string_;
+        bool valid_;
     };
 
 }

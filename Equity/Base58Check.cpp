@@ -8,12 +8,12 @@
 using namespace Equity;
 using namespace Crypto;
 
-std::string Base58Check::operator ()(std::vector<uint8_t> const & input, unsigned version)
+std::string Base58Check::encode(std::vector<uint8_t> const & input, unsigned version)
 {
-    return operator()(&input[0], input.size(), version);
+    return encode(&input[0], input.size(), version);
 }
 
-std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsigned version)
+std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned version)
 {
     // 1. Take the version byte and payload bytes, and concatenate them together(bytewise).
     std::vector<uint8_t> work;
@@ -21,7 +21,6 @@ std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsig
     work.insert(work.end(), input, input+length);
 
     // 2. Take the first four bytes of SHA256(SHA256(results of step 1))
-    Sha256 sha256;
     std::vector<uint8_t> check = sha256(sha256(work));
     check.resize(4);
 
@@ -31,8 +30,7 @@ std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsig
     // 4. Treating the results of step 3 - a series of bytes - as a single big - endian bignumber, convert to
     //    base-58 ... The result should be normalized to not have any leading base-58 zeroes(character '1').
 
-    Base58 base58;
-    std::string workString = base58(work);
+    std::string workString = Base58::encode(work);
 
     // 5. The leading character '1', which has a value of zero in base58, is reserved for representing an entire
     //    leading zero byte, as when it is in a leading position, has no value as a base - 58 symbol. There can be
@@ -62,15 +60,13 @@ std::string Base58Check::operator ()(uint8_t const * input, size_t length, unsig
 bool Base58Check::decode(std::string const & input, std::vector<uint8_t> & output, unsigned & version)
 {
     // Decode the input into binary
-    Base58 base58;
     std::vector<uint8_t> work;
-    if (!base58.decode(input, work))
+    if (!Base58::decode(input, work))
     {
         return false;
     }
 
     // Check the checksum
-    Sha256 sha256;
     std::vector<uint8_t> check = sha256(sha256(&work[0], work.size() - 4));
     if (!std::equal(check.begin(), check.begin() + 4, work.end() - 4))
     {

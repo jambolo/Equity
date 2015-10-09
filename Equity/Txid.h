@@ -4,6 +4,6 @@
 
 namespace Equity {
 
-    typedef Crypto::Sha256::Hash Txid;
+    typedef Crypto::Sha256Hash Txid;
 
 }

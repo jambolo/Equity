@@ -6,13 +6,11 @@
 
 namespace Equity {
 
-    class Base58Check
+    namespace Base58Check
     {
-    public:
-        std::string operator ()(std::vector<uint8_t> const & input, unsigned version);
-        std::string operator ()(uint8_t const * input, size_t length, unsigned version);
-
+        std::string encode(std::vector<uint8_t> const & input, unsigned version);
+        std::string encode(uint8_t const * input, size_t length, unsigned version);
         bool decode(std::string const & input, std::vector<uint8_t> & output, unsigned & version);
-    };
+    }
 
 }

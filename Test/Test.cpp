@@ -62,11 +62,10 @@ void TestBase58Check()
     static size_t const DATA_SIZE = sizeof(DATA) / sizeof(TestInput);
 
     printf("TestBase58Check\n");
-    Base58Check base58Check;
 
     for (int i = 0; i < DATA_SIZE; ++i)
     {
-        std::string result = base58Check(DATA[i].hash, DATA[i].size, DATA[i].version);
+        std::string result = Base58Check::encode(DATA[i].hash, DATA[i].size, DATA[i].version);
         if (result == DATA[i].stringVersion)
         {
             printf("encode %d: ok\n", i);
@@ -83,7 +82,7 @@ void TestBase58Check()
         std::vector<uint8_t> resultVector;
         unsigned resultVersion;
 
-        bool ok = base58Check.decode(DATA[i].stringVersion, resultVector, resultVersion);
+        bool ok = Base58Check::decode(DATA[i].stringVersion, resultVector, resultVersion);
         if (ok &&
             resultVector.size() == DATA[i].size &&
             std::equal(resultVector.begin(), resultVector.end(), DATA[i].hash) &&

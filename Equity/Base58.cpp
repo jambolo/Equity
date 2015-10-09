@@ -39,12 +39,12 @@ static int decode(int c)
     return DECODE_MAP[c];
 }
 
-std::string Base58::operator()(std::vector<uint8_t> const & input)
+std::string Base58::encode(std::vector<uint8_t> const & input)
 {
-    return operator()(&input[0], input.size());
+    return encode(&input[0], input.size());
 }
 
-std::string Base58::operator()(uint8_t const * input, size_t length)
+std::string Base58::encode(uint8_t const * input, size_t length)
 {
     BIGNUM *i = BN_new();
     if (!i)
@@ -57,7 +57,7 @@ std::string Base58::operator()(uint8_t const * input, size_t length)
     do
     {
         BN_ULONG r = BN_div_word(i, 58);
-        output.push_back(encode((int)r));
+        output.push_back(::encode((int)r));
     } while (!BN_is_zero(i));
 
     std::reverse(output.begin(), output.end());

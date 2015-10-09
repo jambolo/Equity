@@ -5,16 +5,9 @@
 
 namespace Crypto
 {
+        size_t const SHA256_HASH_SIZE = 256 / 8;
+        typedef std::vector<uint8_t> Sha256Hash;
 
-    class Sha256
-    {
-    public:
-
-        static size_t const SIZE = 256 / 8;
-        typedef std::vector<uint8_t> Hash;
-
-        Hash operator ()(std::vector<uint8_t> const & input);
-        Hash operator ()(uint8_t const * input, size_t length);
-    };
-
+        Sha256Hash sha256(std::vector<uint8_t> const & input);
+        Sha256Hash sha256(uint8_t const * input, size_t length);
 }

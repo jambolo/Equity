@@ -2,14 +2,15 @@
 
 #include <openssl/evp.h>
 
-using namespace Crypto;
-
-Sha256::Hash Sha256::operator ()(std::vector<uint8_t> const & input)
+namespace Crypto
 {
-    return operator()(&input[0], input.size());
+
+Sha256Hash sha256(std::vector<uint8_t> const & input)
+{
+    return sha256(&input[0], input.size());
 }
 
-Sha256::Hash Sha256::operator ()(uint8_t const * input, size_t length)
+Sha256Hash sha256(uint8_t const * input, size_t length)
 {
     EVP_MD const * md = EVP_sha256();
     EVP_MD_CTX * mdctx = EVP_MD_CTX_create();
@@ -22,5 +23,7 @@ Sha256::Hash Sha256::operator ()(uint8_t const * input, size_t length)
     EVP_DigestFinal_ex(mdctx, output, &outputLength);
     EVP_MD_CTX_destroy(mdctx);
 
-    return Hash(output, output+outputLength);
+    return Sha256Hash(output, output+outputLength);
+}
+
 }
