@@ -7,7 +7,7 @@
 using namespace Equity;
 
 static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-static std::array<int, 122 - 49 + 1> const DECODE_MAP =
+static int const DECODE_MAP[] =
 {
     0, 1, 2, 3, 4, 5, 6, 7, 8,                              // '1' - '9' (49 - 57)
     -1, -1, -1, -1, -1, -1, -1,                             // ':' - '@' (58 - 64)
@@ -21,6 +21,7 @@ static std::array<int, 122 - 49 + 1> const DECODE_MAP =
     -1,                                                     // 'l'       (108)
     44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57  // 'm' - 'z' (109 - 122)
 };
+static size_t const DECODE_MAP_SIZE = sizeof(DECODE_MAP) / sizeof(int);
 
 static char encode(int x)
 {
@@ -32,7 +33,7 @@ static int decode(int c)
     c -= '1';    // first valid char is '1'
 
     // Valid range is '1' to 'z'
-    if (c < 0 || c >= DECODE_MAP.size())
+    if (c < 0 || c >= DECODE_MAP_SIZE)
         return -1;
 
     return DECODE_MAP[c];

@@ -15,7 +15,7 @@ BitcoinAddress::BitcoinAddress(std::string const & s)
 }
 
 BitcoinAddress::BitcoinAddress(Crypto::Ripemd::Hash const & k, unsigned network)
-    : data_(k)
-    , string_(Base58Check()(data_, network))
+    : string_(Base58Check()(k, network))
+    , data_(k)
 {
 }
