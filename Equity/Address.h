@@ -1,13 +1,14 @@
 #pragma once
 
-#include "PrivateKey.h"
-#include "PublicKey.h"
 #include "crypto/Ripemd.h"
 #include <string>
 #include <vector>
 #include <cstdint>
 
 namespace Equity {
+
+    class PublicKey;
+    class PrivateKey;
 
     class Address
     {

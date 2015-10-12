@@ -1,5 +1,9 @@
 set(SOURCES
 	Test.cpp
+	TestAddress.cpp
+	TestBase58.cpp
+	TestBase58Check.cpp
+	TestPublicKey.cpp
 )
 
 include_directories(..)

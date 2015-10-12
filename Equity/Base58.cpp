@@ -3,6 +3,7 @@
 #include <openssl/bn.h>
 #include <algorithm>
 #include <array>
+#include <memory>
 
 using namespace Equity;
 
@@ -46,19 +47,19 @@ std::string Base58::encode(std::vector<uint8_t> const & input)
 
 std::string Base58::encode(uint8_t const * input, size_t length)
 {
-    BIGNUM *i = BN_new();
+    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
     if (!i)
         return "";
 
-    BN_bin2bn(input, (int)length, i);
+    BN_bin2bn(input, (int)length, i.get());
 
     std::string output;
 
     do
     {
-        BN_ULONG r = BN_div_word(i, 58);
+        BN_ULONG r = BN_div_word(i.get(), 58);
         output.push_back(::encode((int)r));
-    } while (!BN_is_zero(i));
+    } while (!BN_is_zero(i.get()));
 
     std::reverse(output.begin(), output.end());
 
@@ -75,7 +76,7 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
     if (*input == 0)
         return false;
 
-    BIGNUM *i = BN_new();
+    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
     if (!i)
         return false;
 
@@ -87,7 +88,7 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
         ++input;
     }
 
-    BN_zero(i);
+    BN_zero(i.get());
 
     while (*input != 0)
     {
@@ -97,16 +98,16 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
             return false;
         }
 
-        BN_mul_word(i, 58);
-        BN_add_word(i, x);
+        BN_mul_word(i.get(), 58);
+        BN_add_word(i.get(), x);
 
         ++input;
     }
 
-    int size = BN_num_bytes(i);
+    int size = BN_num_bytes(i.get());
     output.resize(nLeadingZeros + size);
     if (size > 0)
-        BN_bn2bin(i, &output[nLeadingZeros]);
+        BN_bn2bin(i.get(), &output[nLeadingZeros]);
 
     return true;
 }

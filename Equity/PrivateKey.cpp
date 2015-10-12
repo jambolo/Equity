@@ -5,6 +5,8 @@
 
 #include <openssl\bn.h>
 
+#include <memory>
+
 using namespace Equity;
 
 static uint8_t const MAX_PRIVATE_KEY[] =
@@ -18,26 +20,25 @@ static size_t const MAX_PRIVATE_KEY_SIZE = sizeof(MAX_PRIVATE_KEY);
 
 PrivateKey::PrivateKey(std::string const & wif)
 {
-    valid_ = Base58Check::decode(wif, value_, version_) && isValid();
+    unsigned version;
+    valid_ = Base58Check::decode(wif, value_, version) && isValid();
 }
 
-PrivateKey::PrivateKey(std::vector<uint8_t> const & k, unsigned v)
+PrivateKey::PrivateKey(std::vector<uint8_t> const & k)
     : value_(k)
-    , version_(v)
 {
     valid_ = isValid();
 }
 
-PrivateKey::PrivateKey(uint8_t const * k, unsigned v)
+PrivateKey::PrivateKey(uint8_t const * k)
     : value_(k, k+SIZE)
-    , version_(v)
 {
     valid_ = isValid();
 }
 
-std::string PrivateKey::toWif() const
+std::string PrivateKey::toWif(unsigned version) const
 {
-    return Base58Check::encode(value_, version_);
+    return Base58Check::encode(value_, version);
 }
 
 std::string PrivateKey::toHex() const
@@ -50,26 +51,21 @@ bool PrivateKey::isValid()
     if (value_.size() != SIZE)
         return false;
 
-    BIGNUM * i = BN_new();
-    BN_bin2bn(&value_[0], (int)value_.size(), i);
+    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
+    BN_bin2bn(&value_[0], (int)value_.size(), i.get());
 
-    if (BN_is_zero(i))
+    if (BN_is_zero(i.get()))
     {
-        BN_free(i);
         return false;
     }
 
-    BIGNUM * maxPrivateKey = BN_new();
-    BN_bin2bn(&MAX_PRIVATE_KEY[0], (int)MAX_PRIVATE_KEY_SIZE, maxPrivateKey);
+    std::shared_ptr<BIGNUM> maxPrivateKey(BN_new(), BN_free);
+    BN_bin2bn(&MAX_PRIVATE_KEY[0], (int)MAX_PRIVATE_KEY_SIZE, maxPrivateKey.get());
 
-    if (BN_cmp(i, maxPrivateKey) > 0)
+    if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
     {
-        BN_free(maxPrivateKey);
-        BN_free(i);
         return false;
     }
 
-    BN_free(maxPrivateKey);
-    BN_free(i);
     return true;
 }

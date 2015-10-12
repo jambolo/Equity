@@ -3,15 +3,16 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include "PrivateKey.h"
 
 namespace Equity {
+
+    class PrivateKey;
 
     class PublicKey
     {
     public:
 
-        static size_t const SIZE = 512 / 8;
+        static size_t const SIZE = 512 / 8 + 1;
 
         explicit PublicKey(std::vector<uint8_t> const & k);
         explicit PublicKey(uint8_t const * k);

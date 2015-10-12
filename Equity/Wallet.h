@@ -1,8 +1,9 @@
 #pragma once
 
-#include "crypto/Ecdsa.h"
-#include "Address.h"
 #include <vector>
+#include "PrivateKey.h"
+#include "PublicKey.h"
+#include "Address.h"
 
 
 namespace Equity {

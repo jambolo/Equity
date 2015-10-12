@@ -13,6 +13,7 @@ set(SOURCES
 	PrivateKey.h
 	PublicKey.cpp
 	PublicKey.h
+	Script.h
 	Transaction.cpp
 	Transaction.h
 	Txid.cpp

@@ -1,33 +1,14 @@
 #include "PublicKey.h"
 
+#include "PrivateKey.h"
 #include "Utility.h"
 
 #include "openssl/ec.h"
 #include "openssl/evp.h"
 #include "openssl/obj_mac.h"
+#include <memory>
 
 using namespace Equity;
-
-template<typename T>
-class AutoResource
-{
-public:
-
-    AutoResource(T * resource, void (*free)(T*)) : resource_(resource), free_(free) {}
-    ~AutoResource()
-    {
-        free_(resource_);
-    }
-
-    operator T * ()             { return resource_; }
-    operator T const * () const { return resource_; }
-    operator bool () const      { return resource_ != NULL; }
-
-private:
-
-    T * resource_;
-    void (*free_)(T*);
-};
 
 PublicKey::PublicKey(std::vector<uint8_t> const & k)
     : value_(k)
@@ -37,37 +18,44 @@ PublicKey::PublicKey(std::vector<uint8_t> const & k)
 
 PublicKey::PublicKey(uint8_t const * k)
     : value_(k, k + SIZE)
+    , valid_(true)
 {
-    valid_ = true;
 }
 
 PublicKey::PublicKey(PrivateKey const & k)
+    : value_(SIZE)
+    , valid_(false)
 {
-    valid_ = false;
-
-    AutoResource<EC_KEY> keyPair(EC_KEY_new_by_curve_name(NID_secp256k1), EC_KEY_free);
-    if (keyPair)
+    std::shared_ptr<EC_KEY> keyPair(EC_KEY_new_by_curve_name(NID_secp256k1), EC_KEY_free);
+    if (!keyPair)
     {
         return;
     }
 
-    AutoResource<BIGNUM> prvKeyBn(BN_new(), BN_free);
-    BN_bin2bn(&k.value()[0], (int)PrivateKey::SIZE, prvKeyBn);
+    std::shared_ptr<BIGNUM> prvKeyBn(BN_new(), BN_free);
+    BN_bin2bn(&k.value()[0], (int)PrivateKey::SIZE, prvKeyBn.get());
 
-    if (!EC_KEY_set_private_key(keyPair, prvKeyBn))
+    if (!EC_KEY_set_private_key(keyPair.get(), prvKeyBn.get()))
     {
         return;
     }
 
-    if (!EC_KEY_check_key(keyPair))
+    if (!EC_KEY_check_key(keyPair.get()))
     {
         return;
     }
 
-    EC_POINT const * pubKey = EC_KEY_get0_public_key(keyPair);
-//    size_t EC_POINT_point2oct(const EC_GROUP *group, pubKey, POINT_CONVERSION_UNCOMPRESSED,
-//        unsigned char *buf, size_t len, BN_CTX *ctx);
-//    AutoResource<BIGNUM> pubKeyBn(EC_POINT_point2bn(const EC_GROUP *, pubKey, point_conversion_form_t form, BIGNUM *, BN_CTX *), BN_free);
+    
+    std::shared_ptr<BN_CTX> ctx(BN_CTX_new(), BN_CTX_free);
+    EC_POINT const *        pubKey = EC_KEY_get0_public_key(keyPair.get());
+    EC_GROUP const *        group = EC_KEY_get0_group(keyPair.get());
+
+    size_t length = EC_POINT_point2oct(group, pubKey, POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
+
+    if (EC_POINT_point2oct(group, pubKey, POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE-length], length, ctx.get()) != length)
+    {
+        return;
+    }
 
     valid_ = true;
 }
