@@ -1,7 +1,7 @@
 #pragma once
 
 #include "crypto/Ecdsa.h"
-#include "BitcoinAddress.h"
+#include "Address.h"
 #include <vector>
 
 
@@ -13,9 +13,9 @@ namespace Equity {
 
         struct Entry
         {
-            Crypto::Ecdsa::PrivateKey   privateKey;
-            Crypto::Ecdsa::PublicKey    publicKey;
-            BitcoinAddress              address;
+            PrivateKey   privateKey;
+            PublicKey    publicKey;
+            Address      address;
         };
         typedef std::vector<Entry> EntryList;
 

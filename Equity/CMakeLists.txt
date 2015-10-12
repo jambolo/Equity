@@ -1,10 +1,10 @@
 set(SOURCES
+	Address.cpp
+	Address.h
 	Base58.cpp
 	Base58.h
 	Base58Check.cpp
 	Base58Check.h
-	BitcoinAddress.cpp
-	BitcoinAddress.h
 	Input.cpp
 	Input.h
 	Output.cpp
@@ -17,6 +17,8 @@ set(SOURCES
 	Transaction.h
 	Txid.cpp
 	Txid.h
+	Utility.cpp
+	Utility.h
 	Wallet.cpp
 	Wallet.h
 )

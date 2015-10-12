@@ -59,12 +59,32 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
 
 bool Base58Check::decode(std::string const & input, std::vector<uint8_t> & output, unsigned & version)
 {
+    return decode(input.c_str(), output, version);
+}
+
+bool Base58Check::decode(char const * input, std::vector<uint8_t> & output, unsigned & version)
+{
+    // Skip and count the leading 1's
+    int nLeadingOnes = 0;
+    while (*input == '1')
+    {
+        ++nLeadingOnes;
+        ++input;
+    }
+
     // Decode the input into binary
     std::vector<uint8_t> work;
     if (!Base58::decode(input, work))
     {
         return false;
     }
+
+    // Prepend the leading zeros
+    work.insert(work.begin(), nLeadingOnes, 0);
+
+    // Make sure there is a 1 byte version, 4 byte checksum, and at least one byte of data
+    if (work.size() < 6)
+        return false;
 
     // Check the checksum
     std::vector<uint8_t> check = sha256(sha256(&work[0], work.size() - 4));

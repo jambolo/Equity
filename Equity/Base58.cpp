@@ -50,7 +50,7 @@ std::string Base58::encode(uint8_t const * input, size_t length)
     if (!i)
         return "";
 
-    BN_bin2bn(input, (int)length, i);  // Note: input is considered to be big-endian
+    BN_bin2bn(input, (int)length, i);
 
     std::string output;
 
@@ -67,27 +67,29 @@ std::string Base58::encode(uint8_t const * input, size_t length)
 
 bool Base58::decode(std::string const & input, std::vector<uint8_t> & output)
 {
-    return decode(input.c_str(), input.length(), output);
+    return decode(input.c_str(), output);
 }
 
-bool Base58::decode(char const * input, size_t length, std::vector<uint8_t> & output)
+bool Base58::decode(char const * input, std::vector<uint8_t> & output)
 {
+    if (*input == 0)
+        return false;
+
     BIGNUM *i = BN_new();
     if (!i)
         return false;
 
-    int leadingZeros = 0;
+    int nLeadingZeros = 0;
 
-    while (length > 0 && *input == '1')
+    while (*input == '1')
     {
-        ++leadingZeros;
+        ++nLeadingZeros;
         ++input;
-        --length;
     }
 
     BN_zero(i);
 
-    while (length > 0)
+    while (*input != 0)
     {
         int x = ::decode(*input);
         if (x < 0)
@@ -99,12 +101,12 @@ bool Base58::decode(char const * input, size_t length, std::vector<uint8_t> & ou
         BN_add_word(i, x);
 
         ++input;
-        --length;
     }
 
     int size = BN_num_bytes(i);
-    output.resize(leadingZeros + size);
-    std::fill_n(output.begin(), leadingZeros, 0);
-    BN_bn2bin(i, &output[leadingZeros]);
+    output.resize(nLeadingZeros + size);
+    if (size > 0)
+        BN_bn2bin(i, &output[nLeadingZeros]);
+
     return true;
 }
