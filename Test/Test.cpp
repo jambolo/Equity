@@ -4,7 +4,7 @@
 
 extern int TestBase58();
 extern int TestBase58Check();
-//extern int TestPrivateKey();
+extern int TestPrivateKey();
 extern int TestPublicKey();
 extern int TestAddress();
 
@@ -40,7 +40,7 @@ static void addTests(TestMap & tests)
 {
     tests["Base58"] = TestBase58;
     tests["Base58Check"] = TestBase58Check;
-//    tests["PrivateKey"] = TestPrivateKey;
+    tests["PrivateKey"] = TestPrivateKey;
     tests["PublicKey"] = TestPublicKey;
     tests["Address"] = TestAddress;
 }

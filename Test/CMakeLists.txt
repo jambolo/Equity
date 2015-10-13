@@ -3,6 +3,7 @@ set(SOURCES
 	TestAddress.cpp
 	TestBase58.cpp
 	TestBase58Check.cpp
+	TestPrivateKey.cpp
 	TestPublicKey.cpp
 )
 

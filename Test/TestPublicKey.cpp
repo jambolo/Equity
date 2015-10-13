@@ -97,7 +97,7 @@ int TestPublicKey()
         }
     };
 
-    static size_t const PRIVATE_KEY_CASES_SIZE = sizeof(PRIVATE_KEY_CASES) / sizeof(PublicKeyInput);
+    static size_t const PRIVATE_KEY_CASES_SIZE = sizeof(PRIVATE_KEY_CASES) / sizeof(PrivateKeyInput);
 
     for (int i = 0; i < PRIVATE_KEY_CASES_SIZE; ++i)
     {
@@ -112,7 +112,7 @@ int TestPublicKey()
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(PRIVATE_KEY_CASES[i].expected, PublicKey::SIZE).c_str(), Utility::vtox(&value[0], value.size()).c_str());
+            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(PRIVATE_KEY_CASES[i].expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }

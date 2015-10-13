@@ -26,33 +26,21 @@ PublicKey::PublicKey(PrivateKey const & k)
     : value_(SIZE)
     , valid_(false)
 {
-    std::shared_ptr<EC_KEY> keyPair(EC_KEY_new_by_curve_name(NID_secp256k1), EC_KEY_free);
-    if (!keyPair)
+    std::shared_ptr<BIGNUM> prvKey(BN_new(), BN_free);
+    BN_bin2bn(&k.value()[0], (int)PrivateKey::SIZE, prvKey.get());
+
+    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
+    std::shared_ptr<EC_POINT> pubKey(EC_POINT_new(group.get()), EC_POINT_free);
+    std::shared_ptr<BN_CTX>   ctx(BN_CTX_new(), BN_CTX_free);
+
+    if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), NULL, NULL, ctx.get()))
     {
         return;
     }
 
-    std::shared_ptr<BIGNUM> prvKeyBn(BN_new(), BN_free);
-    BN_bin2bn(&k.value()[0], (int)PrivateKey::SIZE, prvKeyBn.get());
+    size_t length = EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
 
-    if (!EC_KEY_set_private_key(keyPair.get(), prvKeyBn.get()))
-    {
-        return;
-    }
-
-    if (!EC_KEY_check_key(keyPair.get()))
-    {
-        return;
-    }
-
-    
-    std::shared_ptr<BN_CTX> ctx(BN_CTX_new(), BN_CTX_free);
-    EC_POINT const *        pubKey = EC_KEY_get0_public_key(keyPair.get());
-    EC_GROUP const *        group = EC_KEY_get0_group(keyPair.get());
-
-    size_t length = EC_POINT_point2oct(group, pubKey, POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
-
-    if (EC_POINT_point2oct(group, pubKey, POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE-length], length, ctx.get()) != length)
+    if (EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE-length], length, ctx.get()) != length)
     {
         return;
     }

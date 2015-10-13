@@ -14,7 +14,7 @@ int TestAddress()
 
     printf("Address\n");
 
-   struct TestInput
+    struct TestInput
     {
         unsigned version;
         size_t size;
@@ -34,21 +34,8 @@ int TestAddress()
     };
     static size_t const CASES_SIZE = sizeof(CASES) / sizeof(TestInput);
 
-    struct StringValidityTestInput
-    {
-        char const * data;
-        bool expected;
-    };
-    static StringValidityTestInput const STRING_VALIDITY_CASES[] =
-    {
-        { "", false },
-        { "112edB6q", false },                              // minimum base58check, but too short
-        { "137kV53f3mW571W38VFn9WBSmrx1eiMNy", false },     // one byte too short
-        { "1iEMistU6HpJwnLgUixyZYvURF28JGhxvSx", false }    // one byte too big
-    };
-    static size_t const STRING_VALIDITY_CASES_SIZE = sizeof(STRING_VALIDITY_CASES) / sizeof(StringValidityTestInput);
-
     printf("+-- testing: Address(uint8_t const * k)\n");
+
     for (int i = 0; i < CASES_SIZE; ++i)
     {
         Address result(CASES[i].data);
@@ -69,6 +56,22 @@ int TestAddress()
     }
 
     printf("+-- testing: Address(std::string const & s)\n");
+
+    struct StringValidityTestInput
+    {
+        char const * data;
+        bool expected;
+    };
+    static StringValidityTestInput const STRING_VALIDITY_CASES[] =
+    {
+        { "", false },
+        { "112edB6q", false },                              // minimum base58check, but too short
+        { "137kV53f3mW571W38VFn9WBSmrx1eiMNy", false },     // one byte too short
+        { "1iEMistU6HpJwnLgUixyZYvURF28JGhxvSx", false },   // one byte too big
+        { "1BadxxxxxxxxxxxxxxxxxxxxxxxvvKy2F", false }      // invalid checksum
+    };
+    static size_t const STRING_VALIDITY_CASES_SIZE = sizeof(STRING_VALIDITY_CASES) / sizeof(StringValidityTestInput);
+
     for (int i = 0; i < STRING_VALIDITY_CASES_SIZE; ++i)
     {
         Address result(STRING_VALIDITY_CASES[i].data);
