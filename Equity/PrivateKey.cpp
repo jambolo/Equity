@@ -3,7 +3,7 @@
 #include "Base58Check.h"
 #include "Utility.h"
 
-#include <openssl\bn.h>
+#include <openssl/bn.h>
 
 #include <memory>
 

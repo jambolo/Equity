@@ -59,7 +59,7 @@ namespace Equity
             void serialize(std::vector<uint8_t> & out)
             {
                 VarInt(vector_.size()).serialize(out);
-                for (std::vector<T>::const_iterator i = vector_.begin(); i != vector_.end(; ++i)
+                for (typename std::vector<T>::const_iterator i = vector_.begin(); i != vector_.end(); ++i)
                 {
                     i->serialize(out);
                 }

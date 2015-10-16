@@ -37,8 +37,8 @@ namespace Equity
 
             for (int i = 0; i < length; ++i)
             {
-                x.push_back(*v >> 4);
-                x.push_back(*v & 0x0f);
+                x.push_back(itox(*v >> 4));
+                x.push_back(itox(*v & 0x0f));
                 ++v;
             }
 
@@ -75,7 +75,7 @@ namespace Equity
             while (last.size() > 1)
             {
                 std::vector<Crypto::Sha256Hash> next;
-                if (last.size() & 1 == 1)
+                if ((last.size() & 1) == 1)
                     last.push_back(last.back());
                 for (int i = 0; i < last.size(); i += 2)
                 {
@@ -100,39 +100,20 @@ namespace Equity
             {
                 out.reserve(out.size() + 3);
                 out.push_back(0xfd);
-                serialize((uint16_t)value_, out);
+                Utility::serialize((uint16_t)value_, out);
             }
             else if (value_ < 0x100000000)
             {
                 out.reserve(out.size() + 5);
                 out.push_back(0xfe);
-                serialize((uint32_t)value_, out);
+                Utility::serialize((uint32_t)value_, out);
             }
             else
             {
                 out.reserve(out.size() + 9);
                 out.push_back(0xff);
-                serialize((uint64_t)value_, out);
+                Utility::serialize((uint64_t)value_, out);
             }
-        }
-
-        bool serialize(std::string const & s, uint8_t *& out, size_t & size)
-        {
-            size_t length = s.size();
-            if (!serialize((uint64_t)length, out, size))
-                return false;
-            if (size < length)
-                return false;
-            s.copy((char *)out, length);
-            out += length;
-            size -= length;
-
-            return true;
-        }
-
-        bool serialize(char const * s, uint8_t *& out, size_t & size)
-        {
-            return serialize(s, strlen(s), out, size);
         }
 
         template<>
