@@ -1,12 +1,14 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <string>
 
 extern int TestBase58();
 extern int TestBase58Check();
 extern int TestPrivateKey();
 extern int TestPublicKey();
 extern int TestAddress();
+extern int TestUtility();
 
 typedef std::map<std::string, int(*)()> TestMap;
 
@@ -21,7 +23,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; ++i)
     {
         char * name = argv[i];
-        TestMap::iterator p = tests.find(name);
+        TestMap::iterator p = tests.find(std::string(name));
         if (p != tests.end())
         {
             errors += (p->second)();
@@ -43,4 +45,5 @@ static void addTests(TestMap & tests)
     tests["PrivateKey"] = TestPrivateKey;
     tests["PublicKey"] = TestPublicKey;
     tests["Address"] = TestAddress;
+    tests["Utility"] = TestUtility;
 }

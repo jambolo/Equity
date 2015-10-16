@@ -1,7 +1,7 @@
 #include "PublicKey.h"
 
 #include "PrivateKey.h"
-#include "Utility.h"
+#include "utility/Utility.h"
 
 #include "openssl/ec.h"
 #include "openssl/evp.h"

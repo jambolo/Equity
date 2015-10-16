@@ -1,7 +1,6 @@
 #include "equity/PublicKey.h"
-
 #include "equity/PrivateKey.h"
-#include "equity/Utility.h"
+#include "utility/Utility.h"
 
 #include <string>
 #include <vector>

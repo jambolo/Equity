@@ -27,7 +27,6 @@ namespace Equity {
         bool isValid();
 
         std::vector<uint8_t> value_;
-        unsigned version_;
         bool valid_;
     };
 

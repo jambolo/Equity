@@ -1,7 +1,7 @@
 #include "PrivateKey.h"
 
 #include "Base58Check.h"
-#include "Utility.h"
+#include "utility/Utility.h"
 
 #include <openssl/bn.h>
 

@@ -1,5 +1,5 @@
 #include "equity/Base58.h"
-#include "equity/Utility.h"
+#include "utility/Utility.h"
 
 #include <string>
 #include <vector>

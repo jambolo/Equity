@@ -1,6 +1,6 @@
 #include "equity/Address.h"
 #include "equity/PublicKey.h"
-#include "equity/Utility.h"
+#include "utility/Utility.h"
 
 #include <string>
 #include <vector>
