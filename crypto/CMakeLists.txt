@@ -12,4 +12,6 @@ if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIR})
 endif (OPENSSL_FOUND)
 
+include_directories(..)
+
 add_library(crypto ${SOURCES})

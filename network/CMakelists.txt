@@ -1,0 +1,10 @@
+set(SOURCES
+	Message.cpp
+	Message.h
+	Utility.cpp
+	Utility.h
+)
+
+include_directories(..)
+
+add_library(network ${SOURCES})

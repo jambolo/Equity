@@ -3,4 +3,5 @@ project(Equity)
 
 add_subdirectory(crypto)
 add_subdirectory(equity)
+add_subdirectory(network)
 add_subdirectory(test)
