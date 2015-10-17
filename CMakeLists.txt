@@ -7,4 +7,5 @@ add_subdirectory(list-prefixes)
 add_subdirectory(network)
 add_subdirectory(test)
 add_subdirectory(utility)
+add_subdirectory(validate)
 

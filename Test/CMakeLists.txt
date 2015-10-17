@@ -1,11 +1,15 @@
 set(SOURCES
 	Test.cpp
-	TestAddress.cpp
-	TestBase58.cpp
-	TestBase58Check.cpp
-	TestPrivateKey.cpp
-	TestPublicKey.cpp
-    TestUtility.cpp
+    Crypto/TestCrypto.cpp
+    Equity/TestEquity.cpp
+	Equity/TestAddress.cpp
+	Equity/TestBase58.cpp
+	Equity/TestBase58Check.cpp
+	Equity/TestPrivateKey.cpp
+	Equity/TestPublicKey.cpp
+    Network/TestNetwork.cpp
+    Validate/TestValidate.cpp
+    Utility/TestUtility.cpp
 )
 
 include_directories(..)
