@@ -19,26 +19,45 @@ static uint8_t const MAX_PRIVATE_KEY[] =
 static size_t const MAX_PRIVATE_KEY_SIZE = sizeof(MAX_PRIVATE_KEY);
 
 PrivateKey::PrivateKey(std::string const & wif)
+    : compressed_(false)
 {
     unsigned version;
-    valid_ = Base58Check::decode(wif, value_, version) && isValid();
+    bool valid = Base58Check::decode(wif, value_, version);
+    
+    if (value_.size() == SIZE + 1 && value_.back() == COMPRESSED_FLAG)
+    {
+        value_.resize(SIZE);
+        compressed_ = true;
+    }
+    valid_ = valid && isValid();
 }
 
 PrivateKey::PrivateKey(std::vector<uint8_t> const & k)
     : value_(k)
+    , compressed_(false)
 {
     valid_ = isValid();
 }
 
 PrivateKey::PrivateKey(uint8_t const * k)
     : value_(k, k+SIZE)
+    , compressed_(false)
 {
     valid_ = isValid();
 }
 
 std::string PrivateKey::toWif(unsigned version) const
 {
-    return Base58Check::encode(value_, version);
+    if (compressed_)
+    {
+        std::vector<uint8_t> extended = value_;
+        extended.push_back(COMPRESSED_FLAG);
+        return Base58Check::encode(extended, version);
+    }
+    else
+    {
+        return Base58Check::encode(value_, version);
+    }
 }
 
 std::string PrivateKey::toHex() const

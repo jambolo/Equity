@@ -12,7 +12,7 @@ int TestAddress()
 {
     int errors = 0;
 
-    printf("Address\n");
+    printf("+-- Address\n");
 
     struct TestInput
     {
@@ -34,7 +34,7 @@ int TestAddress()
     };
     static size_t const CASES_SIZE = sizeof(CASES) / sizeof(TestInput);
 
-    printf("+-- testing: Address(uint8_t const * k)\n");
+    printf("    +-- testing: Address(uint8_t const * k)\n");
 
     for (int i = 0; i < CASES_SIZE; ++i)
     {
@@ -46,16 +46,16 @@ int TestAddress()
             std::equal(value.begin(), value.end(), CASES[i].data) &&
             result.toString(CASES[i].version) == CASES[i].stringForm)
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, CASES[i].stringForm, result.toString(CASES[i].version).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, CASES[i].stringForm, result.toString(CASES[i].version).c_str());
             ++errors;
         }
     }
 
-    printf("+-- testing: Address(std::string const & s)\n");
+    printf("    +-- testing: Address(std::string const & s)\n");
 
     struct StringValidityTestInput
     {
@@ -77,11 +77,11 @@ int TestAddress()
         Address result(STRING_VALIDITY_CASES[i].data);
         if (result.valid() == STRING_VALIDITY_CASES[i].expected)
         {
-            printf("    +-- %c: ok\n", 'A' + i);
+            printf("        +-- %c: ok\n", 'A' + i);
         }
         else
         {
-            printf("    +-- %c: error, expected \"%s\" when constructing \"%s\"\n", 'A' + i, STRING_VALIDITY_CASES[i].expected ? "true" : "false", STRING_VALIDITY_CASES[i].data);
+            printf("        +-- %c: expected \"%s\" when constructing \"%s\"\n", 'A' + i, STRING_VALIDITY_CASES[i].expected ? "true" : "false", STRING_VALIDITY_CASES[i].data);
             ++errors;
         }
     }
@@ -94,16 +94,16 @@ int TestAddress()
             value.size() == CASES[i].size &&
             std::equal(value.begin(), value.end(), CASES[i].data))
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(CASES[i].data, CASES[i].data + CASES[i].size)).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(CASES[i].data, CASES[i].data + CASES[i].size)).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }
 
-    printf("+-- testing: Address(PublicKey const & publicKey)\n");
+    printf("    +-- testing: Address(PublicKey const & publicKey)\n");
 
     struct PublicKeyInput
     {
@@ -141,11 +141,11 @@ int TestAddress()
             value.size() == Address::SIZE &&
             result.toString(MAIN_NETWORK_ID) == PUBLIC_KEY_CASES[i].address)
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, PUBLIC_KEY_CASES[i].address, result.toString(MAIN_NETWORK_ID).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, PUBLIC_KEY_CASES[i].address, result.toString(MAIN_NETWORK_ID).c_str());
             ++errors;
         }
     }

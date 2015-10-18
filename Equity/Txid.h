@@ -4,6 +4,13 @@
 
 namespace Equity {
 
-    typedef Crypto::Sha256Hash Txid;
+    struct Txid : public Crypto::Sha256Hash
+    {
+        Txid(std::string const & json);
+
+        void serialize(std::vector<uint8_t> & out) const;
+        std::string toHex() const;
+        std::string toJson() const;
+    };
 
 }

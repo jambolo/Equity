@@ -13,9 +13,9 @@ int TestPublicKey()
 {
     int errors = 0;
 
-    printf("PublicKey\n");
+    printf("+-- PublicKey\n");
 
-     printf("+-- testing: PublicKey(uint8_t const * k)\n");
+    printf("    +-- testing: PublicKey(uint8_t const * k)\n");
 
    struct PublicKeyInput
     {
@@ -48,16 +48,16 @@ int TestPublicKey()
             value.size() == PublicKey::SIZE &&
             std::equal(value.begin(), value.end(), PUBLIC_KEY_CASES[i].data))
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(PUBLIC_KEY_CASES[i].data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(PUBLIC_KEY_CASES[i].data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }
 
-    printf("+-- testing: PublicKey(PrivateKey const & k)\n");
+    printf("    +-- testing: PublicKey(PrivateKey const & k)\n");
 
     struct PrivateKeyInput
     {
@@ -107,11 +107,11 @@ int TestPublicKey()
             value.size() == PublicKey::SIZE &&
             std::equal(value.begin(), value.end(), PRIVATE_KEY_CASES[i].expected))
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(PRIVATE_KEY_CASES[i].expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(PRIVATE_KEY_CASES[i].expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }

@@ -60,24 +60,24 @@ int TestBase58()
     };
     static size_t const DECODE_VALIDITY_CASES_SIZE = sizeof(DECODE_VALIDITY_CASES) / sizeof(DecodeValidityTestInput);
 
-    printf("Base58\n");
+    printf("+-- Base58\n");
 
-    printf("+-- testing: std::string encode(uint8_t const * input, size_t length)\n");
+    printf("    +-- testing: std::string encode(uint8_t const * input, size_t length)\n");
     for (int i = 0; i < ENCODE_CASES_SIZE; ++i)
     {
         std::string result = Base58::encode(ENCODE_CASES[i].data, ENCODE_CASES[i].size);
         if (result == ENCODE_CASES[i].stringForm)
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, ENCODE_CASES[i].stringForm, result.c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, ENCODE_CASES[i].stringForm, result.c_str());
             ++errors;
         }
     }
 
-    printf("+-- testing: bool decode(char const * input, std::vector<uint8_t> & output)\n");
+    printf("    +-- testing: bool decode(char const * input, std::vector<uint8_t> & output)\n");
     for (int i = 0; i < DECODE_VALIDITY_CASES_SIZE; ++i)
     {
         std::vector<uint8_t> resultVector;
@@ -85,11 +85,11 @@ int TestBase58()
         bool ok = Base58::decode(DECODE_VALIDITY_CASES[i].data, resultVector);
         if (ok == DECODE_VALIDITY_CASES[i].expected)
         {
-            printf("    +-- %c: ok\n", 'A' + i);
+            printf("        +-- %c: ok\n", 'A' + i);
         }
         else
         {
-            printf("    +-- %c: error, expected \"%s\" when decoding \"%s\"\n", 'A' + i, DECODE_VALIDITY_CASES[i].expected ? "true" : "false", DECODE_VALIDITY_CASES[i].data);
+            printf("        +-- %c: expected \"%s\" when decoding \"%s\"\n", 'A' + i, DECODE_VALIDITY_CASES[i].expected ? "true" : "false", DECODE_VALIDITY_CASES[i].data);
             ++errors;
         }
     }
@@ -102,11 +102,11 @@ int TestBase58()
             resultVector.size() == DECODE_CASES[i].size &&
             std::equal(resultVector.begin(), resultVector.end(), DECODE_CASES[i].data))
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(DECODE_CASES[i].data, DECODE_CASES[i].data + DECODE_CASES[i].size)).c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(DECODE_CASES[i].data, DECODE_CASES[i].data + DECODE_CASES[i].size)).c_str(), Utility::vtox(resultVector).c_str());
             ++errors;
         }
     }

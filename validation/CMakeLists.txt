@@ -5,4 +5,4 @@ set(SOURCES
 
 include_directories(..)
 
-add_library(validate ${SOURCES})
+add_library(validation ${SOURCES})

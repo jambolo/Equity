@@ -7,7 +7,7 @@ extern int TestCrypto();
 extern int TestEquity();
 extern int TestNetwork();
 extern int TestUtility();
-extern int TestValidate();
+extern int TestValidation();
 
 int main(int argc, char* argv[])
 {
@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     errors += TestEquity();
     errors += TestNetwork();
     errors += TestUtility();
-    errors += TestValidate();
+    errors += TestValidation();
 
     printf("\n%d errors\n", errors);
     return 0;

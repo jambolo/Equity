@@ -20,5 +20,33 @@ namespace Utility
     //! Converts a hex string to a vector
     std::vector<uint8_t> xtov(char const * x, size_t length);
 
+    //! Converts a hex JSON string value to a vector
+    std::vector<uint8_t> jtov(std::string const & j);
+
+    //! Converts a generic vector to a JSON array value
+    template <typename T>
+    std::string toJson(std::vector<T> const & v)
+    {
+        std::string json;
+        json += '[';
+        std::vector<T>::const_iterator i = v.begin();
+        if (i != v.end())
+        {
+            json += i->toJson();
+            ++i;
+        }
+        for (; i != v.end(); ++i)
+        {
+            json += ',';
+            json += i->toJson();
+        }
+        json += ']';
+        return json;
+    }
+
+    //! Converts a vector of bytes to a hex JSON string value
+    template <> std::string toJson<uint8_t>(std::vector<uint8_t> const & v);
+
+
 
 } // namespace Utility

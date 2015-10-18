@@ -23,13 +23,16 @@ static int xtoi(unsigned x)
         std::string vtox(std::vector<uint8_t> const & v)
         {
             if (v.empty())
-                return std::string();
-
-            return vtox(&v[0], v.size());
+                return vtox(NULL, 0);
+            else
+                return vtox(&v[0], v.size());
         }
 
         std::string vtox(uint8_t const * v, size_t length)
         {
+            if (length == 0)
+                return std::string();
+
             std::string x;
             x.reserve(length * 2);
 
@@ -53,6 +56,9 @@ static int xtoi(unsigned x)
 
         std::vector<uint8_t> xtov(char const * x, size_t length)
         {
+            if (length == 0)
+                return std::vector<uint8_t>();
+
             std::vector<uint8_t> v;
             v.reserve(length / 2);
 
@@ -88,6 +94,24 @@ static int xtoi(unsigned x)
             return last[0];
         }
 
+        static std::string const DOUBLE_QUOTE("\"");
+        static std::string const EMPTY_JSON_STRING("\"\"");
 
+        std::string toJson(std::vector<uint8_t> const & v)
+        {
+            if (v.empty())
+                return EMPTY_JSON_STRING;
+            else
+                return DOUBLE_QUOTE + vtox(v) + DOUBLE_QUOTE;
+        }
+
+
+        std::vector<uint8_t> jtov(std::string const & j)
+        {
+            if (j.length() < 3 || j.front() != '\"' || j.back() != '\"')
+                return std::vector<uint8_t>();
+            else
+                return xtov(j.data()+1, j.length() - 2);
+        }
 
     } // namespace Utility

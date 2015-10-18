@@ -48,24 +48,24 @@ int TestBase58Check()
     };
     static size_t const DECODE_VALIDITY_CASES_SIZE = sizeof(DECODE_VALIDITY_CASES) / sizeof(DecodeValidityTestInput);
 
-    printf("Base58Check\n");
+    printf("+-- Base58Check\n");
 
-    printf("+-- testing: std::string encode(uint8_t const * input, size_t length, unsigned version)\n");
+    printf("    +-- testing: std::string encode(uint8_t const * input, size_t length, unsigned version)\n");
     for (int i = 0; i < CASES_SIZE; ++i)
     {
         std::string result = Base58Check::encode(CASES[i].data, CASES[i].size, CASES[i].version);
         if (result == CASES[i].stringForm)
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, CASES[i].stringForm, result.c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, CASES[i].stringForm, result.c_str());
             ++errors;
         }
     }
 
-    printf("+-- testing: bool decode(char const * input, std::vector<uint8_t> & output, unsigned & version)\n");
+    printf("    +-- testing: bool decode(char const * input, std::vector<uint8_t> & output, unsigned & version)\n");
     for (int i = 0; i < DECODE_VALIDITY_CASES_SIZE; ++i)
     {
         std::vector<uint8_t> resultVector;
@@ -74,11 +74,11 @@ int TestBase58Check()
         bool ok = Base58Check::decode(DECODE_VALIDITY_CASES[i].data, resultVector, resultVersion);
         if (ok == DECODE_VALIDITY_CASES[i].expected)
         {
-            printf("    +-- %c: ok\n", 'A' + i);
+            printf("        +-- %c: ok\n", 'A' + i);
         }
         else
         {
-            printf("    +-- %c: error, expected \"%s\" when decoding \"%s\"\n", 'A' + i, DECODE_VALIDITY_CASES[i].expected ? "true" : "false", DECODE_VALIDITY_CASES[i].data);
+            printf("        +-- %c: expected \"%s\" when decoding \"%s\"\n", 'A' + i, DECODE_VALIDITY_CASES[i].expected ? "true" : "false", DECODE_VALIDITY_CASES[i].data);
             ++errors;
         }
     }
@@ -93,11 +93,11 @@ int TestBase58Check()
             std::equal(resultVector.begin(), resultVector.end(), CASES[i].data) &&
             resultVersion == CASES[i].version)
         {
-            printf("    +-- %d: ok\n", i);
+            printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("    +-- %d: error, expected \"%s\", got \"%s\"\n", i, Utility::vtox(CASES[i].data, CASES[i].size).c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(CASES[i].data, CASES[i].size).c_str(), Utility::vtox(resultVector).c_str());
             ++errors;
         }
     }

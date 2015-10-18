@@ -4,22 +4,27 @@
 #include <cstdint>
 
 #include <crypto/Sha256.h>
+#include "Txid.h"
 
 namespace Equity {
 
     class Transaction
     {
     public:
-        Transaction();
-        ~Transaction();
-
-        std::vector<uint8_t> serialize();
         struct Input
         {
-            Crypto::Sha256Hash transaction;
+            Txid txid;
             uint32_t outputIndex;
             std::vector<uint8_t> script;
             uint32_t sequence;
+
+            Input();
+            Input(std::string const & json);
+            Input(std::vector<uint8_t> const & v);
+
+            void serialize(std::vector<uint8_t> & out) const;
+            std::string toHex() const;
+            std::string toJson() const;
         };
         typedef std::vector<Input> InputList;
 
@@ -27,13 +32,30 @@ namespace Equity {
         {
             uint64_t value;
             std::vector<uint8_t> script;
+
+            Output() {}
+            Output(std::string const & json);
+            Output(std::vector<uint8_t> const & v);
+
+            void serialize(std::vector<uint8_t> & out) const;
+            std::string toHex() const;
+            std::string toJson() const;
         };
         typedef std::vector<Output> OutputList;
+
+        Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime);
+        Transaction(std::string const & json);
+        Transaction(std::vector<uint8_t> const & v);
+
+        void serialize(std::vector<uint8_t> & out) const;
+        std::string toHex() const;
+        std::string toJson() const;
 
         int version() const         { return version_; }
         InputList inputs() const    { return inputs_; }
         OutputList outputs() const  { return outputs_; }
         uint32_t lockTime() const   { return lockTime_; }
+        bool valid() const          { return valid_; }
 
     private:
 
@@ -41,6 +63,7 @@ namespace Equity {
         InputList inputs_;
         OutputList outputs_;
         uint32_t lockTime_;
+        bool valid_;
     };
 
 }

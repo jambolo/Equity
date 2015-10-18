@@ -1,29 +1,56 @@
+FILE(GLOB CRYPTO_TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/*.h
+)
+SOURCE_GROUP(crypto FILES ${CRYPTO_TESTS})
+
+FILE(GLOB EQUITY_TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/equity/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/equity/*.h
+)
+SOURCE_GROUP(equity FILES ${EQUITY_TESTS})
+
+FILE(GLOB NETWORK_TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h
+)
+SOURCE_GROUP(network FILES ${NETWORK_TESTS})
+
+FILE(GLOB VALIDATION_TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/validation/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/validation/*.h
+)
+SOURCE_GROUP(validation FILES ${VALIDATION_TESTS})
+
+FILE(GLOB UTILITY_TESTS
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility/*.h
+)
+SOURCE_GROUP(utility FILES ${UTILITY_TESTS})
+
 set(SOURCES
 	Test.cpp
-    Crypto/TestCrypto.cpp
-    Equity/TestEquity.cpp
-	Equity/TestAddress.cpp
-	Equity/TestBase58.cpp
-	Equity/TestBase58Check.cpp
-	Equity/TestPrivateKey.cpp
-	Equity/TestPublicKey.cpp
-    Network/TestNetwork.cpp
-    Validate/TestValidate.cpp
-    Utility/TestUtility.cpp
+    ${CRYPTO_TESTS}
+    ${EQUITY_TESTS}
+    ${NETWORK_TESTS}
+    ${VALIDATION_TESTS}
+    ${UTILITY_TESTS}
 )
+
+add_executable(equity-test ${SOURCES})
 
 include_directories(..)
 
-add_executable(equity_test ${SOURCES})
-
-target_link_libraries(equity_test
-    equity
+target_link_libraries(equity-test
     crypto
+    equity
+	network
+	validation
     utility
 )
 
 find_package (OpenSSL)
 if (OPENSSL_FOUND)
   include_directories(${OPENSSL_INCLUDE_DIR})
-  target_link_libraries (equity_test ${OPENSSL_LIBRARIES})
+  target_link_libraries (equity-test ${OPENSSL_LIBRARIES})
 endif (OPENSSL_FOUND)

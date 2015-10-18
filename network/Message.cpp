@@ -1,6 +1,6 @@
 #include "Message.h"
 
-#include "equity/Utility.h"
+#include "utility/Serialize.h"
 
 using namespace Network;
 
@@ -18,9 +18,9 @@ void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_
     Crypto::Sha256Hash check = Crypto::sha256(payload);
     check.resize(4);
 
-    Equity::Utility::serialize(magic_, out);
-    Equity::Utility::serialize(commandBuffer, out);
-    Equity::Utility::serialize((uint32_t)payload.size(), out);
-    Equity::Utility::serialize(check, out);
-    Equity::Utility::serialize(payload, out);
+    Utility::serialize(magic_, out);
+    Utility::serialize(commandBuffer, out);
+    Utility::serialize((uint32_t)payload.size(), out);
+    Utility::serialize(check, out);
+    Utility::serialize(payload, out);
 }
