@@ -1,7 +1,7 @@
 #include "Transaction.h"
 
-#include "utility\Serialize.h"
-#include "utility\Utility.h"
+#include "utility/Serialize.h"
+#include "utility/Utility.h"
 
 using namespace Equity;
 

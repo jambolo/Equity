@@ -32,27 +32,40 @@ int TestAddress()
         { TEST_NETWORK_ID, 20, { 0x09, 0x66, 0x77, 0x60, 0x06, 0x95, 0x3D, 0x55, 0x67, 0x43, 0x9E, 0x5E, 0x39, 0xF8, 0x6A, 0x0D, 0x27, 0x3B, 0xEE, 0x01 }, "2Mt6vpVdNZziX6xefS5BWZQ5PjGH9cabz7v" },
         { P2SH_NETWORK_ID, 20, { 0x66, 0x77, 0x60, 0x06, 0x95, 0x3D, 0x55, 0x67, 0x43, 0x9E, 0x5E, 0x39, 0xF8, 0x6A, 0x0D, 0x27, 0x3B, 0xEE, 0x01, 0x09 }, "3B2orSMAV7jhCgubX9NphAA2uXkFkeJ61y" },
     };
-    static size_t const CASES_SIZE = sizeof(CASES) / sizeof(TestInput);
 
     printf("    +-- testing: Address(uint8_t const * k)\n");
 
-    for (int i = 0; i < CASES_SIZE; ++i)
+    int i = 0;
+    for (auto c : CASES)
     {
-        Address result(CASES[i].data);
+        Address result(c.data);
         std::vector<uint8_t> value = result.value();
 
-        if (result.valid() &&
-            value.size() == CASES[i].size &&
-            std::equal(value.begin(), value.end(), CASES[i].data) &&
-            result.toString(CASES[i].version) == CASES[i].stringForm)
+        if (!result.valid())
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %d: not valid\n", i);
+            ++errors;
+        }
+        else if (value.size() != c.size)
+        {
+            printf("        +-- %d: expected size of %u, got %u\n", i, (unsigned)c.size, (unsigned)value.size());
+            ++errors;
+        }
+        else if (!std::equal(value.begin(), value.end(), c.data))
+        {
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.stringForm, result.toString(c.version).c_str());
+            ++errors;
+        }
+        else if (result.toString(c.version) != c.stringForm)
+        {
+            printf("        +-- %d: expected address \"%s\", got \"%s\"\n", i, c.stringForm, result.toString(c.version).c_str());
+            ++errors;
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, CASES[i].stringForm, result.toString(CASES[i].version).c_str());
-            ++errors;
+            printf("        +-- %d: ok\n", i);
         }
+        ++i;
     }
 
     printf("    +-- testing: Address(std::string const & s)\n");
@@ -70,35 +83,35 @@ int TestAddress()
         { "1iEMistU6HpJwnLgUixyZYvURF28JGhxvSx", false },   // one byte too big
         { "1BadxxxxxxxxxxxxxxxxxxxxxxxvvKy2F", false }      // invalid checksum
     };
-    static size_t const STRING_VALIDITY_CASES_SIZE = sizeof(STRING_VALIDITY_CASES) / sizeof(StringValidityTestInput);
 
-    for (int i = 0; i < STRING_VALIDITY_CASES_SIZE; ++i)
+    i = 0;
+    for (auto c : STRING_VALIDITY_CASES)
     {
-        Address result(STRING_VALIDITY_CASES[i].data);
-        if (result.valid() == STRING_VALIDITY_CASES[i].expected)
+        Address result(c.data);
+        if (result.valid() == c.expected)
         {
             printf("        +-- %c: ok\n", 'A' + i);
         }
         else
         {
-            printf("        +-- %c: expected \"%s\" when constructing \"%s\"\n", 'A' + i, STRING_VALIDITY_CASES[i].expected ? "true" : "false", STRING_VALIDITY_CASES[i].data);
+            printf("        +-- %c: expected \"%s\" when constructing \"%s\"\n", 'A' + i, c.expected ? "true" : "false", c.data);
             ++errors;
         }
     }
-    for (int i = 0; i < CASES_SIZE; ++i)
+    for (auto c : CASES)
     {
-        Address result(CASES[i].stringForm);
+        Address result(c.stringForm);
         std::vector<uint8_t> value = result.value();
 
         if (result.valid() &&
-            value.size() == CASES[i].size &&
-            std::equal(value.begin(), value.end(), CASES[i].data))
+            value.size() == c.size &&
+            std::equal(value.begin(), value.end(), c.data))
         {
             printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(CASES[i].data, CASES[i].data + CASES[i].size)).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(c.data, c.data + c.size)).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }
@@ -130,22 +143,21 @@ int TestAddress()
             "1JwSSubhmg6iPtRjtyqhUYYH7bZg3Lfy1T"
         }
     };
-    static size_t const PUBLIC_KEY_CASES_SIZE = sizeof(PUBLIC_KEY_CASES) / sizeof(PublicKeyInput);
 
-    for (int i = 0; i < PUBLIC_KEY_CASES_SIZE; ++i)
+    for (auto c : PUBLIC_KEY_CASES)
     {
-        Address result(PublicKey(PUBLIC_KEY_CASES[i].publicKey));
+        Address result(PublicKey(c.publicKey));
         std::vector<uint8_t> value = result.value();
 
         if (result.valid() &&
             value.size() == Address::SIZE &&
-            result.toString(MAIN_NETWORK_ID) == PUBLIC_KEY_CASES[i].address)
+            result.toString(MAIN_NETWORK_ID) == c.address)
         {
             printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, PUBLIC_KEY_CASES[i].address, result.toString(MAIN_NETWORK_ID).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.address, result.toString(MAIN_NETWORK_ID).c_str());
             ++errors;
         }
     }

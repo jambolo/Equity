@@ -25,9 +25,9 @@ namespace Utility
         void serialize(std::vector<uint8_t> & out)
         {
             VarInt(vector_.size()).serialize(out);
-            for (typename std::vector<T>::const_iterator i = vector_.begin(); i != vector_.end(); ++i)
+            for (auto element : vector_)
             {
-                i->serialize(out);
+                element.serialize(out);
             }
         }
     private:

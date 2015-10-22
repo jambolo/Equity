@@ -37,22 +37,21 @@ int TestPublicKey()
             0x3C, 0x8E, 0x07, 0x2C, 0xD0, 0x9B, 0x38, 0x34, 0xA1, 0x9F, 0x81, 0xF6, 0x59, 0xCC, 0x34, 0x55
         } }
     };
-    static size_t const PUBLIC_KEY_CASES_SIZE = sizeof(PUBLIC_KEY_CASES) / sizeof(PublicKeyInput);
 
-    for (int i = 0; i < PUBLIC_KEY_CASES_SIZE; ++i)
+    for (auto c : PUBLIC_KEY_CASES)
     {
-        PublicKey result(PUBLIC_KEY_CASES[i].data);
+        PublicKey result(c.data);
         std::vector<uint8_t> value = result.value();
 
         if (result.valid() &&
             value.size() == PublicKey::SIZE &&
-            std::equal(value.begin(), value.end(), PUBLIC_KEY_CASES[i].data))
+            std::equal(value.begin(), value.end(), c.data))
         {
             printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(PUBLIC_KEY_CASES[i].data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }
@@ -96,22 +95,20 @@ int TestPublicKey()
         }
     };
 
-    static size_t const PRIVATE_KEY_CASES_SIZE = sizeof(PRIVATE_KEY_CASES) / sizeof(PrivateKeyInput);
-
-    for (int i = 0; i < PRIVATE_KEY_CASES_SIZE; ++i)
+    for (auto c : PRIVATE_KEY_CASES)
     {
-        PublicKey result(PrivateKey(PRIVATE_KEY_CASES[i].privateKey));
+        PublicKey result(PrivateKey(c.privateKey));
         std::vector<uint8_t> value = result.value();
 
         if (result.valid() &&
             value.size() == PublicKey::SIZE &&
-            std::equal(value.begin(), value.end(), PRIVATE_KEY_CASES[i].expected))
+            std::equal(value.begin(), value.end(), c.expected))
         {
             printf("        +-- %d: ok\n", i);
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(PRIVATE_KEY_CASES[i].expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
     }

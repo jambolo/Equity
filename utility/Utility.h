@@ -29,7 +29,7 @@ namespace Utility
     {
         std::string json;
         json += '[';
-        std::vector<T>::const_iterator i = v.begin();
+        typename std::vector<T>::const_iterator i = v.begin();
         if (i != v.end())
         {
             json += i->toJson();

@@ -16,7 +16,6 @@ static uint8_t const MAX_PRIVATE_KEY[] =
     0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
     0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x40
 };
-static size_t const MAX_PRIVATE_KEY_SIZE = sizeof(MAX_PRIVATE_KEY);
 
 PrivateKey::PrivateKey(std::string const & wif)
     : compressed_(false)
@@ -79,7 +78,7 @@ bool PrivateKey::isValid()
     }
 
     std::shared_ptr<BIGNUM> maxPrivateKey(BN_new(), BN_free);
-    BN_bin2bn(&MAX_PRIVATE_KEY[0], (int)MAX_PRIVATE_KEY_SIZE, maxPrivateKey.get());
+    BN_bin2bn(MAX_PRIVATE_KEY, (int)sizeof(MAX_PRIVATE_KEY), maxPrivateKey.get());
 
     if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
     {
