@@ -56,32 +56,32 @@ int TestPrivateKey()
 
         if (!result.valid())
         {
-            printf("        +-- %d: not valid\n", i);
+            printf("        +== %s: not valid\n", c.wif);
             ++errors;
         }
         else if (value.size() != PrivateKey::SIZE)
         {
-            printf("        +-- %d: expected size = %u, got size = %u", i, (unsigned)PrivateKey::SIZE, (unsigned)value.size());
+            printf("        +== %s: expected size = %u, got size = %u", c.wif, (unsigned)PrivateKey::SIZE, (unsigned)value.size());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.data, 32).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: got \"%s\"\n", Utility::vtox(c.data, 32).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
         else if (result.toWif(BITCOIN_PRIVATE_KEY_VERSION) != c.wif)
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.wif, result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
+            printf("        +== %s: got \"%s\"\n", c.wif, result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
             ++errors;
         }
         else if (result.compressed())
         {
-            printf("        +-- %d: expected not compressed, got compressed\n", i);
+            printf("        +== %s: expected not compressed, got compressed\n", c.wif);
             ++errors;
         }
         else
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %s: ok\n", c.wif);
         }
     }
 
@@ -103,15 +103,16 @@ int TestPrivateKey()
 
     for (auto c : STRING_VALIDITY_CASES)
     {
+        std::string name = Utility::shorten(c.data);
         PrivateKey result(c.data);
         if (result.valid() != c.expected)
         {
-            printf("        +-- %c: expected \"%s\" when constructing \"%s\"\n", 'A' + i, c.expected ? "true" : "false", c.data);
+            printf("        +== %s: expected valid = \"%s\"\n", name.c_str(), c.expected ? "true" : "false");
             ++errors;
         }
         else
         {
-            printf("        +-- %c: ok\n", 'A' + i);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 
@@ -119,32 +120,33 @@ int TestPrivateKey()
 
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.wif);
         std::vector<uint8_t> value = result.value();
 
         if (!result.valid())
         {
-            printf("        +-- %d: not valid\n", i);
+            printf("        +== %s: not valid\n", name.c_str());
             ++errors;
         }
         else if (value.size() != PrivateKey::SIZE)
         {
-            printf("        +-- %d: expected size = %u, got size = %u\n", i, (unsigned)PrivateKey::SIZE, (unsigned)value.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)PrivateKey::SIZE, (unsigned)value.size());
             ++errors;
         }
         else if (result.compressed())
         {
-            printf("        +-- %d: expected not compressed, got compressed\n", i);
+            printf("        +== %s: expected not compressed, got compressed\n", name.c_str());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 
@@ -152,33 +154,34 @@ int TestPrivateKey()
 
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(c.wifCompressed);
         PrivateKey result(c.wifCompressed);
 
         std::vector<uint8_t> value = result.value();
 
         if (!result.valid())
         {
-            printf("        +-- %d: not valid\n", i);
+            printf("        +== %s: not valid\n", name.c_str());
             ++errors;
         }
         else if (value.size() != PrivateKey::SIZE)
         {
-            printf("        +-- %d: expected size = %u, got size = %u\n", i, (unsigned)PrivateKey::SIZE, (unsigned)value.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)PrivateKey::SIZE, (unsigned)value.size());
             ++errors;
         }
         else if (!result.compressed())
         {
-            printf("        +-- %d: expected compressed, got not compressed\n", i);
+            printf("        +== %s: expected compressed, got not compressed\n", name.c_str());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 
@@ -186,22 +189,23 @@ int TestPrivateKey()
 
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.data);
         result.setCompressed(false);
 
         if (result.compressed())
         {
-            printf("        +-- %d: expected not compressed, got compressed\n", i);
+            printf("        +== %s: expected not compressed, got compressed\n", name.c_str());
             ++errors;
         }
         else if (result.toWif(BITCOIN_PRIVATE_KEY_VERSION) != c.wif)
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.wif, result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
+            printf("        +== %s: got \"%s\"\n", name.c_str(), result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 
@@ -209,22 +213,23 @@ int TestPrivateKey()
 
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.data);
         result.setCompressed(true);
 
         if (!result.compressed())
         {
-            printf("        +-- %d: expected compressed, got not compressed\n", i);
+            printf("        +-- %s: expected compressed, got not compressed\n", name.c_str());
             ++errors;
         }
         else if (result.toWif(BITCOIN_PRIVATE_KEY_VERSION) != c.wifCompressed)
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.wifCompressed, result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
+            printf("        +-- %s: expected \"%s\", got \"%s\"\n", name.c_str(), c.wifCompressed, result.toWif(BITCOIN_PRIVATE_KEY_VERSION).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 

@@ -51,64 +51,67 @@ int TestBase58Check()
     printf("    +-- testing: std::string encode(uint8_t const * input, size_t length, unsigned version)\n");
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(c.stringForm);
         std::string result = Base58Check::encode(c.data, c.size, c.version);
         if (result != c.stringForm)
         {
-            printf("        +== \"%s\": got \"%s\"\n", c.stringForm, result.c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), c.stringForm, result.c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- \"%s\": ok\n", c.stringForm);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 
     printf("    +-- testing: bool decode(char const * input, std::vector<uint8_t> & output, unsigned & version)\n");
     for (auto c : DECODE_VALIDITY_CASES)
     {
+        std::string name = Utility::shorten(c.data);
         std::vector<uint8_t> resultVector;
         unsigned resultVersion;
 
         bool ok = Base58Check::decode(c.data, resultVector, resultVersion);
         if (ok != c.expected)
         {
-            printf("        +== \"%s\": expected \"%s\"\n", c.data, c.expected ? "true" : "false");
+            printf("        +== %s: expected \"%s\"\n", name.c_str(), c.expected ? "true" : "false");
             ++errors;
         }
         else
         {
-            printf("        +-- \"%s\": ok\n", c.data);
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
     for (auto c : CASES)
     {
+        std::string name = Utility::shorten(Utility::vtox(c.data, c.size));
         std::vector<uint8_t> resultVector;
         unsigned resultVersion;
 
         bool ok = Base58Check::decode(c.stringForm, resultVector, resultVersion);
         if (!ok)
         {
-            printf("        +== \"%s\": failed\n", Utility::vtox(c.data, c.size).c_str());
+            printf("        +== %s: failed\n", name.c_str());
             ++errors;
         }
         else if (resultVector.size() != c.size)
         {
-            printf("        +== \"%s\": expected size %u, got %u\n", Utility::vtox(c.data, c.size).c_str(), (unsigned)c.size, (unsigned)resultVector.size());
+            printf("        +== %s: expected size %u, got %u\n", name.c_str(), (unsigned)c.size, (unsigned)resultVector.size());
             ++errors;
         }
         else if (!std::equal(resultVector.begin(), resultVector.end(), c.data))
         {
-            printf("        +== \"%s\": got \"%s\"\n", Utility::vtox(c.data, c.size).c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +== %s: got \"%s\"\n", name.c_str(), Utility::vtox(resultVector).c_str());
             ++errors;
         }
         else if (resultVersion != c.version)
         {
-            printf("        +== \"%s\": expected version %d, got %d\n", Utility::vtox(c.data, c.size).c_str(), c.version, resultVersion);
+            printf("        +== %s: expected version %d, got %d\n", name.c_str(), c.version, resultVersion);
             ++errors;
         }
         else
         {
-            printf("        +-- \"%s\": ok\n", Utility::vtox(c.data, c.size).c_str());
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 

@@ -8,12 +8,6 @@
 
 using namespace Equity;
 
-int TestAddress()
-{
-    int errors = 0;
-
-    printf("+-- Address\n");
-
     struct TestInput
     {
         unsigned version;
@@ -33,43 +27,6 @@ int TestAddress()
         { P2SH_NETWORK_ID, 20, { 0x66, 0x77, 0x60, 0x06, 0x95, 0x3D, 0x55, 0x67, 0x43, 0x9E, 0x5E, 0x39, 0xF8, 0x6A, 0x0D, 0x27, 0x3B, 0xEE, 0x01, 0x09 }, "3B2orSMAV7jhCgubX9NphAA2uXkFkeJ61y" },
     };
 
-    printf("    +-- testing: Address(uint8_t const * k)\n");
-
-    int i = 0;
-    for (auto c : CASES)
-    {
-        Address result(c.data);
-        std::vector<uint8_t> value = result.value();
-
-        if (!result.valid())
-        {
-            printf("        +-- %d: not valid\n", i);
-            ++errors;
-        }
-        else if (value.size() != c.size)
-        {
-            printf("        +-- %d: expected size of %u, got %u\n", i, (unsigned)c.size, (unsigned)value.size());
-            ++errors;
-        }
-        else if (!std::equal(value.begin(), value.end(), c.data))
-        {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.stringForm, result.toString(c.version).c_str());
-            ++errors;
-        }
-        else if (result.toString(c.version) != c.stringForm)
-        {
-            printf("        +-- %d: expected address \"%s\", got \"%s\"\n", i, c.stringForm, result.toString(c.version).c_str());
-            ++errors;
-        }
-        else
-        {
-            printf("        +-- %d: ok\n", i);
-        }
-        ++i;
-    }
-
-    printf("    +-- testing: Address(std::string const & s)\n");
-
     struct StringValidityTestInput
     {
         char const * data;
@@ -83,40 +40,6 @@ int TestAddress()
         { "1iEMistU6HpJwnLgUixyZYvURF28JGhxvSx", false },   // one byte too big
         { "1BadxxxxxxxxxxxxxxxxxxxxxxxvvKy2F", false }      // invalid checksum
     };
-
-    i = 0;
-    for (auto c : STRING_VALIDITY_CASES)
-    {
-        Address result(c.data);
-        if (result.valid() == c.expected)
-        {
-            printf("        +-- %c: ok\n", 'A' + i);
-        }
-        else
-        {
-            printf("        +-- %c: expected \"%s\" when constructing \"%s\"\n", 'A' + i, c.expected ? "true" : "false", c.data);
-            ++errors;
-        }
-    }
-    for (auto c : CASES)
-    {
-        Address result(c.stringForm);
-        std::vector<uint8_t> value = result.value();
-
-        if (result.valid() &&
-            value.size() == c.size &&
-            std::equal(value.begin(), value.end(), c.data))
-        {
-            printf("        +-- %d: ok\n", i);
-        }
-        else
-        {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(std::vector<uint8_t>(c.data, c.data + c.size)).c_str(), Utility::vtox(value).c_str());
-            ++errors;
-        }
-    }
-
-    printf("    +-- testing: Address(PublicKey const & publicKey)\n");
 
     struct PublicKeyInput
     {
@@ -144,21 +67,116 @@ int TestAddress()
         }
     };
 
-    for (auto c : PUBLIC_KEY_CASES)
+int TestAddress()
+{
+    int errors = 0;
+
+    printf("+-- Address\n");
+
+    printf("    +-- testing: Address(uint8_t const * k)\n");
+
+    for (auto c : CASES)
     {
-        Address result(PublicKey(c.publicKey));
+        std::string name = Utility::shorten(c.stringForm);
+
+        Address result(c.data);
         std::vector<uint8_t> value = result.value();
 
-        if (result.valid() &&
-            value.size() == Address::SIZE &&
-            result.toString(MAIN_NETWORK_ID) == c.address)
+        if (!result.valid())
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +== %s: not valid\n", name.c_str());
+            ++errors;
+        }
+        else if (value.size() != c.size)
+        {
+            printf("        +== %s: expected size of %u, got %u\n", name.c_str(), (unsigned)c.size, (unsigned)value.size());
+            ++errors;
+        }
+        else if (!std::equal(value.begin(), value.end(), c.data))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), c.stringForm, result.toString(c.version).c_str());
+            ++errors;
+        }
+        else if (result.toString(c.version) != c.stringForm)
+        {
+            printf("        +== %s: expected address \"%s\", got \"%s\"\n", name.c_str(), c.stringForm, result.toString(c.version).c_str());
+            ++errors;
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, c.address, result.toString(MAIN_NETWORK_ID).c_str());
+            printf("        +-- %s: ok\n", name.c_str());
+        }
+    }
+
+    printf("    +-- testing: Address(std::string const & s)\n");
+
+    for (auto c : STRING_VALIDITY_CASES)
+    {
+        std::string name = Utility::shorten(c.data);
+        Address result(c.data);
+        if (result.valid() != c.expected)
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), c.expected ? "true" : "false", result.valid() ? "true" : "false");
             ++errors;
+        }
+        else
+        {
+            printf("        +-- %s: ok\n", name.c_str());
+        }
+    }
+    for (auto c : CASES)
+    {
+        std::string name = Utility::shorten(c.stringForm);
+        Address result(c.stringForm);
+        std::vector<uint8_t> value = result.value();
+
+        if (!result.valid())
+        {
+            printf("        +== %s: not valid\n", name.c_str());
+            ++errors;
+        }
+        else if (value.size() != c.size)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), c.size, value.size());
+            ++errors;
+        }
+        else if (!std::equal(value.begin(), value.end(), c.data))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(std::vector<uint8_t>(c.data, c.data + c.size)).c_str(), Utility::vtox(value).c_str());
+            ++errors;
+        }
+        else
+        {
+            printf("        +-- %s: ok\n", name.c_str());
+        }
+    }
+
+    printf("    +-- testing: Address(PublicKey const & publicKey)\n");
+
+    for (auto c : PUBLIC_KEY_CASES)
+    {
+        std::string name = Utility::shorten(c.address);
+        Address result(PublicKey(c.publicKey));
+        std::vector<uint8_t> value = result.value();
+
+        if (!result.valid())
+        {
+            printf("        +== %s: not valid\n", name.c_str());
+            ++errors;
+        }
+        else if (value.size() != Address::SIZE)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)Address::SIZE, (unsigned)value.size());
+            ++errors;
+        }
+        else if (result.toString(MAIN_NETWORK_ID) != c.address)
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), c.address, result.toString(MAIN_NETWORK_ID).c_str());
+            ++errors;
+        }
+        else
+        {
+            printf("        +-- %s: ok\n", name.c_str());
         }
     }
 

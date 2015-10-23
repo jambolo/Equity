@@ -47,6 +47,8 @@ namespace Utility
     //! Converts a vector of bytes to a hex JSON string value
     template <> std::string toJson<uint8_t>(std::vector<uint8_t> const & v);
 
+    // Shortens a string replacing the middle with ...
+    std::string shorten(std::string const & in, size_t size = 11);
 
 
 } // namespace Utility

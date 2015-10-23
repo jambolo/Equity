@@ -114,4 +114,27 @@ static int xtoi(unsigned x)
                 return xtov(j.data()+1, j.length() - 2);
         }
 
+
+        std::string shorten(std::string const & in, size_t size/* = 11*/)
+        {
+            size_t const ELLIPSIS_SIZE = 3;
+
+            if (size >= in.length())
+            {
+                return in;
+            }
+            else if (size > ELLIPSIS_SIZE)
+            {
+                size_t prefixSize = (size - ELLIPSIS_SIZE + 1) / 2;
+                size_t suffixSize = (size - ELLIPSIS_SIZE) / 2;
+
+                return in.substr(0, prefixSize) + "..." + in.substr(in.length() - suffixSize, suffixSize);
+            }
+            else
+            {
+                return in.substr(0, size);
+            }
+        }
+
+
     } // namespace Utility

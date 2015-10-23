@@ -43,16 +43,24 @@ int TestPublicKey()
         PublicKey result(c.data);
         std::vector<uint8_t> value = result.value();
 
-        if (result.valid() &&
-            value.size() == PublicKey::SIZE &&
-            std::equal(value.begin(), value.end(), c.data))
+        if (!result.valid())
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +== %s: not valid\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str());
+            ++errors;
+        }
+        else if (value.size() != PublicKey::SIZE)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
+            ++errors;
+        }
+        else if (!std::equal(value.begin(), value.end(), c.data))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str(), Utility::vtox(c.data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            ++errors;
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
-            ++errors;
+            printf("        +-- %s: ok\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str());
         }
     }
 
@@ -100,16 +108,24 @@ int TestPublicKey()
         PublicKey result(PrivateKey(c.privateKey));
         std::vector<uint8_t> value = result.value();
 
-        if (result.valid() &&
-            value.size() == PublicKey::SIZE &&
-            std::equal(value.begin(), value.end(), c.expected))
+        if (!result.valid())
         {
-            printf("        +-- %d: ok\n", i);
+            printf("        +== %s: not valid\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str());
+            ++errors;
+        }
+        else if (value.size() != PublicKey::SIZE)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
+            ++errors;
+        }
+        else if (!std::equal(value.begin(), value.end(), c.expected))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str(), Utility::vtox(c.expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            ++errors;
         }
         else
         {
-            printf("        +-- %d: expected \"%s\", got \"%s\"\n", i, Utility::vtox(c.expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
-            ++errors;
+            printf("        +-- %s: ok\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str());
         }
     }
 
