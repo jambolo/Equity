@@ -1,9 +1,7 @@
 #pragma once
 
-#include <string>
 #include <vector>
 #include <cstdint>
-#include <crypto/Sha256.h>
 
 namespace Utility
 {
@@ -12,7 +10,9 @@ namespace Utility
     {
     public:
         VarInt(uint64_t v) : value_(v) {}
+        VarInt(uint8_t const *& in, size_t & size);
         void serialize(std::vector<uint8_t> & out);
+        uint64_t value() const { return value_; }
     private:
         uint64_t value_;
     };
@@ -22,6 +22,24 @@ namespace Utility
     {
     public:
         VarArray(std::vector<T> const & v) : vector_(v) {}
+        VarArray(uint8_t const *& in, size_t & size)
+        {
+            VarInt arraySize(in, size);
+            if (in == nullptr)
+            {
+                return;
+            }
+            vector_.reserve(arraySize.value());
+            for (uint64_t i = 0; i < arraySize.value(); ++i)
+            {
+                T element = deserialize<T>(in, size);
+                if (in == nullptr)
+                {
+                    return;
+                }
+                vector_.push_back(element);
+            }
+        }
         void serialize(std::vector<uint8_t> & out)
         {
             VarInt(vector_.size()).serialize(out);
@@ -30,8 +48,9 @@ namespace Utility
                 element.serialize(out);
             }
         }
+        std::vector<T> value() const { return vector_; }
     private:
-        std::vector<T> const & vector_;
+        std::vector<T> vector_;
     };
     
     template<>
@@ -39,13 +58,28 @@ namespace Utility
     {
     public:
         VarArray(std::vector<uint8_t> const & v) : vector_(v) {}
+        VarArray(uint8_t const *& in, size_t & size)
+        {
+            size_t arraySize = (size_t)VarInt(in, size).value();
+            if (in == nullptr)
+            {
+                return;
+            }
+            if (size >= arraySize)
+            {
+                vector_.assign(in, in + arraySize);
+                in += arraySize;
+                size -= arraySize;
+            }
+        }
         void serialize(std::vector<uint8_t> & out)
         {
             VarInt(vector_.size()).serialize(out);
             out.insert(out.end(), vector_.begin(), vector_.end());
         }
+        std::vector<uint8_t> value() const { return vector_; }
     private:
-        std::vector<uint8_t> const & vector_;
+        std::vector<uint8_t> vector_;
     };
     
     

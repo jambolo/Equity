@@ -20,7 +20,7 @@ namespace Equity {
 
             Input();
             Input(std::string const & json);
-            Input(std::vector<uint8_t> const & v);
+            Input(uint8_t const *& in, size_t & size);
 
             void serialize(std::vector<uint8_t> & out) const;
             std::string toHex() const;
@@ -35,7 +35,7 @@ namespace Equity {
 
             Output() {}
             Output(std::string const & json);
-            Output(std::vector<uint8_t> const & v);
+            Output(uint8_t const *& in, size_t & size);
 
             void serialize(std::vector<uint8_t> & out) const;
             std::string toHex() const;
@@ -45,7 +45,7 @@ namespace Equity {
 
         Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime);
         Transaction(std::string const & json);
-        Transaction(std::vector<uint8_t> const & v);
+        Transaction(uint8_t const *& in, size_t & size);
 
         void serialize(std::vector<uint8_t> & out) const;
         std::string toHex() const;

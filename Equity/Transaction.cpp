@@ -15,6 +15,23 @@ static std::string const INPUTS_LABEL("\"inputs\":");
 static std::string const OUTPUTS_LABEL("\"outputs\":");
 static std::string const LOCKTIME_LABEL("\"locktime\":");
 
+Transaction::Input::Input(uint8_t const *& in, size_t & size)
+{
+    txid = Txid(in, size);
+    if (in == nullptr)
+        return;
+
+    outputIndex = Utility::deserialize<uint32_t>(in, size);
+    if (in == nullptr)
+        return;
+
+    script = Utility::VarArray<uint8_t>(in, size).value();
+    if (in == nullptr)
+        return;
+
+    sequence = Utility::deserialize<uint32_t>(in, size);
+}
+
 std::string Transaction::Input::toJson() const
 {
     std::string json;
@@ -27,6 +44,15 @@ std::string Transaction::Input::toJson() const
     json += '}';
 
     return json;
+}
+
+Transaction::Output::Output(uint8_t const *& in, size_t & size)
+{
+    value = Utility::deserialize<uint64_t>(in, size);
+    if (in == nullptr)
+        return;
+
+    script = Utility::VarArray<uint8_t>(in, size).value();
 }
 
 std::string Transaction::Output::toJson() const
@@ -50,10 +76,30 @@ Transaction::Transaction(int version, InputList const & inputs, OutputList const
 {
 }
 
-Transaction::Transaction(std::vector<uint8_t> const & v)
+Transaction::Transaction(uint8_t const *& in, size_t & size)
     : valid_(false)
 {
+    version_ = Utility::deserialize<uint32_t>(in, size);
+    if (in == nullptr)
+        return;
 
+    // Only version 1 is valid now.
+    if (version_ != 1)
+        return;
+
+    inputs_ = Utility::VarArray<Input>(in, size).value();
+    if (in == nullptr)
+        return;
+
+    outputs_ = Utility::VarArray<Output>(in, size).value();
+    if (in == nullptr)
+        return;
+
+    lockTime_ = Utility::deserialize<uint32_t>(in, size);
+    if (in == nullptr)
+        return;
+
+    valid_ = true;
 }
 
 Transaction::Transaction(std::string const & json)
@@ -64,6 +110,10 @@ Transaction::Transaction(std::string const & json)
 
 void Transaction::serialize(std::vector<uint8_t> & out) const
 {
+    Utility::serialize<uint32_t>(version_, out);
+    Utility::VarArray<Input>(inputs_).serialize(out);
+    Utility::VarArray<Output>(outputs_).serialize(out);
+    Utility::serialize<uint32_t>(lockTime_, out);
 }
 
 std::string Transaction::toHex() const

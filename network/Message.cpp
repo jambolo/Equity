@@ -1,5 +1,6 @@
 #include "Message.h"
 
+#include "crypto/Sha256.h"
 #include "utility/Serialize.h"
 
 using namespace Network;
@@ -9,6 +10,20 @@ Message::Message(uint32_t m, std::string const & c)
     : magic_(m)
     , command_(c)
 {
+}
+
+Message::Message(uint8_t const *& in, size_t & size)
+    : magic_(0)
+{
+    magic_ = Utility::deserialize<uint32_t>(in, size);
+    if (in == nullptr)
+        return;
+
+    std::vector<uint8_t> commandBuffer = Utility::deserializeBuffer(12, in, size);
+    if (in == nullptr)
+        return;
+    commandBuffer.push_back(0); // Ensure termination
+    command_ = (char *)&commandBuffer[0];
 }
 
 void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out)

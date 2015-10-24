@@ -13,10 +13,10 @@ int main(int argc, char* argv[])
 {
     int errors = 0;
 
+    errors += TestUtility();
     errors += TestCrypto();
     errors += TestEquity();
     errors += TestNetwork();
-    errors += TestUtility();
     errors += TestValidation();
 
     printf("\n%d errors\n", errors);

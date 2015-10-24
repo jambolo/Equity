@@ -16,6 +16,7 @@ namespace Network
         static uint32_t const   MAGIC_TEST3 = 0x0709110B;
 
         Message(uint32_t m, std::string const & c);
+        Message(uint8_t const *& in, size_t & size);
 
         virtual void serialize(std::vector<uint8_t> & out) = 0;
 
