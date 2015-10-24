@@ -137,7 +137,7 @@ int TestAddress()
         }
         else if (value.size() != c.size)
         {
-            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), c.size, value.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)c.size, (unsigned)value.size());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.data))

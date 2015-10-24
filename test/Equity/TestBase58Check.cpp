@@ -96,12 +96,12 @@ int TestBase58Check()
         }
         else if (resultVector.size() != c.size)
         {
-            printf("        +== %s: expected size %u, got %u\n", name.c_str(), (unsigned)c.size, (unsigned)resultVector.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)c.size, (unsigned)resultVector.size());
             ++errors;
         }
         else if (!std::equal(resultVector.begin(), resultVector.end(), c.data))
         {
-            printf("        +== %s: got \"%s\"\n", name.c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, c.size).c_str(), Utility::vtox(resultVector).c_str());
             ++errors;
         }
         else if (resultVersion != c.version)
