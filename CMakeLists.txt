@@ -8,4 +8,5 @@ add_subdirectory(network)
 add_subdirectory(test)
 add_subdirectory(utility)
 add_subdirectory(validation)
+add_subdirectory(view-transaction)
 

@@ -26,7 +26,7 @@ Message::Message(uint8_t const *& in, size_t & size)
     command_ = (char *)&commandBuffer[0];
 }
 
-void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out)
+void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t>commandBuffer(12);
     command_.copy((char *)&commandBuffer[0], command_.length());

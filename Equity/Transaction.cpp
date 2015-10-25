@@ -32,6 +32,14 @@ Transaction::Input::Input(uint8_t const *& in, size_t & size)
     sequence = Utility::deserialize<uint32_t>(in, size);
 }
 
+void Transaction::Input::serialize(std::vector<uint8_t> & out) const
+{
+    txid.serialize(out);
+    Utility::serialize(outputIndex, out);
+    Utility::VarArray<uint8_t>(script).serialize(out);
+    Utility::serialize(sequence, out);
+}
+
 std::string Transaction::Input::toJson() const
 {
     std::string json;
@@ -55,13 +63,19 @@ Transaction::Output::Output(uint8_t const *& in, size_t & size)
     script = Utility::VarArray<uint8_t>(in, size).value();
 }
 
+void Transaction::Output::serialize(std::vector<uint8_t> & out) const
+{
+    Utility::serialize(value, out);
+    Utility::VarArray<uint8_t>(script).serialize(out);
+}
+
 std::string Transaction::Output::toJson() const
 {
     std::string json;
 
     json += '{';
     json += VALUE_LABEL + std::to_string(value) + ',';
-    json += SCRIPT_LABEL + Utility::toJson(script) + ',';
+    json += SCRIPT_LABEL + Utility::toJson(script);
     json += '}';
 
     return json;

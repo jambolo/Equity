@@ -4,7 +4,7 @@
 
 static char itox(int i)
 {
-    return (i < 10) ? '0' + i : 'A' + (i - 10);
+    return (i < 10) ? '0' + i : 'a' + (i - 10);
 }
 
 static int xtoi(unsigned x)
@@ -64,7 +64,7 @@ static int xtoi(unsigned x)
 
             for (int i = 0; i < length; i += 2)
             {
-                v.push_back((xtoi(x[i + 0]) << 4) + x[i + 1]);
+                v.push_back((xtoi(x[i + 0]) << 4) + xtoi(x[i + 1]));
             }
 
             return v;

@@ -24,7 +24,7 @@ namespace Utility
         }
     }
 
-    void VarInt::serialize(std::vector<uint8_t> & out)
+    void VarInt::serialize(std::vector<uint8_t> & out) const
     {
         if (value_ < 0xfd)
         {

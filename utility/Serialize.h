@@ -11,7 +11,7 @@ namespace Utility
     public:
         VarInt(uint64_t v) : value_(v) {}
         VarInt(uint8_t const *& in, size_t & size);
-        void serialize(std::vector<uint8_t> & out);
+        void serialize(std::vector<uint8_t> & out) const;
         uint64_t value() const { return value_; }
     private:
         uint64_t value_;
@@ -40,7 +40,7 @@ namespace Utility
                 vector_.push_back(element);
             }
         }
-        void serialize(std::vector<uint8_t> & out)
+        void serialize(std::vector<uint8_t> & out) const
         {
             VarInt(vector_.size()).serialize(out);
             for (auto element : vector_)
@@ -72,7 +72,7 @@ namespace Utility
                 size -= arraySize;
             }
         }
-        void serialize(std::vector<uint8_t> & out)
+        void serialize(std::vector<uint8_t> & out) const
         {
             VarInt(vector_.size()).serialize(out);
             out.insert(out.end(), vector_.begin(), vector_.end());

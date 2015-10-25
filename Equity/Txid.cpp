@@ -3,6 +3,7 @@
 #include "utility/Serialize.h"
 #include "utility/Utility.h"
 
+#include <algorithm>
 
 using namespace Equity;
 
@@ -19,13 +20,14 @@ Txid::Txid(uint8_t const *& in, size_t & size)
         return;
     }
     insert(end(), in, in + Crypto::SHA256_HASH_SIZE);
+    std::reverse(begin(), end());   // Txid's are stored and displayed as big-endian, but serialized as little-endian.
     in += Crypto::SHA256_HASH_SIZE;
     size -= Crypto::SHA256_HASH_SIZE;
 }
 
 void Txid::serialize(std::vector<uint8_t> & out) const
 {
-    out.insert(out.end(), begin(), end());
+    out.insert(out.end(), rbegin(), rend());    // Txid's are stored and displayed as big-endian, but serialized as little-endian.
 }
 
 std::string Txid::toHex() const

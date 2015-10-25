@@ -18,12 +18,12 @@ namespace Network
         Message(uint32_t m, std::string const & c);
         Message(uint8_t const *& in, size_t & size);
 
-        virtual void serialize(std::vector<uint8_t> & out) = 0;
+        virtual void serialize(std::vector<uint8_t> & out) const = 0;
 
     protected:
 
         //! Called by the derived class to serialize the entire message after building the payload
-        void serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out);
+        void serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const;
 
     private:
 

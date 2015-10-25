@@ -14,7 +14,7 @@ class BlockHeader
 public:
     BlockHeader(uint8_t const *& out, size_t & size);
     
-    void serialize(std::vector<uint8_t> & out);
+    void serialize(std::vector<uint8_t> & out) const;
     
     int32_t version() const { return version_; }
     Crypto::Sha256Hash previousBlock() const { return previousBlock_; }

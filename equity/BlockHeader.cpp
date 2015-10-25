@@ -30,7 +30,7 @@ namespace Equity
         count_ = Utility::deserialize<uint32_t>(out, size);
     }
         
-    void BlockHeader::serialize(std::vector<uint8_t> & out)
+    void BlockHeader::serialize(std::vector<uint8_t> & out) const
     {
         Utility::serialize((uint32_t)version_, out);
         Utility::serialize(previousBlock_, out);
