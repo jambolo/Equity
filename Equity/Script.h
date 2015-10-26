@@ -1,5 +1,15 @@
-namespace Script
+#pragma once
+
+#include <vector>
+#include <cstdint>
+
+namespace Equity
 {
+
+
+    class Script
+{
+public:
 
     enum OpCode
     {
@@ -48,6 +58,12 @@ namespace Script
 
         OP_TOALTSTACK           = 0x6b,     // x1(alt)x1    Puts the input onto the top of the alt stack.Removes it from the main stack.
         OP_FROMALTSTACK         = 0x6c,     // (alt)x1    x1    Puts the input onto the top of the main stack.Removes it from the alt stack.
+        OP_2DROP                = 0x6d,     // x1 x2    Nothing    Removes the top two stack items.
+        OP_2DUP                 = 0x6e,     // x1 x2    x1 x2 x1 x2    Duplicates the top two stack items.
+        OP_3DUP                 = 0x6f,     // x1 x2 x3    x1 x2 x3 x1 x2 x3    Duplicates the top three stack items.
+        OP_2OVER                = 0x70,     // x1 x2 x3 x4    x1 x2 x3 x4 x1 x2    Copies the pair of items two spaces back in the stack to the front.
+        OP_2ROT                 = 0x71,     // x1 x2 x3 x4 x5 x6    x3 x4 x5 x6 x1 x2    The fifth and sixth items back are moved to the top of the stack.
+        OP_2SWAP                = 0x72,     // x1 x2 x3 x4    x3 x4 x1 x2    Swaps the top two pairs of items.
         OP_IFDUP                = 0x73,     // x    x / x x    If the top stack value is not 0, duplicate it.
         OP_DEPTH                = 0x74,     // Nothing    <Stack size>    Puts the number of stack items onto the stack.
         OP_DROP                 = 0x75,     // x    Nothing    Removes the top stack item.
@@ -59,12 +75,6 @@ namespace Script
         OP_ROT                  = 0x7b,     // x1 x2 x3    x2 x3 x1    The top three items on the stack are rotated to the left.
         OP_SWAP                 = 0x7c,     // x1 x2    x2 x1    The top two items on the stack are swapped.
         OP_TUCK                 = 0x7d,     // x1 x2    x2 x1 x2    The item at the top of the stack is copied and inserted before the second - to - top item.
-        OP_2DROP                = 0x6d,     // x1 x2    Nothing    Removes the top two stack items.
-        OP_2DUP                 = 0x6e,     // x1 x2    x1 x2 x1 x2    Duplicates the top two stack items.
-        OP_3DUP                 = 0x6f,     // x1 x2 x3    x1 x2 x3 x1 x2 x3    Duplicates the top three stack items.
-        OP_2OVER                = 0x70,     // x1 x2 x3 x4    x1 x2 x3 x4 x1 x2    Copies the pair of items two spaces back in the stack to the front.
-        OP_2ROT                 = 0x71,     // x1 x2 x3 x4 x5 x6    x3 x4 x5 x6 x1 x2    The fifth and sixth items back are moved to the top of the stack.
-        OP_2SWAP                = 0x72,     // x1 x2 x3 x4    x3 x4 x1 x2    Swaps the top two pairs of items.
 
         // Splice
 
@@ -147,6 +157,31 @@ namespace Script
         OP_INVALIDOPCODE        = 0xff,     // Matches any opcode that is not yet assigned.
     };
 
+    struct Instruction
+    {
+        int op;
+        std::vector<uint8_t> data;
+    };
 
+    Script(std::vector<uint8_t> const & bytes);
+    Script(std::vector<Instruction> const & instructions);
 
-}
+    void serialize(std::vector<uint8_t> & out);
+    bool run();
+
+    std::string toJson();
+    std::string toHex();
+
+private:
+
+    bool check() const;
+    bool parse(std::vector<uint8_t> const & bytes);
+
+    std::vector<Instruction>::const_iterator findMatchingElseOrEndif(std::vector<Script::Instruction>::const_iterator start) const;
+    std::vector<Instruction>::const_iterator findMatchingEndif(std::vector<Script::Instruction>::const_iterator start) const;
+
+    std::vector<Instruction> instructions_;
+    bool valid_;
+};
+
+} // namespace Equity

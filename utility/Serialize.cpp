@@ -118,9 +118,8 @@ namespace Utility
             in = nullptr;
             return 0;
         }
-        uint16_t out;
-        out =              in[1];
-        out = (out << 8) + in[0];
+        uint16_t out =  (uint16_t)in[0] +
+                       ((uint16_t)in[1] << 8);
         in += 2;
         size -= 2;
         return out;
@@ -134,11 +133,10 @@ namespace Utility
             in = nullptr;
             return 0;
         }
-        uint32_t out;
-        out =              in[3];
-        out = (out << 8) + in[2];
-        out = (out << 8) + in[1];
-        out = (out << 8) + in[0];
+        uint32_t out =  (uint32_t)in[0] +
+                       ((uint32_t)in[1] <<  8) +
+                       ((uint32_t)in[2] << 16) +
+                       ((uint32_t)in[3] << 24);
         in += 4;
         size -= 4;
         return out;
@@ -152,15 +150,14 @@ namespace Utility
             in = nullptr;
             return 0;
         }
-        uint64_t out;
-        out =              in[7];
-        out = (out << 8) + in[6];
-        out = (out << 8) + in[5];
-        out = (out << 8) + in[4];
-        out = (out << 8) + in[3];
-        out = (out << 8) + in[2];
-        out = (out << 8) + in[1];
-        out = (out << 8) + in[0];
+        uint64_t out =  (uint64_t)in[0] +
+                       ((uint64_t)in[1] <<  8) +
+                       ((uint64_t)in[2] << 16) +
+                       ((uint64_t)in[3] << 24) +
+                       ((uint64_t)in[4] << 32) +
+                       ((uint64_t)in[5] << 40) +
+                       ((uint64_t)in[6] << 48) +
+                       ((uint64_t)in[7] << 56);
         in += 8;
         size -= 8;
         return out;
