@@ -65,6 +65,39 @@ static int32_t toInt(std::vector<uint8_t> const & data)
     return out;
 }
 
+static std::vector<uint8_t> toElement(int32_t x)
+{
+    std::vector<uint8_t> out;
+    bool negative = (x < 0);
+    uint32_t a = abs(x);
+    if (a < 0x80)
+    {
+        out.push_back(a);
+    }
+    else if (a < 0x8000)
+    {
+        out.push_back(a & 0xff);
+        out.push_back((a >> 8) & 0xff);
+    }
+    else if (a < 0x800000)
+    {
+        out.push_back(a & 0xff);
+        out.push_back((a >>  8) & 0xff);
+        out.push_back((a >> 16) & 0xff);
+    }
+    else
+    {
+        out.push_back(a & 0xff);
+        out.push_back((a >> 8) & 0xff);
+        out.push_back((a >> 16) & 0xff);
+        out.push_back((a >> 24) & 0xff);
+    }
+    if (negative)
+        out.back() = out.back() | 0x80;
+
+    return out;
+}
+
 static char const * const OPCODE_NAMES[] =
 {
     "PUSHDATA", "PUSHDATA", "PUSHDATA", "PUSHDATA", "PUSHDATA", "PUSHDATA", "PUSHDATA", "PUSHDATA",
@@ -106,31 +139,21 @@ Script::Script(std::vector<uint8_t> const & bytes)
     valid_ = parse(bytes);
 }
 
-Script::Script(std::vector<Instruction> const & instructions)
+Script::Script(Program const & instructions)
     : instructions_(instructions)
 {
     valid_ = check();
 }
 
-void Script::serialize(std::vector<uint8_t> & out)
+void Script::serialize(std::vector<uint8_t> & out) const
 {
 
 }
 
-bool Script::run() const
+bool Script::run()
 {
     if (!valid_)
         return false;
-
-    std::stack<std::vector<uint8_t> > mainStack;
-    std::stack<std::vector<uint8_t> > altStack;
-
-    struct Branch
-    {
-        std::vector<Instruction>::const_iterator end;
-        std::vector<Instruction>::const_iterator resume;
-    };
-    std::stack<Branch> branchStack;
 
     auto i = instructions_.begin();
     while (i != instructions_.end())
@@ -139,108 +162,285 @@ bool Script::run() const
         std::vector<uint8_t> const & data = i->data;
         ++i;
 
+        std::vector<std::vector<uint8_t> >::iterator p0 = (mainStack_.size() > 0) ? mainStack_.end()-1 : mainStack_.end();
+        std::vector<std::vector<uint8_t> >::iterator p1 = (mainStack_.size() > 1) ? mainStack_.end()-2 : mainStack_.end();
+        std::vector<std::vector<uint8_t> >::iterator p2 = (mainStack_.size() > 2) ? mainStack_.end()-3 : mainStack_.end();
+        std::vector<std::vector<uint8_t> >::iterator p3 = (mainStack_.size() > 3) ? mainStack_.end()-4 : mainStack_.end();
+
         if (op == 0)
         {
-            mainStack.push(data);
+            mainStack_.push_back(data);
         }
         switch (op)
         {
-        case OP_1NEGATE:             mainStack.push({ 0x81 }); break;
+        case OP_1NEGATE:             mainStack_.push_back({ 0x81 });  break;
         case OP_RESERVED:            return false;
-        case OP_1:                   mainStack.push({  1 });  break;
-        case OP_2:                   mainStack.push({  2 });  break;
-        case OP_3:                   mainStack.push({  3 });  break;
-        case OP_4:                   mainStack.push({  4 });  break;
-        case OP_5:                   mainStack.push({  5 });  break;
-        case OP_6:                   mainStack.push({  6 });  break;
-        case OP_7:                   mainStack.push({  7 });  break;
-        case OP_8:                   mainStack.push({  8 });  break;
-        case OP_9:                   mainStack.push({  9 });  break;
-        case OP_10:                  mainStack.push({ 10 });  break;
-        case OP_11:                  mainStack.push({ 11 });  break;
-        case OP_12:                  mainStack.push({ 12 });  break;
-        case OP_13:                  mainStack.push({ 13 });  break;
-        case OP_14:                  mainStack.push({ 14 });  break;
-        case OP_15:                  mainStack.push({ 15 });  break;
-        case OP_16:                  mainStack.push({ 16 });  break;
-        case OP_NOP:                 /* do nothing */break;
+        case OP_1:                   mainStack_.push_back({  1 });    break;
+        case OP_2:                   mainStack_.push_back({  2 });    break;
+        case OP_3:                   mainStack_.push_back({  3 });    break;
+        case OP_4:                   mainStack_.push_back({  4 });    break;
+        case OP_5:                   mainStack_.push_back({  5 });    break;
+        case OP_6:                   mainStack_.push_back({  6 });    break;
+        case OP_7:                   mainStack_.push_back({  7 });    break;
+        case OP_8:                   mainStack_.push_back({  8 });    break;
+        case OP_9:                   mainStack_.push_back({  9 });    break;
+        case OP_10:                  mainStack_.push_back({ 10 });    break;
+        case OP_11:                  mainStack_.push_back({ 11 });    break;
+        case OP_12:                  mainStack_.push_back({ 12 });    break;
+        case OP_13:                  mainStack_.push_back({ 13 });    break;
+        case OP_14:                  mainStack_.push_back({ 14 });    break;
+        case OP_15:                  mainStack_.push_back({ 15 });    break;
+        case OP_16:                  mainStack_.push_back({ 16 });    break;
+        case OP_NOP:                 /* do nothing */           break;
         case OP_VER:                 return false;
         case OP_IF:
         {
-            if (toBool(data))
-            {
-                auto end = findMatchingElseOrEndif(i);
-                if (end == instructions_.end())
-                    return false;
-
-                auto resume = findMatchingEndif(i);
-                if (resume == instructions_.end())
-                    return false;
-                branchStack.push({ end, resume });
-            }
-            else
-            {
-                i = findMatchingElseOrEndif(i);
-                if (i != instructions_.end())
-                {
-                    auto end = findMatchingEndif();
-                    branchStack.push({ end, end });
-                }
-                else
-                {
-
-                }
-            }
+            i = processBranch(i, toBool(*p0));
+            if (i == instructions_.end())
+                return false;
             break;
         }
-        case OP_NOTIF:               break;
+        case OP_NOTIF:
+        {
+            i = processBranch(i, !toBool(*p0));
+            if (i == instructions_.end())
+                return false;
+            break;
+        }
         case OP_VERIF:               return false;
         case OP_VERNOTIF:            return false;
-        case OP_ELSE:                break;
-        case OP_ENDIF:               break;
-        case OP_VERIFY:              break;
-        case OP_RETURN:              break;
+        case OP_ELSE:
+        case OP_ENDIF:
+        {
+            if (scopeStack_.empty())
+                return false;
+            i = scopeStack_.top();
+            scopeStack_.pop();
+            break;
+        }
+        case OP_VERIFY:              return (!mainStack_.empty() && toBool(*p0));
+        case OP_RETURN:              return false;
 
             // Stack
 
-        case OP_TOALTSTACK:          break;
-        case OP_FROMALTSTACK:        break;
-        case OP_2DROP:               break;
-        case OP_2DUP:                break;
-        case OP_3DUP:                break;
-        case OP_2OVER:               break;
-        case OP_2ROT:                break;
-        case OP_2SWAP:               break;
-        case OP_IFDUP:               break;
-        case OP_DEPTH:               break;
-        case OP_DROP:                break;
-        case OP_DUP:                 break;
-        case OP_NIP:                 break;
-        case OP_OVER:                break;
-        case OP_PICK:                break;
-        case OP_ROLL:                break;
-        case OP_ROT:                 break;
-        case OP_SWAP:                break;
-        case OP_TUCK:                break;
+        case OP_TOALTSTACK:
+        {
+            if (mainStack_.empty())
+                return false;
+            altStack_.push_back(*p0);
+            mainStack_.pop_back();
+            break;
+        }
+        case OP_FROMALTSTACK:
+        {
+            if (altStack_.empty())
+                return false;
+            mainStack_.push_back(altStack_.back());
+            altStack_.pop_back();
+            break;
+        }
+        case OP_2DROP:
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            mainStack_.pop_back();
+            mainStack_.pop_back();
+            break;
+        }
+        case OP_2DUP: 
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            std::vector<uint8_t> a = *p1;
+            std::vector<uint8_t> b = *p0;
+            mainStack_.push_back(*p1);
+            mainStack_.push_back(*p0);
+            break;
+        }
+        case OP_3DUP:
+        {
+            if (mainStack_.size() < 3)
+                return false;
+            std::vector<uint8_t> a = *p2;
+            std::vector<uint8_t> b = *p1;
+            std::vector<uint8_t> c = *p0;
+            mainStack_.push_back(a);
+            mainStack_.push_back(b);
+            mainStack_.push_back(c);
+            break;
+        }
+        case OP_2OVER:
+        {
+            if (mainStack_.size() < 4)
+                return false;
+            std::vector<uint8_t> a = *p3;
+            std::vector<uint8_t> b = *p2;
+            mainStack_.push_back(a);
+            mainStack_.push_back(b);
+            break;
+        }
+        case OP_2ROT:
+        {
+            if (mainStack_.size() < 6)
+                return false;
+            std::rotate(mainStack_.end() - 6, p3, mainStack_.end());
+            break;
+        }
+        case OP_2SWAP:
+        {
+            if (mainStack_.size() < 4)
+                return false;
+            std::rotate(p3, p1, mainStack_.end());
+            break;
+        }
+        case OP_IFDUP:
+        {
+            if (mainStack_.size() < 1)
+                return false;
+            std::vector<uint8_t> top = *p0;
+            if (toBool(top))
+                mainStack_.push_back(top);
+            break;
+        }
+        case OP_DEPTH:
+        {
+            mainStack_.push_back(toElement(mainStack_.size()));
+            break;
+        }
+        case OP_DROP: 
+        {
+            if (mainStack_.size() < 1)
+                return false;
+            mainStack_.pop_back();
+            break;
+        }
+        case OP_DUP:
+        {
+            if (mainStack_.size() < 1)
+                return false;
+            std::vector<uint8_t> top = *p0;
+            mainStack_.push_back(top);
+            break;
+        }
+        case OP_NIP:
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            mainStack_.erasep1;
+            break;
+        }
+        case OP_OVER:
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            std::vector<uint8_t> a = *p1;
+            mainStack_.push_back(a);
+            break;
+        }
+        case OP_PICK:
+        {
+            if (mainStack_.size() < 2)  // Enough room for index and 1 element
+                return false;
+            if (*p0.size() > 4)
+                return false;
+            int32_t n = toInt(*p0);
+            if (n < 0 || mainStack_.size()-2 < (size_t)n)
+                return false;
+            break;
+        }
+        case OP_ROLL:
+        {
+            if (mainStack_.size() < 2)  // Enough room for index and 1 element
+                return false;
+            if (*p0.size() > 4)
+                return false;
+            int32_t n = toInt(*p0);
+            if (n < 0 || mainStack_.size() - 2 < (size_t)n)
+                return false;
+            *p0 = *(p1 - n);
+            mainStack_.erase(p1 - n);
+            break;
+        }
+        case OP_ROT:
+        {
+            if (mainStack_.size() < 3)
+                return false;
+            std::rotate(p2, p1, mainStack_.end());
+            break;
+        }
+        case OP_SWAP:
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            std::swap(*p0, *p1);
+            break;
+        }
+        case OP_TUCK:
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            std::vector<uint8_t> a = *p0;
+            mainStack_.insert(p1, a);
+            break;
+        }
 
             // Splice
 
-        case OP_CAT:                 break;
-        case OP_SUBSTR:              break;
-        case OP_LEFT:                break;
-        case OP_RIGHT:               break;
-        case OP_SIZE:                break;
+        case OP_CAT:                 return false;
+        case OP_SUBSTR:              return false;
+        case OP_LEFT:                return false;
+        case OP_RIGHT:               return false;
+        case OP_SIZE:
+        {
+            if (mainStack_.size() < 1)
+                return false;
+            mainStack_.push_back(toElement(p0->size()));
+            break;
+        }
 
             // Bitwise logic
 
-        case OP_INVERT:              break;
-        case OP_AND:                 break;
-        case OP_OR:                  break;
-        case OP_XOR:                 break;
+        case OP_INVERT:              return false;
+        case OP_AND:                 return false;
+        case OP_OR:                  return false;
+        case OP_XOR:                 return false;
         case OP_EQUAL:               break;
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            bool equal = (p0->size() == p1->size() && std::equal(p0->begin(), p0->end(), p1->begin()));
+            mainStack_.pop_back();
+            mainStack_.pop_back();
+            if (equal)
+            {
+                mainStack_.push_back({ 1 });
+            }
+            else
+            {
+                mainStack_.push_back(std::vector<uint8_t>());
+            }
+            break;
+        }
         case OP_EQUALVERIFY:         break;
-        case OP_RESERVED1:           break;
-        case OP_RESERVED2:           break;
+        {
+            if (mainStack_.size() < 2)
+                return false;
+            bool equal = (p0->size() == p1->size() && std::equal(p0->begin(), p0->end(), p1->begin()));
+            mainStack_.pop_back();
+            mainStack_.pop_back();
+            if (equal)
+            {
+                mainStack_.push_back({ 1 });
+            }
+            else
+            {
+                mainStack_.push_back(std::vector<uint8_t>());
+                return false;
+            }
+            break;
+        }
+        case OP_RESERVED1:           return false;
+        case OP_RESERVED2:           return false;
 
             // Arithmetic
 
@@ -297,14 +497,16 @@ bool Script::run() const
 
         }
     }
+
+    return mainStack_.empty() ? false : toBool(mainStack_.back());
 }
 
-std::string Script::toJson()
+std::string Script::toJson() const
 {
-
+    return std::string();
 }
 
-std::string Script::toHex()
+std::string Script::toHex() const
 {
     std::vector<uint8_t> out;
     serialize(out);
@@ -357,6 +559,10 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
             instructions_.push_back({ 0, std::vector<uint8_t>(data, data + count) });
             i += count;
         }
+        else if (op == OP_VERIF || OP_VERNOTIF)
+        {
+            return false;
+        }
         else if (op >= OP_1NEGATE && op <= OP_NOP10)
         {
             instructions_.push_back({ op, std::vector<uint8_t>() });
@@ -371,7 +577,8 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
             return false;
         }
     }
-};
+    return true;
+}
 
 bool Script::check() const
 {
@@ -381,13 +588,20 @@ bool Script::check() const
         if (!((i.op == 0) || (i.op >= OP_1NEGATE && i.op <= OP_NOP10)))
             return false;
 
+        // Check for OP_VERIF or OP_VERNOTIF
+        if (i.op == OP_VERIF || i.op == OP_VERNOTIF)
+        {
+            return false;
+        }
         // Make sure that only data push instructions have data
         if ((i.op != 0) && i.data.size() > 0)
             return false;
     }
+
+    return true;
 }
 
-std::vector<Script::Instruction>::const_iterator Script::findMatchingElseOrEndif(std::vector<Script::Instruction>::const_iterator start) const
+std::vector<Script::Instruction>::const_iterator Script::findMatchingElse(std::vector<Script::Instruction>::const_iterator start) const
 {
     auto i = start;
     while ( i != instructions_.end())
@@ -437,4 +651,34 @@ std::vector<Script::Instruction>::const_iterator Script::findMatchingEndif(std::
         }
     }
     return instructions_.end();
+}
+
+Script::Program::const_iterator Script::processBranch(Program::const_iterator i, bool condition) const
+{
+    if (condition)
+    {
+        auto end = findMatchingEndif(i);
+        if (end == instructions_.end())
+            return end;
+        scopeStack_.push(end + 1);
+    }
+    else
+    {
+        i = findMatchingElse(i);
+        if (i == instructions_.end())
+            return i;
+        if (i->op == OP_ELSE)
+        {
+            ++i;
+            auto end = findMatchingEndif(i);
+            if (end == instructions_.end())
+                return end;
+            scopeStack_.push(end + 1);
+        }
+        else
+        {
+            scopeStack_.push(i + 1);
+        }
+    }
+    return i;
 }

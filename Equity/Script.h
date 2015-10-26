@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <stack>
 
 namespace Equity
 {
@@ -162,26 +163,34 @@ public:
         int op;
         std::vector<uint8_t> data;
     };
+    typedef std::vector<Instruction> Program;
 
     Script(std::vector<uint8_t> const & bytes);
-    Script(std::vector<Instruction> const & instructions);
+    Script(Program const & instructions);
 
-    void serialize(std::vector<uint8_t> & out);
     bool run();
 
-    std::string toJson();
-    std::string toHex();
+    void serialize(std::vector<uint8_t> & out) const;
+
+    std::string toJson() const;
+    std::string toHex() const;
 
 private:
 
     bool check() const;
     bool parse(std::vector<uint8_t> const & bytes);
 
-    std::vector<Instruction>::const_iterator findMatchingElseOrEndif(std::vector<Script::Instruction>::const_iterator start) const;
-    std::vector<Instruction>::const_iterator findMatchingEndif(std::vector<Script::Instruction>::const_iterator start) const;
+    Program::const_iterator findMatchingElse(Program::const_iterator start) const;
+    Program::const_iterator findMatchingEndif(Program::const_iterator start) const;
+    Program::const_iterator processBranch(Program::const_iterator i, bool condition) const;
 
     std::vector<Instruction> instructions_;
     bool valid_;
+    std::vector<std::vector<uint8_t> > mainStack_;
+    std::vector<std::vector<uint8_t> > altStack_;
+    std::stack<Program::const_iterator> scopeStack_;
+
+
 };
 
 } // namespace Equity
