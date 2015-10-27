@@ -182,13 +182,13 @@ private:
 
     Program::const_iterator findMatchingElse(Program::const_iterator start) const;
     Program::const_iterator findMatchingEndif(Program::const_iterator start) const;
-    Program::const_iterator processBranch(Program::const_iterator i, bool condition) const;
+    Program::iterator processBranch(Program::const_iterator i, bool condition) const;
 
     std::vector<Instruction> instructions_;
     bool valid_;
     std::vector<std::vector<uint8_t> > mainStack_;
     std::vector<std::vector<uint8_t> > altStack_;
-    std::stack<Program::const_iterator> scopeStack_;
+    std::stack<Program::iterator> scopeStack_;
 
 
 };
