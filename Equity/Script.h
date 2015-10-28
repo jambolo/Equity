@@ -8,7 +8,7 @@ namespace Equity
 {
 
 
-    class Script
+class Script
 {
 public:
 
@@ -162,35 +162,30 @@ public:
     {
         int op;
         std::vector<uint8_t> data;
+        size_t offset;
     };
     typedef std::vector<Instruction> Program;
 
     Script(std::vector<uint8_t> const & bytes);
-    Script(Program const & instructions);
-
-    bool run();
 
     void serialize(std::vector<uint8_t> & out) const;
 
     std::string toJson() const;
     std::string toHex() const;
 
+    bool valid() const { return valid_; }
+    std::vector<uint8_t> bytes() const { return bytes_; }
+    Program instructions() const { return instructions_; }
+
 private:
 
     bool check() const;
     bool parse(std::vector<uint8_t> const & bytes);
 
-    Program::const_iterator findMatchingElse(Program::const_iterator start) const;
-    Program::const_iterator findMatchingEndif(Program::const_iterator start) const;
-    Program::iterator processBranch(Program::const_iterator i, bool condition) const;
-
+    std::vector<uint8_t> bytes_;
     std::vector<Instruction> instructions_;
     bool valid_;
-    std::vector<std::vector<uint8_t> > mainStack_;
-    std::vector<std::vector<uint8_t> > altStack_;
-    std::stack<Program::iterator> scopeStack_;
-
-
 };
+
 
 } // namespace Equity

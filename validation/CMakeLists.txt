@@ -1,4 +1,6 @@
 set(SOURCES
+    ScriptEngine.cpp
+	ScriptEngine.h
     Validator.cpp
     Validator.h
 )

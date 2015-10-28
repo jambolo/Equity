@@ -3,6 +3,8 @@ set(SOURCES
 	Ecdsa.h
 	Ripemd.cpp
 	Ripemd.h
+	Sha1.cpp
+	Sha1.h
 	Sha256.cpp
 	Sha256.h
 )

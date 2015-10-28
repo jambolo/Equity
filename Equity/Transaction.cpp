@@ -1,5 +1,6 @@
 #include "Transaction.h"
 
+#include "equity/Script.h"
 #include "utility/Serialize.h"
 #include "utility/Utility.h"
 
@@ -47,7 +48,7 @@ std::string Transaction::Input::toJson() const
     json += '{';
     json += TXID_LABEL + txid.toJson() + ',';
     json += INDEX_LABEL + std::to_string(outputIndex) + ',';
-    json += SCRIPT_LABEL + Utility::toJson(script) + ',';
+    json += SCRIPT_LABEL + Script(script).toJson() + ',';
     json += SEQUENCE_LABEL + std::to_string(sequence);
     json += '}';
 
@@ -75,7 +76,7 @@ std::string Transaction::Output::toJson() const
 
     json += '{';
     json += VALUE_LABEL + std::to_string(value) + ',';
-    json += SCRIPT_LABEL + Utility::toJson(script);
+    json += SCRIPT_LABEL + Script(script).toJson();
     json += '}';
 
     return json;
