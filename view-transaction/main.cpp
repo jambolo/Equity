@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     {
         size_t offset = data.size() - size;
         std::string start = Utility::vtox(&data[offset], size);
-        fprintf(stderr, "Invalid transaction. Failed at offset %u\n", (unsigned)offset, Utility::shorten(start, 7));
+        fprintf(stderr, "Invalid transaction. Failed at offset %u (%s)\n", (unsigned)offset, Utility::shorten(start, 7).c_str());
         return 2;
     }
     std::string json = transaction.toJson();

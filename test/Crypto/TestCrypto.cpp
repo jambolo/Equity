@@ -1,9 +1,11 @@
 #include "crypto/Ripemd.h"
+#include "crypto/Sha1.h"
 #include "crypto/Sha256.h"
 #include "utility/Utility.h"
 #include <cstdio>
 
 int TestRipemd160();
+int TestSha1();
 int TestSha256();
 
 using namespace Crypto;
@@ -15,9 +17,9 @@ int TestCrypto()
     int errors = 0;
     errors += TestRipemd160();
     errors += TestSha256();
+    errors += TestSha1();
     return errors;
 }
-
 struct Ripemd160TestCase
 {
     char const * input;
@@ -74,7 +76,7 @@ int TestRipemd160()
         Ripemd160Hash result = ripemd160((uint8_t const *)c.input, strlen(c.input));
         if (result.size() != RIPEMD160_HASH_SIZE)
         {
-            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), RIPEMD160_HASH_SIZE, result.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)RIPEMD160_HASH_SIZE, (unsigned)result.size());
             ++errors;
         }
         else if (!std::equal(result.begin(), result.end(), c.expected))
@@ -86,18 +88,15 @@ int TestRipemd160()
         {
             printf("        +-- %s: ok\n", name.c_str());
         }
-
     }
 
     return errors;
 }
-
 struct Sha256TestCase
 {
     char const * input;
     uint8_t expected[SHA256_HASH_SIZE];
 };
-
 
 static Sha256TestCase const SHA256_CASES[] =
 {
@@ -145,7 +144,7 @@ int TestSha256()
         Sha256Hash result = sha256((uint8_t const *)c.input, strlen(c.input));
         if (result.size() != SHA256_HASH_SIZE)
         {
-            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), SHA256_HASH_SIZE, result.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)SHA256_HASH_SIZE, (unsigned)result.size());
             ++errors;
         }
         else if (!std::equal(result.begin(), result.end(), c.expected))
@@ -157,7 +156,78 @@ int TestSha256()
         {
             printf("        +-- %s: ok\n", name.c_str());
         }
+    }
 
+    return errors;
+}
+struct Sha1TestCase
+{
+    char const * input;
+    uint8_t expected[SHA1_HASH_SIZE];
+};
+
+static Sha1TestCase const SHA1_CASES[] =
+{
+    {
+        "",
+        { 0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55, 0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09 }
+    },
+    {
+        "a",
+        { 0x86, 0xf7, 0xe4, 0x37, 0xfa, 0xa5, 0xa7, 0xfc, 0xe1, 0x5d, 0x1d, 0xdc, 0xb9, 0xea, 0xea, 0xea, 0x37, 0x76, 0x67, 0xb8 }
+    },
+    {
+        "abc",
+        { 0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e, 0x25, 0x71, 0x78, 0x50, 0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d }
+    },
+    {
+        "message digest",
+        { 0xc1, 0x22, 0x52, 0xce, 0xda, 0x8b, 0xe8, 0x99, 0x4d, 0x5f, 0xa0, 0x29, 0x0a, 0x47, 0x23, 0x1c, 0x1d, 0x16, 0xaa, 0xe3 }
+    },
+    {
+        "abcdefghijklmnopqrstuvwxyz",
+        { 0x32, 0xd1, 0x0c, 0x7b, 0x8c, 0xf9, 0x65, 0x70, 0xca, 0x04, 0xce, 0x37, 0xf2, 0xa1, 0x9d, 0x84, 0x24, 0x0d, 0x3a, 0x89 }
+    },
+    {
+        "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+        { 0x84, 0x98, 0x3e, 0x44, 0x1c, 0x3b, 0xd2, 0x6e, 0xba, 0xae, 0x4a, 0xa1, 0xf9, 0x51, 0x29, 0xe5, 0xe5, 0x46, 0x70, 0xf1 }
+    },
+    {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+        { 0x76, 0x1c, 0x45, 0x7b, 0xf7, 0x3b, 0x14, 0xd2, 0x7e, 0x9e, 0x92, 0x65, 0xc4, 0x6f, 0x4b, 0x4d, 0xda, 0x11, 0xf9, 0x40 }
+    },
+    {
+        "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+        { 0x50, 0xab, 0xf5, 0x70, 0x6a, 0x15, 0x09, 0x90, 0xa0, 0x8b, 0x2c, 0x5e, 0xa4, 0x0f, 0xa0, 0xe5, 0x85, 0x55, 0x47, 0x32 }
+    }
+};
+
+int TestSha1()
+{
+    printf("+-- Sha1\n");
+    int errors = 0;
+
+    printf("    +-- testing sha1(uint8_t const * input, size_t length)\n");
+
+    for (auto c : SHA1_CASES)
+    {
+        std::string name = shorten(c.input);
+
+        Sha1Hash result = sha1((uint8_t const *)c.input, strlen(c.input));
+        if (result.size() != SHA1_HASH_SIZE)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)SHA1_HASH_SIZE, (unsigned)result.size());
+            ++errors;
+        }
+        else if (!std::equal(result.begin(), result.end(), c.expected))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), vtox(result).c_str(), vtox(c.expected, SHA1_HASH_SIZE).c_str());
+            ++errors;
+        }
+        else
+        {
+            printf("        +-- %s: ok\n", name.c_str());
+        }
     }
 
     return errors;
