@@ -51,7 +51,7 @@ int TestPrivateKey()
 
     for (auto c : CASES)
     {
-        std::string name = Utility::shorten(Utility::vtox(c.data, 32));
+        std::string name = Utility::shorten(Utility::toHex(c.data, 32));
         PrivateKey result(c.data);
         std::vector<uint8_t> value = result.value();
 
@@ -67,7 +67,7 @@ int TestPrivateKey()
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, 32).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::toHex(c.data, 32).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else if (result.toWif(BITCOIN_PRIVATE_KEY_VERSION) != c.wif)
@@ -142,7 +142,7 @@ int TestPrivateKey()
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::toHex(c.data, PrivateKey::SIZE).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else
@@ -177,7 +177,7 @@ int TestPrivateKey()
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, PrivateKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::toHex(c.data, PrivateKey::SIZE).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else

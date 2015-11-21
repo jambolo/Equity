@@ -73,7 +73,7 @@ std::string Script::toHex() const
 {
     std::vector<uint8_t> out;
     serialize(out);
-    return Utility::vtox(out);
+    return Utility::toHex(out);
 }
 
 bool Script::parse(std::vector<uint8_t> const & bytes)

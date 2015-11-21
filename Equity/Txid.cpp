@@ -8,7 +8,7 @@
 using namespace Equity;
 
 Txid::Txid(std::string const & json)
-    : Crypto::Sha256Hash(Utility::jtov(json))
+    : Crypto::Sha256Hash(Utility::fromJson(json))
 {
 }
 
@@ -32,7 +32,7 @@ void Txid::serialize(std::vector<uint8_t> & out) const
 
 std::string Txid::toHex() const
 {
-    return Utility::vtox(*this);
+    return Utility::toHex(*this);
 }
 
 

@@ -135,7 +135,7 @@ std::string Transaction::toHex() const
 {
     std::vector<uint8_t> raw;
     serialize(raw);
-    return Utility::vtox(raw);
+    return Utility::toHex(raw);
 }
 
 std::string Transaction::toJson() const

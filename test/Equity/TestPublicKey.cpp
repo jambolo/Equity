@@ -45,22 +45,22 @@ int TestPublicKey()
 
         if (!result.valid())
         {
-            printf("        +== %s: not valid\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str());
+            printf("        +== %s: not valid\n", Utility::shorten(Utility::toHex(c.data, PublicKey::SIZE)).c_str());
             ++errors;
         }
         else if (value.size() != PublicKey::SIZE)
         {
-            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::toHex(c.data, PublicKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str(), Utility::vtox(c.data, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::toHex(c.data, PublicKey::SIZE)).c_str(), Utility::toHex(c.data, PublicKey::SIZE).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %s: ok\n", Utility::shorten(Utility::vtox(c.data, PublicKey::SIZE)).c_str());
+            printf("        +-- %s: ok\n", Utility::shorten(Utility::toHex(c.data, PublicKey::SIZE)).c_str());
         }
     }
 
@@ -110,22 +110,22 @@ int TestPublicKey()
 
         if (!result.valid())
         {
-            printf("        +== %s: not valid\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str());
+            printf("        +== %s: not valid\n", Utility::shorten(Utility::toHex(c.privateKey, PrivateKey::SIZE)).c_str());
             ++errors;
         }
         else if (value.size() != PublicKey::SIZE)
         {
-            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
+            printf("        +== %s: expected size = %u, got size = %u\n", Utility::shorten(Utility::toHex(c.privateKey, PrivateKey::SIZE)).c_str(), (unsigned)PublicKey::SIZE, (unsigned)value.size());
             ++errors;
         }
         else if (!std::equal(value.begin(), value.end(), c.expected))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str(), Utility::vtox(c.expected, PublicKey::SIZE).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", Utility::shorten(Utility::toHex(c.privateKey, PrivateKey::SIZE)).c_str(), Utility::toHex(c.expected, PublicKey::SIZE).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else
         {
-            printf("        +-- %s: ok\n", Utility::shorten(Utility::vtox(c.privateKey, PrivateKey::SIZE)).c_str());
+            printf("        +-- %s: ok\n", Utility::shorten(Utility::toHex(c.privateKey, PrivateKey::SIZE)).c_str());
         }
     }
 

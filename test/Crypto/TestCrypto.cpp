@@ -4,9 +4,10 @@
 #include "utility/Utility.h"
 #include <cstdio>
 
-int TestRipemd160();
-int TestSha1();
-int TestSha256();
+static int TestRipemd160();
+static int TestSha1();
+static int TestSha256();
+static int TestDoubleSha256();
 
 using namespace Crypto;
 using namespace Utility;
@@ -17,9 +18,11 @@ int TestCrypto()
     int errors = 0;
     errors += TestRipemd160();
     errors += TestSha256();
+    errors += TestDoubleSha256();
     errors += TestSha1();
     return errors;
 }
+
 struct Ripemd160TestCase
 {
     char const * input;
@@ -62,7 +65,7 @@ static Ripemd160TestCase const RIPEMD160_CASES[] =
     }
 };
 
-int TestRipemd160()
+static int TestRipemd160()
 {
     printf("+-- Ripemd160\n");
     int errors = 0;
@@ -81,7 +84,7 @@ int TestRipemd160()
         }
         else if (!std::equal(result.begin(), result.end(), c.expected))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), vtox(result).c_str(), vtox(c.expected, RIPEMD160_HASH_SIZE).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), toHex(result).c_str(), toHex(c.expected, RIPEMD160_HASH_SIZE).c_str());
             ++errors;
         }
         else
@@ -92,6 +95,7 @@ int TestRipemd160()
 
     return errors;
 }
+
 struct Sha256TestCase
 {
     char const * input;
@@ -130,7 +134,7 @@ static Sha256TestCase const SHA256_CASES[] =
     }
 };
 
-int TestSha256()
+static int TestSha256()
 {
     printf("+-- Sha256\n");
     int errors = 0;
@@ -149,7 +153,7 @@ int TestSha256()
         }
         else if (!std::equal(result.begin(), result.end(), c.expected))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), vtox(result).c_str(), vtox(c.expected, SHA256_HASH_SIZE).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), toHex(result).c_str(), toHex(c.expected, SHA256_HASH_SIZE).c_str());
             ++errors;
         }
         else
@@ -160,6 +164,76 @@ int TestSha256()
 
     return errors;
 }
+
+struct DoubleSha256TestCase
+{
+    char const * input;
+    uint8_t expected[SHA256_HASH_SIZE];
+};
+
+static DoubleSha256TestCase const DOUBLE_SHA256_CASES[] =
+{
+    {
+        "",
+        {
+            0x5d, 0xf6, 0xe0, 0xe2, 0x76, 0x13, 0x59, 0xd3, 0x0a, 0x82, 0x75, 0x05, 0x8e, 0x29, 0x9f, 0xcc,
+            0x03, 0x81, 0x53, 0x45, 0x45, 0xf5, 0x5c, 0xf4, 0x3e, 0x41, 0x98, 0x3f, 0x5d, 0x4c, 0x94, 0x56
+        }
+    },
+    {
+        "abc",
+        {
+            0x4f, 0x8b, 0x42, 0xc2, 0x2d, 0xd3, 0x72, 0x9b, 0x51, 0x9b, 0xa6, 0xf6, 0x8d, 0x2d, 0xa7, 0xcc,
+            0x5b, 0x2d, 0x60, 0x6d, 0x05, 0xda, 0xed, 0x5a, 0xd5, 0x12, 0x8c, 0xc0, 0x3e, 0x6c, 0x63, 0x58
+        }
+    },
+    {
+        "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+        {
+            0x0c, 0xff, 0xe1, 0x7f, 0x68, 0x95, 0x4d, 0xac, 0x3a, 0x84, 0xfb, 0x14, 0x58, 0xbd, 0x5e, 0xc9,
+            0x92, 0x09, 0x44, 0x97, 0x49, 0xb2, 0xb3, 0x08, 0xb7, 0xcb, 0x55, 0x81, 0x2f, 0x95, 0x63, 0xaf
+        }
+    },
+    {
+        "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+        {
+            0xac, 0xcd, 0x7b, 0xd1, 0xcb, 0x0f, 0xcb, 0xd8, 0x5c, 0xf0, 0xba, 0x5b, 0xa9, 0x69, 0x45, 0x12,
+            0x77, 0x76, 0x37, 0x3a, 0x7d, 0x47, 0x89, 0x1e, 0xb4, 0x3e, 0xd6, 0xb1, 0xe2, 0xee, 0x60, 0xfe
+        }
+    }
+};
+
+static int TestDoubleSha256()
+{
+    printf("+-- DoubleSha256\n");
+    int errors = 0;
+
+    printf("    +-- testing doubleSha256(uint8_t const * input, size_t length)\n");
+
+    for (auto c : DOUBLE_SHA256_CASES)
+    {
+        std::string name = shorten(c.input);
+
+        Sha256Hash result = doubleSha256((uint8_t const *)c.input, strlen(c.input));
+        if (result.size() != SHA256_HASH_SIZE)
+        {
+            printf("        +== %s: expected size = %u, got size = %u\n", name.c_str(), (unsigned)SHA256_HASH_SIZE, (unsigned)result.size());
+            ++errors;
+        }
+        else if (!std::equal(result.begin(), result.end(), c.expected))
+        {
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), toHex(result).c_str(), toHex(c.expected, SHA256_HASH_SIZE).c_str());
+            ++errors;
+        }
+        else
+        {
+            printf("        +-- %s: ok\n", name.c_str());
+        }
+    }
+
+    return errors;
+}
+
 struct Sha1TestCase
 {
     char const * input;
@@ -202,7 +276,7 @@ static Sha1TestCase const SHA1_CASES[] =
     }
 };
 
-int TestSha1()
+static int TestSha1()
 {
     printf("+-- Sha1\n");
     int errors = 0;
@@ -221,7 +295,7 @@ int TestSha1()
         }
         else if (!std::equal(result.begin(), result.end(), c.expected))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), vtox(result).c_str(), vtox(c.expected, SHA1_HASH_SIZE).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), toHex(result).c_str(), toHex(c.expected, SHA1_HASH_SIZE).c_str());
             ++errors;
         }
         else

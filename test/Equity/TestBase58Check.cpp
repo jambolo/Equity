@@ -84,7 +84,7 @@ int TestBase58Check()
     }
     for (auto c : CASES)
     {
-        std::string name = Utility::shorten(Utility::vtox(c.data, c.size));
+        std::string name = Utility::shorten(Utility::toHex(c.data, c.size));
         std::vector<uint8_t> resultVector;
         unsigned resultVersion;
 
@@ -101,7 +101,7 @@ int TestBase58Check()
         }
         else if (!std::equal(resultVector.begin(), resultVector.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(c.data, c.size).c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::toHex(c.data, c.size).c_str(), Utility::toHex(resultVector).c_str());
             ++errors;
         }
         else if (resultVersion != c.version)

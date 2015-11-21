@@ -50,6 +50,6 @@ PublicKey::PublicKey(PrivateKey const & k)
 
 std::string PublicKey::toHex() const
 {
-    return Utility::vtox(value_);
+    return Utility::toHex(value_);
 }
 

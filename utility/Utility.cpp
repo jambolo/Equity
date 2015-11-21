@@ -6,7 +6,8 @@ static char itox(int i)
 {
     return (i < 10) ? '0' + i : 'a' + (i - 10);
 }
-static int xtoi(unsigned x)
+
+static int xtoi(char x)
 {
     if (x >= 'a')
     {
@@ -21,20 +22,27 @@ static int xtoi(unsigned x)
         return x - '0';
     }
 }
+
 namespace Utility
 {
-std::string vtox(std::vector<uint8_t> const & v)
+
+/********************************************************************************************************************/
+/*                                           H E X   C O N V E R S I O N                                            */
+/********************************************************************************************************************/
+
+    std::string toHex(std::vector<uint8_t> const & v)
 {
     if (v.empty())
     {
-        return vtox(NULL, 0);
+        return toHex(NULL, 0);
     }
     else
     {
-        return vtox(&v[0], v.size());
+        return toHex(&v[0], v.size());
     }
 }
-std::string vtox(uint8_t const * v, size_t length)
+
+std::string toHex(uint8_t const * v, size_t length)
 {
     if (length == 0)
     {
@@ -53,16 +61,18 @@ std::string vtox(uint8_t const * v, size_t length)
 
     return x;
 }
-std::vector<uint8_t> xtov(std::string const & x)
+
+std::vector<uint8_t> fromHex(std::string const & x)
 {
     if (x.empty())
     {
         return std::vector<uint8_t>();
     }
 
-    return xtov(&x[0], x.size());
+    return fromHex(&x[0], x.size());
 }
-std::vector<uint8_t> xtov(char const * x, size_t length)
+
+std::vector<uint8_t> fromHex(char const * x, size_t length)
 {
     if (length == 0)
     {
@@ -79,37 +89,16 @@ std::vector<uint8_t> xtov(char const * x, size_t length)
 
     return v;
 }
-Crypto::Sha256Hash merkleRoot(std::vector<Crypto::Sha256Hash> hashes)
-{
-    std::vector<Crypto::Sha256Hash> last = hashes;
-    if (last.size() == 1)
-    {
-        last.push_back(last.back());
-    }
 
-    while (last.size() > 1)
-    {
-        std::vector<Crypto::Sha256Hash> next;
-        if ((last.size() & 1) == 1)
-        {
-            last.push_back(last.back());
-        }
-        for (int i = 0; i < last.size(); i += 2)
-        {
-            std::vector<uint8_t> two;
-            two.insert(two.end(), last[i].begin(), last[i].end());
-            two.insert(two.end(), last[i + 1].begin(), last[i + 1].end());
-            next.push_back(Crypto::sha256(two));
-        }
-        last.swap(next);
-    }
+/********************************************************************************************************************/
+/*                                          J S O N   C O N V E R S I O N                                           */
+/********************************************************************************************************************/
 
-    return last[0];
-}
 static std::string const DOUBLE_QUOTE("\"");
 static std::string const EMPTY_JSON_STRING("\"\"");
 
-std::string toJson(std::vector<uint8_t> const & v)
+template <>
+std::string toJson<uint8_t>(std::vector<uint8_t> const & v)
 {
     if (v.empty())
     {
@@ -117,10 +106,11 @@ std::string toJson(std::vector<uint8_t> const & v)
     }
     else
     {
-        return DOUBLE_QUOTE + vtox(v) + DOUBLE_QUOTE;
+        return DOUBLE_QUOTE + toHex(v) + DOUBLE_QUOTE;
     }
 }
-std::vector<uint8_t> jtov(std::string const & j)
+
+std::vector<uint8_t> fromJson(std::string const & j)
 {
     if (j.length() < 3 || j.front() != '\"' || j.back() != '\"')
     {
@@ -128,9 +118,14 @@ std::vector<uint8_t> jtov(std::string const & j)
     }
     else
     {
-        return xtov(j.data() + 1, j.length() - 2);
+        return fromHex(j.data() + 1, j.length() - 2);
     }
 }
+
+/********************************************************************************************************************/
+/*                                            M I S C E L L A N E O U S                                             */
+/********************************************************************************************************************/
+
 std::string shorten(std::string const & in, size_t size /* = 11*/)
 {
     size_t const ELLIPSIS_SIZE = 3;
@@ -151,4 +146,6 @@ std::string shorten(std::string const & in, size_t size /* = 11*/)
         return in.substr(0, size);
     }
 }
+
+
 }     // namespace Utility

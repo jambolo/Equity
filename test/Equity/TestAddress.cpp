@@ -142,7 +142,7 @@ int TestAddress()
         }
         else if (!std::equal(value.begin(), value.end(), c.data))
         {
-            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::vtox(std::vector<uint8_t>(c.data, c.data + c.size)).c_str(), Utility::vtox(value).c_str());
+            printf("        +== %s: expected \"%s\", got \"%s\"\n", name.c_str(), Utility::toHex(std::vector<uint8_t>(c.data, c.data + c.size)).c_str(), Utility::toHex(value).c_str());
             ++errors;
         }
         else

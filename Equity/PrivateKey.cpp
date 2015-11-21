@@ -61,7 +61,7 @@ std::string PrivateKey::toWif(unsigned version) const
 
 std::string PrivateKey::toHex() const
 {
-    return Utility::vtox(value_);
+    return Utility::toHex(value_);
 }
 
 bool PrivateKey::isValid()

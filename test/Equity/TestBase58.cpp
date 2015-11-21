@@ -95,7 +95,7 @@ int TestBase58()
     
     for (auto c : DECODE_CASES)
     {
-        std::string name = Utility::shorten(Utility::vtox(c.data, c.size));
+        std::string name = Utility::shorten(Utility::toHex(c.data, c.size));
         std::vector<uint8_t> resultVector;
 
         bool ok = Base58::decode(c.stringForm, resultVector);
@@ -111,7 +111,7 @@ int TestBase58()
         }
         else if (!std::equal(resultVector.begin(), resultVector.end(), c.data))
         {
-            printf("        +== %s: expected %s, got %s\n", name.c_str(), Utility::vtox(c.data, c.size).c_str(), Utility::vtox(resultVector).c_str());
+            printf("        +== %s: expected %s, got %s\n", name.c_str(), Utility::toHex(c.data, c.size).c_str(), Utility::toHex(resultVector).c_str());
             ++errors;
         }
         else
