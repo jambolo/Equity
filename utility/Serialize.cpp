@@ -8,7 +8,7 @@ namespace Utility
 {
     VarInt::VarInt(uint8_t const *& in, size_t & size)
     {
-        if (size < 0)
+        if (size < 1)
         {
             in = nullptr;
             value_ = 0;

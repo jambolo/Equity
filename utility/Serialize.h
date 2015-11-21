@@ -6,6 +6,32 @@
 namespace Utility
 {
     
+
+
+template<typename T>
+void serialize(T const & a, std::vector<uint8_t> & out)
+{
+    return a.serialize(out);
+}
+
+template<> void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out);
+template<> void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out);
+template<> void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out);
+template<> void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out);
+template<> void serialize<std::vector<uint8_t> >(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
+
+template<typename T>
+T deserialize(uint8_t const *& in, size_t & size)
+{
+    return T(in, size);
+}
+
+template<> uint8_t  deserialize<uint8_t >(uint8_t const *& in, size_t & size);
+template<> uint16_t deserialize<uint16_t>(uint8_t const *& in, size_t & size);
+template<> uint32_t deserialize<uint32_t>(uint8_t const *& in, size_t & size);
+template<> uint64_t deserialize<uint64_t>(uint8_t const *& in, size_t & size);
+std::vector<uint8_t>  deserializeBuffer(size_t n, uint8_t const *& in, size_t & size);
+
     class VarInt
     {
     public:
@@ -81,30 +107,5 @@ namespace Utility
     private:
         std::vector<uint8_t> vector_;
     };
-    
-    
-    template<typename T>
-    void serialize(T const & a, std::vector<uint8_t> & out)
-    {
-        return a.serialize(out);
-    }
-    
-    template<> void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out);
-    template<> void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out);
-    template<> void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out);
-    template<> void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out);
-    template<> void serialize<std::vector<uint8_t> >(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
-    
-    template<typename T>
-    T deserialize(uint8_t const *& in, size_t & size)
-    {
-        return T(in, size);
-    }
-    
-    template<> uint8_t  deserialize<uint8_t >(uint8_t const *& in, size_t & size);
-    template<> uint16_t deserialize<uint16_t>(uint8_t const *& in, size_t & size);
-    template<> uint32_t deserialize<uint32_t>(uint8_t const *& in, size_t & size);
-    template<> uint64_t deserialize<uint64_t>(uint8_t const *& in, size_t & size);
-    std::vector<uint8_t>  deserializeBuffer(size_t n, uint8_t const *& in, size_t & size);
     
 } // namespace Utility

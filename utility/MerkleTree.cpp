@@ -5,16 +5,6 @@
 namespace
 {
 
-// Returns the largest power of two <= x
-size_t largestPowerOfTwo(size_t x)
-{
-    while ((x & (x - 1)) != 0)
-    {
-        x = x & (x - 1);
-    }
-    return x;
-}
-
 // Returns the smallest power of two >= x
 size_t smallestPowerOfTwo(size_t x)
 {
@@ -75,8 +65,7 @@ MerkleTree::MerkleTree(std::vector<Crypto::Sha256Hash> const & hashes)
     {
         for (size_t i = first; i < first + n; ++i)
         {
-            std::vector<uint8_t> concatenated = concatenate(tree_[leftChildOf(i)], tree_[rightChildOf(i)]);
-            tree_[i] = Crypto::sha256(concatenated.data(), concatenated.size());
+            tree_[i] = Crypto::doubleSha256(concatenate(tree_[leftChildOf(i)], tree_[rightChildOf(i)]));
         }
         // Duplicate the last one if there is an odd number (except for the root!)
         if (!even(n) && first > ROOT)
@@ -133,11 +122,11 @@ bool MerkleTree::verify(Crypto::Sha256Hash const &              hash,
     {
         if (even(i))
         {
-            result = Crypto::sha256(concatenate(result, p));
+            result = Crypto::doubleSha256(concatenate(result, p));
         }
         else
         {
-            result = Crypto::sha256(concatenate(p, result));
+            result = Crypto::doubleSha256(concatenate(p, result));
         }
         i /= 2;
     }

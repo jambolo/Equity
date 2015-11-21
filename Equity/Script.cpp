@@ -109,7 +109,7 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
                 count = (size_t)size[0] + ((size_t)size[1] << 8);
                 i += 2;
             }
-            else if (op == OP_PUSHDATA4)
+            else //if (op == OP_PUSHDATA4)
             {
                 if (i + 4 > bytes.size())
                     return false;
@@ -121,7 +121,8 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
             if (i + count > bytes.size())
                 return false;
             uint8_t const * data = &bytes[i];
-            instructions_.push_back({ 0, std::vector<uint8_t>(data, data + count) });
+            Instruction instruction = { 0, std::vector<uint8_t>(data, data + count), offset };
+            instructions_.push_back(instruction);
             i += count;
         }
         else if (op == OP_VERIF || OP_VERNOTIF)
@@ -130,7 +131,8 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
         }
         else if (op >= OP_1NEGATE && op <= OP_NOP10)
         {
-            instructions_.push_back({ op, std::vector<uint8_t>() });
+            Instruction instruction = { op, std::vector<uint8_t>(), offset };
+            instructions_.push_back(instruction);
         }
         // not sure if these should be counted as valid
         //          else if (op >= OP_PUBKEYHASH && op <= OP_INVALIDOPCODE)

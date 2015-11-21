@@ -6,6 +6,7 @@
 #include "equity/Script.h"
 
 #include <algorithm>
+#include <cstdlib>
 
 using namespace Equity;
 using namespace Validation;
@@ -186,26 +187,26 @@ bool ScriptEngine::run(Script const & script)
         }
         switch (op)
         {
-        case Script::OP_1NEGATE:             mainStack_.push_back({ 0x81 });  break;
+        case Script::OP_1NEGATE:             mainStack_.push_back(std::vector<uint8_t>(1, 0x81));  break;
 
         case Script::OP_RESERVED:            return false;
 
-        case Script::OP_1:                   mainStack_.push_back({ 1 });    break;
-        case Script::OP_2:                   mainStack_.push_back({ 2 });    break;
-        case Script::OP_3:                   mainStack_.push_back({ 3 });    break;
-        case Script::OP_4:                   mainStack_.push_back({ 4 });    break;
-        case Script::OP_5:                   mainStack_.push_back({ 5 });    break;
-        case Script::OP_6:                   mainStack_.push_back({ 6 });    break;
-        case Script::OP_7:                   mainStack_.push_back({ 7 });    break;
-        case Script::OP_8:                   mainStack_.push_back({ 8 });    break;
-        case Script::OP_9:                   mainStack_.push_back({ 9 });    break;
-        case Script::OP_10:                  mainStack_.push_back({ 10 });    break;
-        case Script::OP_11:                  mainStack_.push_back({ 11 });    break;
-        case Script::OP_12:                  mainStack_.push_back({ 12 });    break;
-        case Script::OP_13:                  mainStack_.push_back({ 13 });    break;
-        case Script::OP_14:                  mainStack_.push_back({ 14 });    break;
-        case Script::OP_15:                  mainStack_.push_back({ 15 });    break;
-        case Script::OP_16:                  mainStack_.push_back({ 16 });    break;
+        case Script::OP_1:                   mainStack_.push_back(std::vector<uint8_t>(1,  1));    break;
+        case Script::OP_2:                   mainStack_.push_back(std::vector<uint8_t>(1,  2));    break;
+        case Script::OP_3:                   mainStack_.push_back(std::vector<uint8_t>(1,  3));    break;
+        case Script::OP_4:                   mainStack_.push_back(std::vector<uint8_t>(1,  4));    break;
+        case Script::OP_5:                   mainStack_.push_back(std::vector<uint8_t>(1,  5));    break;
+        case Script::OP_6:                   mainStack_.push_back(std::vector<uint8_t>(1,  6));    break;
+        case Script::OP_7:                   mainStack_.push_back(std::vector<uint8_t>(1,  7));    break;
+        case Script::OP_8:                   mainStack_.push_back(std::vector<uint8_t>(1,  8));    break;
+        case Script::OP_9:                   mainStack_.push_back(std::vector<uint8_t>(1,  9));    break;
+        case Script::OP_10:                  mainStack_.push_back(std::vector<uint8_t>(1, 10));    break;
+        case Script::OP_11:                  mainStack_.push_back(std::vector<uint8_t>(1, 11));    break;
+        case Script::OP_12:                  mainStack_.push_back(std::vector<uint8_t>(1, 12));    break;
+        case Script::OP_13:                  mainStack_.push_back(std::vector<uint8_t>(1, 13));    break;
+        case Script::OP_14:                  mainStack_.push_back(std::vector<uint8_t>(1, 14));    break;
+        case Script::OP_15:                  mainStack_.push_back(std::vector<uint8_t>(1, 15));    break;
+        case Script::OP_16:                  mainStack_.push_back(std::vector<uint8_t>(1, 16));    break;
 
         case Script::OP_NOP:                 /* do nothing */   break;
 

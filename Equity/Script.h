@@ -44,7 +44,7 @@ public:
 
         // Flow control
 
-        OP_NOP                  = 0x61,     // Nothing    Nothing    Does nothing.
+        OP_NOP                  = 0x61,     // Does nothing.
         OP_VER                  = 0x62,     // Transaction is invalid unless occuring in an unexecuted OP_IF branch
         OP_IF                   = 0x63,     // <expression> if[statements][else[statements]] * endif    If the top stack value is not 0, the statements are executed.The top stack value is removed.
         OP_NOTIF                = 0x64,     // <expression> if[statements][else[statements]] * endif    If the top stack value is 0, the statements are executed.The top stack value is removed.
@@ -57,8 +57,8 @@ public:
 
         // Stack
 
-        OP_TOALTSTACK           = 0x6b,     // x1(alt)x1    Puts the input onto the top of the alt stack.Removes it from the main stack.
-        OP_FROMALTSTACK         = 0x6c,     // (alt)x1    x1    Puts the input onto the top of the main stack.Removes it from the alt stack.
+        OP_TOALTSTACK           = 0x6b,     // x1(alt)x1    Puts the input onto the top of the alt stack. Removes it from the main stack.
+        OP_FROMALTSTACK         = 0x6c,     // (alt)x1    x1    Puts the input onto the top of the main stack. Removes it from the alt stack.
         OP_2DROP                = 0x6d,     // x1 x2    Nothing    Removes the top two stack items.
         OP_2DUP                 = 0x6e,     // x1 x2    x1 x2 x1 x2    Duplicates the top two stack items.
         OP_3DUP                 = 0x6f,     // x1 x2 x3    x1 x2 x3 x1 x2 x3    Duplicates the top three stack items.
