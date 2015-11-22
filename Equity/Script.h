@@ -139,7 +139,7 @@ public:
         OP_CHECKMULTISIG        = 0xae,     // x sig1 sig2 ... <number of signatures> pub1 pub2 <number of public keys>    True / False    Compares the first signature against each public key until it finds an ECDSA match.Starting with the subsequent public key, it compares the second signature against each remaining public key until it finds an ECDSA match.The process is repeated until all signatures have been checked or not enough public keys remain to produce a successful result.All signatures need to match a public key.Because public keys are not checked again if they fail any signature comparison, signatures must be placed in the scriptSig using the same order as their corresponding public keys were placed in the scriptPubKey or redeemScript.If all signatures are valid, 1 is returned, 0 otherwise.Due to a bug, one extra unused value is removed from the stack.
         OP_CHECKMULTISIGVERIFY  = 0xaf,     // x sig1 sig2 ... <number of signatures> pub1 pub2 ... <number of public keys>    True / False    Same as OP_CHECKMULTISIG, but OP_VERIFY is executed afterward.
         OP_NOP1                 = 0xb0,     // The word is ignored. Does not mark transaction as invalid.
-        OP_NOP2                 = 0xb1,     // The word is ignored. Does not mark transaction as invalid.
+        OP_CHECKLOCKTIMEVERIFY  = 0xb1,     // Marks transaction as invalid if the top stack item is greater than the transaction's nLockTime field, otherwise script evaluation continues as though an OP_NOP was executed. Transaction is also invalid if 1. the top stack item is negative; or 2. the top stack item is greater than or equal to 500000000 while the transaction's nLockTime field is less than 500000000, or vice versa; or 3. the input's nSequence field is equal to 0xffffffff. The precise semantics are described in BIP 0065
         OP_NOP3                 = 0xb2,     // The word is ignored. Does not mark transaction as invalid.
         OP_NOP4                 = 0xb3,     // The word is ignored. Does not mark transaction as invalid.
         OP_NOP5                 = 0xb4,     // The word is ignored. Does not mark transaction as invalid.
@@ -150,19 +150,18 @@ public:
         OP_NOP10                = 0xb9,     // The word is ignored. Does not mark transaction as invalid.
 
         // 0xba - 0xfc                      // Not assigned
-
-        // Pseudo - words
-
-        OP_PUBKEYHASH           = 0xfd,     // Represents a public key hashed with OP_HASH160.
-        OP_PUBKEY               = 0xfe,     // Represents a public key compatible with OP_CHECKSIG.
-        OP_INVALIDOPCODE        = 0xff,     // Matches any opcode that is not yet assigned.
+        // 0xfd - 0xff                      // Reserved for internal use
     };
 
     struct Instruction
     {
-        int op;
-        std::vector<uint8_t> data;
-        size_t offset;
+        int op_;                        // Opcode
+        std::vector<uint8_t> data_;     // data
+        size_t location_;               // Location of the instruction
+        size_t size_;                   // Size of the instruction (also offset to the next instruction)
+        
+        Instruction(uint8_t const *& in, size_t & size);
+        void serialize(std::vector<uint8_t> & out) const;
     };
     typedef std::vector<Instruction> Program;
 

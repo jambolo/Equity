@@ -4,6 +4,7 @@
 #include "crypto/Sha1.h"
 #include "crypto/Sha256.h"
 #include "utility/Utility.h"
+#include "utility/Serialize.h"
 
 #include<algorithm>
 #include <stack>
@@ -15,12 +16,12 @@ using namespace Equity;
 
 struct OpcodeInfo
 {
-    char const * name;
-    int nArgs;
+    char const * name;  // Name to display
+    int nArgs;          // Minimum number of arguments
 };
-static OpcodeInfo const OPCODE_NAMES[] =
+static OpcodeInfo const OPCODE_INFOS[] =
 {
-    { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 },
+    { "0", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 },
     { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 },
     { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 },
     { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 }, { "PUSHDATA", 0 },
@@ -54,6 +55,59 @@ static OpcodeInfo const OPCODE_NAMES[] =
     { "(invalid)", 0 }, { "(invalid)", 0 }, { "(invalid)", 0 }, { "(invalid)", 0 }, { "(invalid)", 0 }, { "PUBKEYHASH", 0 }, { "PUBKEY", 0 }, { "INVALIDOPCODE", 0 },
 };
 
+Script::Instruction::Instruction(char const *& in, size_t & size)
+{
+    size_t instructionSize = 0;
+    op_ = Utility::deserialize<uint8_t>(in, size);
+    if (!in)
+        return;
+    instructionSize += 1;
+
+    if (op_ >= 0x01 && op_ <= OP_PUSHDATA4)
+    {
+        size_t count;
+        if (op_ >= 0 && op_ <= 0x4b)
+        {
+            count = op_;
+        }
+        else if (op_ == OP_PUSHDATA1)
+        {
+            count = Utility::deserialize<uint8_t>(in, size);
+            if (!in)
+                return;
+            i += 1;
+        }
+        else if (op_ == OP_PUSHDATA2)
+        {
+            count = Utility::deserialize<uint16_t>(in, size);
+            if (!in)
+                return;
+            i += 2;
+        }
+        else //if (op_ == OP_PUSHDATA4)
+        {
+            count = Utility::deserialize<uint32_t>(in, size);
+            if (!in)
+                return;
+            i += 4;
+        }
+
+        data = Utility::deserializeBuffer(count, in, size);
+        Instruction instruction = { op, std::vector<uint8_t>(data, data + count), location, 1 + count };
+    }
+    else if ((op_ == OP_VERIF || op_ == OP_VERNOTIF)
+    {
+        return false;
+    }
+    else if (op_ == OP_0 || (op_ >= OP_1NEGATE && op_ <= OP_NOP10))
+    {
+    }
+    else
+    {
+        in = nullptr;
+    }
+}
+
 Script::Script(std::vector<uint8_t> const & bytes)
 {
     valid_ = parse(bytes);
@@ -83,66 +137,6 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
     size_t i = 0;
     while (i < bytes.size())
     {
-        size_t offset = i;
-        int op = bytes[i];
-        ++i;
-
-        if (op >= OP_0 && op <= OP_PUSHDATA4)
-        {
-            uint8_t const * size = &bytes[i];
-            size_t count;
-            if (op >= 0 && op <= 0x4b)
-            {
-                count = op;
-            }
-            else if (op == OP_PUSHDATA1)
-            {
-                if (i + 1 > bytes.size())
-                    return false;
-                count = (size_t)size[0];
-                i += 1;
-            }
-            else if (op == OP_PUSHDATA2)
-            {
-                if (i + 2 > bytes.size())
-                    return false;
-                count = (size_t)size[0] + ((size_t)size[1] << 8);
-                i += 2;
-            }
-            else //if (op == OP_PUSHDATA4)
-            {
-                if (i + 4 > bytes.size())
-                    return false;
-                count = (size_t)size[0] + ((size_t)size[1] << 8) + ((size_t)size[2] << 16) + ((size_t)size[3] << 24);
-                i += 4;
-            }
-
-            // Note: All data push instructions have an op of 0 because the details of how the data is stored are irrelevant
-            if (i + count > bytes.size())
-                return false;
-            uint8_t const * data = &bytes[i];
-            Instruction instruction = { 0, std::vector<uint8_t>(data, data + count), offset };
-            instructions_.push_back(instruction);
-            i += count;
-        }
-        else if (op == OP_VERIF || OP_VERNOTIF)
-        {
-            return false;
-        }
-        else if (op >= OP_1NEGATE && op <= OP_NOP10)
-        {
-            Instruction instruction = { op, std::vector<uint8_t>(), offset };
-            instructions_.push_back(instruction);
-        }
-        // not sure if these should be counted as valid
-        //          else if (op >= OP_PUBKEYHASH && op <= OP_INVALIDOPCODE)
-        //          {
-        //              instructions_.push_back({ op, std::vector<uint8_t>() });
-        //          }
-        else
-        {
-            return false;
-        }
     }
     return true;
 }
