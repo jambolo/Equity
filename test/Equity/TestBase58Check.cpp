@@ -49,7 +49,7 @@ int TestBase58Check()
     printf("+-- Base58Check\n");
 
     printf("    +-- testing: std::string encode(uint8_t const * input, size_t length, unsigned version)\n");
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.stringForm);
         std::string result = Base58Check::encode(c.data, c.size, c.version);
@@ -65,7 +65,7 @@ int TestBase58Check()
     }
 
     printf("    +-- testing: bool decode(char const * input, std::vector<uint8_t> & output, unsigned & version)\n");
-    for (auto c : DECODE_VALIDITY_CASES)
+    for (auto const & c : DECODE_VALIDITY_CASES)
     {
         std::string name = Utility::shorten(c.data);
         std::vector<uint8_t> resultVector;
@@ -82,7 +82,7 @@ int TestBase58Check()
             printf("        +-- %s: ok\n", name.c_str());
         }
     }
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(Utility::toHex(c.data, c.size));
         std::vector<uint8_t> resultVector;

@@ -393,14 +393,14 @@ bool ScriptEngine::run(Script const & script)
 
         case Script::OP_EQUAL:
         {
-            bool equal = (p0->size() == p1->size() && std::equal(p0->begin(), p0->end(), p1->begin()));
+            bool equal = (*p0 == *p1);
             mainStack_.pop_back();
             mainStack_.back() = toElement(equal);
             break;
         }
         case Script::OP_EQUALVERIFY:
         {
-            bool equal = (p0->size() == p1->size() && std::equal(p0->begin(), p0->end(), p1->begin()));
+            bool equal = (*p0 == *p1);
             mainStack_.pop_back();
             mainStack_.back() = toElement(equal);
             if (!equal)

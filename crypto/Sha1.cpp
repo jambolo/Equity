@@ -7,7 +7,7 @@ namespace Crypto
 
     Sha1Hash sha1(std::vector<uint8_t> const & input)
     {
-        return sha1(&input[0], input.size());
+        return sha1(input.data(), input.size());
     }
 
     Sha1Hash sha1(uint8_t const * input, size_t length)

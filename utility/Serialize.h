@@ -69,7 +69,7 @@ std::vector<uint8_t>  deserializeBuffer(size_t n, uint8_t const *& in, size_t & 
         void serialize(std::vector<uint8_t> & out) const
         {
             VarInt(vector_.size()).serialize(out);
-            for (auto element : vector_)
+            for (auto const & element : vector_)
             {
                 element.serialize(out);
             }

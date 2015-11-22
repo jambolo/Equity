@@ -70,7 +70,7 @@ bool PrivateKey::isValid()
         return false;
 
     std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
-    BN_bin2bn(&value_[0], (int)value_.size(), i.get());
+    BN_bin2bn(value_.data(), (int)value_.size(), i.get());
 
     if (BN_is_zero(i.get()))
     {

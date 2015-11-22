@@ -23,13 +23,13 @@ Message::Message(uint8_t const *& in, size_t & size)
     if (in == nullptr)
         return;
     commandBuffer.push_back(0); // Ensure termination
-    command_ = (char *)&commandBuffer[0];
+    command_ = (char *)commandBuffer.data();
 }
 
 void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t>commandBuffer(12);
-    command_.copy((char *)&commandBuffer[0], command_.length());
+    command_.copy((char *)commandBuffer.data(), command_.length());
     Crypto::Sha256Hash check = Crypto::sha256(payload);
     check.resize(4);
 

@@ -10,7 +10,7 @@ using namespace Crypto;
 
 std::string Base58Check::encode(std::vector<uint8_t> const & input, unsigned version)
 {
-    return encode(&input[0], input.size(), version);
+    return encode(input.data(), input.size(), version);
 }
 
 std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned version)
@@ -21,7 +21,7 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
     work.insert(work.end(), input, input+length);
 
     // 2. Take the first four bytes of SHA256(SHA256(results of step 1))
-    std::vector<uint8_t> check = sha256(sha256(work));
+    std::vector<uint8_t> check = doubleSha256(work);
     check.resize(4);
 
     // 3. Concatenate the results of step 1 and the results of step 2 together(bytewise).
@@ -40,9 +40,9 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
     //    zero byte shall be represented by its own character '1' in the final result.
 
     int leadingZeros = 0;
-    for (std::vector<uint8_t>::const_iterator i = work.begin(); i != work.end(); ++i)
+    for (auto i: work)
     {
-        if (*i != 0)
+        if (i != 0)
         {
             break;
         }
@@ -87,7 +87,7 @@ bool Base58Check::decode(char const * input, std::vector<uint8_t> & output, unsi
         return false;
 
     // Check the checksum
-    std::vector<uint8_t> check = sha256(sha256(&work[0], work.size() - 4));
+    std::vector<uint8_t> check = doubleSha256(work.data(), work.size() - 4);
     if (!std::equal(check.begin(), check.begin() + 4, work.end() - 4))
     {
         return false;

@@ -38,7 +38,7 @@ int TestPublicKey()
         } }
     };
 
-    for (auto c : PUBLIC_KEY_CASES)
+    for (auto const & c : PUBLIC_KEY_CASES)
     {
         PublicKey result(c.data);
         std::vector<uint8_t> value = result.value();
@@ -103,7 +103,7 @@ int TestPublicKey()
         }
     };
 
-    for (auto c : PRIVATE_KEY_CASES)
+    for (auto const & c : PRIVATE_KEY_CASES)
     {
         PublicKey result(PrivateKey(c.privateKey));
         std::vector<uint8_t> value = result.value();

@@ -72,7 +72,7 @@ static int TestRipemd160()
 
     printf("    +-- testing ripemd160(uint8_t const * input, size_t length)\n");
 
-    for (auto c : RIPEMD160_CASES)
+    for (auto const & c : RIPEMD160_CASES)
     {
         std::string name = shorten(c.input);
 
@@ -141,7 +141,7 @@ static int TestSha256()
 
     printf("    +-- testing sha256(uint8_t const * input, size_t length)\n");
 
-    for (auto c : SHA256_CASES)
+    for (auto const & c : SHA256_CASES)
     {
         std::string name = shorten(c.input);
 
@@ -210,7 +210,7 @@ static int TestDoubleSha256()
 
     printf("    +-- testing doubleSha256(uint8_t const * input, size_t length)\n");
 
-    for (auto c : DOUBLE_SHA256_CASES)
+    for (auto const & c : DOUBLE_SHA256_CASES)
     {
         std::string name = shorten(c.input);
 
@@ -283,7 +283,7 @@ static int TestSha1()
 
     printf("    +-- testing sha1(uint8_t const * input, size_t length)\n");
 
-    for (auto c : SHA1_CASES)
+    for (auto const & c : SHA1_CASES)
     {
         std::string name = shorten(c.input);
 

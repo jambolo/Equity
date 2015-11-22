@@ -149,7 +149,7 @@ bool Script::parse(std::vector<uint8_t> const & bytes)
 
 bool Script::check() const
 {
-    for (auto i : instructions_)
+    for (auto const & i : instructions_)
     {
         // Check for valid op codes (Note: all data push instructions have an op code of 0)
         if (!((i.op == 0) || (i.op >= OP_1NEGATE && i.op <= OP_NOP10)))

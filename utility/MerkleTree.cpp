@@ -40,42 +40,55 @@ std::vector<uint8_t> concatenate(Crypto::Sha256Hash const & left, Crypto::Sha256
 namespace Utility
 {
 
-MerkleTree::MerkleTree(std::vector<Crypto::Sha256Hash> const & hashes)
+MerkleTree::MerkleTree(Crypto::Sha256HashList const & hashes)
 {
     // Figure out the size of the tree
     nLeaves_ = hashes.size();
-    size_t paddedNLeaves = (nLeaves_ + 1) & ~(size_t)1;
-    offset_ = smallestPowerOfTwo(paddedNLeaves);
-    tree_.reserve(offset_ + paddedNLeaves);
 
-    // Make space for interior nodes
-    tree_.resize(offset_);
-
-    // Load the leaves (and duplicate the last one if there is an odd number)
-    tree_.insert(tree_.end(), hashes.begin(), hashes.end());
-    if (!even(nLeaves_))
+    if (nLeaves_ > 1)
     {
-        tree_.push_back(tree_.back());
+        // An even number of leaves is necessary. In the odd case, the last is duplicated.
+        size_t paddedNLeaves = (nLeaves_ + 1) & ~(size_t)1;
+
+        offset_ = smallestPowerOfTwo(paddedNLeaves);
+        tree_.reserve(offset_ + paddedNLeaves);
+
+        // Make space for interior nodes
+        tree_.resize(offset_);
+
+        // Load the leaves (and duplicate the last one if there is an odd number)
+        tree_.insert(tree_.end(), hashes.begin(), hashes.end());
+        if (!even(nLeaves_))
+        {
+            tree_.push_back(tree_.back());
+        }
+
+        // Calculate the interior of the tree
+        size_t n = paddedNLeaves / 2;
+        size_t first = parentOf(offset_);
+        while (n > 0)
+        {
+            for (size_t i = first; i < first + n; ++i)
+            {
+                tree_[i] = Crypto::doubleSha256(concatenate(tree_[leftChildOf(i)], tree_[rightChildOf(i)]));
+            }
+            // Duplicate the last one if there is an odd number (except for the root!)
+            if (!even(n) && first > ROOT)
+            {
+                tree_[first + n] = tree_[first + n - 1];
+                ++n;
+            }
+
+            n /= 2;
+            first = parentOf(first);
+        }
     }
-
-    // Calculate the interior of the tree
-    size_t n = paddedNLeaves / 2;
-    size_t first = parentOf(offset_);
-    while (n > 0)
+    // Special case: If there is only one leaf, then it is the root (very odd)
+    else
     {
-        for (size_t i = first; i < first + n; ++i)
-        {
-            tree_[i] = Crypto::doubleSha256(concatenate(tree_[leftChildOf(i)], tree_[rightChildOf(i)]));
-        }
-        // Duplicate the last one if there is an odd number (except for the root!)
-        if (!even(n) && first > ROOT)
-        {
-            tree_[first + n] = tree_[first + n - 1];
-            ++n;
-        }
-
-        n /= 2;
-        first = parentOf(first);
+        offset_ = 1;
+        tree_.resize(offset_);
+        tree_.push_back(hashes[0]);
     }
 }
 
@@ -94,16 +107,16 @@ Crypto::Sha256Hash MerkleTree::hashAt(size_t i) const
     return tree_[offset_ + i];
 }
 
-std::vector<Crypto::Sha256Hash> MerkleTree::proof(size_t i) const
+Crypto::Sha256HashList MerkleTree::proof(size_t i) const
 {
     if (i >= nLeaves_)
     {
-        return std::vector<Crypto::Sha256Hash>();
+        return Crypto::Sha256HashList();
     }
 
     i += offset_;
 
-    std::vector<Crypto::Sha256Hash> p;
+    Crypto::Sha256HashList p;
     while (i > ROOT)
     {
         p.push_back(tree_[siblingOf(i)]);
@@ -114,11 +127,11 @@ std::vector<Crypto::Sha256Hash> MerkleTree::proof(size_t i) const
 
 bool MerkleTree::verify(Crypto::Sha256Hash const &              hash,
                         size_t                                  i,
-                        std::vector<Crypto::Sha256Hash> const & proof,
+                        Crypto::Sha256HashList const & proof,
                         Crypto::Sha256Hash const &              root)
 {
     Crypto::Sha256Hash result = hash;
-    for (auto p: proof)
+    for (auto const & p: proof)
     {
         if (even(i))
         {

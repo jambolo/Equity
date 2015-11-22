@@ -7,7 +7,7 @@ namespace Crypto
 
 Sha256Hash sha256(std::vector<uint8_t> const & input)
 {
-    return sha256(&input[0], input.size());
+    return sha256(input.data(), input.size());
 }
 
 Sha256Hash sha256(uint8_t const * input, size_t length)

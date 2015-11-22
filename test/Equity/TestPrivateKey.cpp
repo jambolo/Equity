@@ -49,7 +49,7 @@ int TestPrivateKey()
 
     printf("    +-- testing: PrivateKey(uint8_t const * k)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(Utility::toHex(c.data, 32));
         PrivateKey result(c.data);
@@ -102,7 +102,7 @@ int TestPrivateKey()
         { "5K9DqQDrw1XzbPNfvqPXExyLxtLCozAQXwyFUbJ8PvcWPMx5bja", false }    // checksum is wrong
     };
 
-    for (auto c : STRING_VALIDITY_CASES)
+    for (auto const & c : STRING_VALIDITY_CASES)
     {
         std::string name = Utility::shorten(c.data);
         PrivateKey result(c.data);
@@ -119,7 +119,7 @@ int TestPrivateKey()
 
     printf("    +-- testing: PrivateKey(std::string const & wif) (uncompressed)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.wif);
@@ -153,7 +153,7 @@ int TestPrivateKey()
 
     printf("    +-- testing: PrivateKey(std::string const & wif) (compressed)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.wifCompressed);
         PrivateKey result(c.wifCompressed);
@@ -188,7 +188,7 @@ int TestPrivateKey()
 
     printf("    +-- testing: setCompressed(false)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.data);
@@ -212,7 +212,7 @@ int TestPrivateKey()
 
     printf("    +-- testing: setCompressed(true)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.wif);
         PrivateKey result(c.data);

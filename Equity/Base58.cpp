@@ -42,7 +42,7 @@ static int decode(int c)
 
 std::string Base58::encode(std::vector<uint8_t> const & input)
 {
-    return encode(&input[0], input.size());
+    return encode(input.data(), input.size());
 }
 
 std::string Base58::encode(uint8_t const * input, size_t length)

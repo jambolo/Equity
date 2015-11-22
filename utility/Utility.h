@@ -20,6 +20,18 @@ std::vector<uint8_t> fromHex(std::string const & x);
 //! Converts a hex string to a vector
 std::vector<uint8_t> fromHex(char const * x, size_t length);
 
+//! Converts a vector to a hex string
+std::string toHexR(std::vector<uint8_t> const & v);
+
+//! Converts a vector to a hex string
+std::string toHexR(uint8_t const * v, size_t length);
+
+//! Converts a hex string to a vector
+std::vector<uint8_t> fromHexR(std::string const & x);
+
+//! Converts a hex string to a vector
+std::vector<uint8_t> fromHexR(char const * x, size_t length);
+
 //! Converts a hex JSON string value to a vector
 std::vector<uint8_t> fromJson(std::string const & j);
 

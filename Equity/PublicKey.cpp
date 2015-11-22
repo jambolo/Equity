@@ -27,7 +27,7 @@ PublicKey::PublicKey(PrivateKey const & k)
     , valid_(false)
 {
     std::shared_ptr<BIGNUM> prvKey(BN_new(), BN_free);
-    BN_bin2bn(&k.value()[0], (int)PrivateKey::SIZE, prvKey.get());
+    BN_bin2bn(k.value().data(), (int)PrivateKey::SIZE, prvKey.get());
 
     std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
     std::shared_ptr<EC_POINT> pubKey(EC_POINT_new(group.get()), EC_POINT_free);

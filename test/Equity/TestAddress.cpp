@@ -75,7 +75,7 @@ int TestAddress()
 
     printf("    +-- testing: Address(uint8_t const * k)\n");
 
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.stringForm);
 
@@ -110,7 +110,7 @@ int TestAddress()
 
     printf("    +-- testing: Address(std::string const & s)\n");
 
-    for (auto c : STRING_VALIDITY_CASES)
+    for (auto const & c : STRING_VALIDITY_CASES)
     {
         std::string name = Utility::shorten(c.data);
         Address result(c.data);
@@ -124,7 +124,7 @@ int TestAddress()
             printf("        +-- %s: ok\n", name.c_str());
         }
     }
-    for (auto c : CASES)
+    for (auto const & c : CASES)
     {
         std::string name = Utility::shorten(c.stringForm);
         Address result(c.stringForm);
@@ -153,7 +153,7 @@ int TestAddress()
 
     printf("    +-- testing: Address(PublicKey const & publicKey)\n");
 
-    for (auto c : PUBLIC_KEY_CASES)
+    for (auto const & c : PUBLIC_KEY_CASES)
     {
         std::string name = Utility::shorten(c.address);
         Address result(PublicKey(c.publicKey));
