@@ -18,6 +18,8 @@ public:
 
     std::string toJson() const;
     std::string toHex() const;
+    std::string toSource() const;
+
 
     bool valid() const { return valid_; }
     std::vector<uint8_t> data() const { return data_; }

@@ -12,6 +12,15 @@ namespace Equity
 class Transaction
 {
 public:
+
+    enum Type
+    {
+        TYPE_PayToPubkeyHash,
+        TYPE_PayToScriptHash,
+        TYPE_OpReturn,
+        TYPE_Other
+    };
+
     struct Input
     {
         Txid txid;
