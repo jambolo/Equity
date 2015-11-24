@@ -9,6 +9,8 @@ set(SOURCES
     BlockHeader.h
 	Input.cpp
 	Input.h
+    Instruction.cpp
+    Instruction.h
 	Output.cpp
 	Output.h
 	PrivateKey.cpp

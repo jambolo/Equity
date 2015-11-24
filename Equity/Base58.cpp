@@ -1,9 +1,9 @@
 #include "Base58.h"
 
-#include <openssl/bn.h>
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <openssl/bn.h>
 
 using namespace Equity;
 
@@ -35,7 +35,9 @@ static int decode(int c)
 
     // Valid range is '1' to 'z'
     if (c < 0 || c >= DECODE_MAP_SIZE)
+    {
         return -1;
+    }
 
     return DECODE_MAP[c];
 }
@@ -49,7 +51,9 @@ std::string Base58::encode(uint8_t const * input, size_t length)
 {
     std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
     if (!i)
+    {
         return "";
+    }
 
     BN_bin2bn(input, (int)length, i.get());
 
@@ -74,11 +78,15 @@ bool Base58::decode(std::string const & input, std::vector<uint8_t> & output)
 bool Base58::decode(char const * input, std::vector<uint8_t> & output)
 {
     if (*input == 0)
+    {
         return false;
+    }
 
     std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
     if (!i)
+    {
         return false;
+    }
 
     int nLeadingZeros = 0;
 
@@ -107,7 +115,9 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
     int size = BN_num_bytes(i.get());
     output.resize(nLeadingZeros + size);
     if (size > 0)
+    {
         BN_bn2bin(i.get(), &output[nLeadingZeros]);
+    }
 
     return true;
 }

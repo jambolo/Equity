@@ -2,12 +2,8 @@
 
 using namespace Equity;
 
-
 Input::Input()
-{
-}
-
+{}
 
 Input::~Input()
-{
-}
+{}

@@ -7,15 +7,14 @@
 
 namespace Equity
 {
-    
 
 class BlockHeader
 {
 public:
-    BlockHeader(uint8_t const *& out, size_t & size);
-    
+    BlockHeader(uint8_t const * & out, size_t & size);
+
     void serialize(std::vector<uint8_t> & out) const;
-    
+
     int32_t version() const { return version_; }
     Crypto::Sha256Hash previousBlock() const { return previousBlock_; }
     Crypto::Sha256Hash merkleRoot() const { return merkleRoot_; }
@@ -25,7 +24,7 @@ public:
     uint64_t count() const { return count_; }
 
 private:
-    
+
     int32_t version_;
     Crypto::Sha256Hash previousBlock_;
     Crypto::Sha256Hash merkleRoot_;
@@ -35,5 +34,4 @@ private:
     uint64_t count_;
 };
 
-    
 } // namespace Equity

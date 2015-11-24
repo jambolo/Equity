@@ -1,4 +1,6 @@
 #include "Ecdsa.h"
 
+namespace Crypto
+{
 
-using namespace Crypto;
+} // namespace Crypto

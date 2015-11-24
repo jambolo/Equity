@@ -1,17 +1,18 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace Crypto
 {
 
-    class Ecdsa
-    {
-    public:
+// IMPORTANT NOTE: Key values are always big-endian.
+class Ecdsa
+{
+public:
 
-        typedef std::vector<uint8_t> PublicKey;
-        typedef std::vector<uint8_t> PrivateKey;
-    };
+    typedef std::vector<uint8_t> PublicKey;
+    typedef std::vector<uint8_t> PrivateKey;
+};
 
-}
+} // namespace Crypto

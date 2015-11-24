@@ -23,7 +23,7 @@ Sha256Hash sha256(uint8_t const * input, size_t length)
     EVP_DigestFinal_ex(mdctx, output, &outputLength);
     EVP_MD_CTX_destroy(mdctx);
 
-    return Sha256Hash(output, output+outputLength);
+    return Sha256Hash(output, output + outputLength);
 }
 
-}
+} // namespace Crypto

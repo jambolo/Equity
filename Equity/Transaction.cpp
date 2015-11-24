@@ -16,20 +16,11 @@ static std::string const INPUTS_LABEL("\"inputs\":");
 static std::string const OUTPUTS_LABEL("\"outputs\":");
 static std::string const LOCKTIME_LABEL("\"locktime\":");
 
-Transaction::Input::Input(uint8_t const *& in, size_t & size)
+Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {
     txid = Txid(in, size);
-    if (in == nullptr)
-        return;
-
     outputIndex = Utility::deserialize<uint32_t>(in, size);
-    if (in == nullptr)
-        return;
-
     script = Utility::VarArray<uint8_t>(in, size).value();
-    if (in == nullptr)
-        return;
-
     sequence = Utility::deserialize<uint32_t>(in, size);
 }
 
@@ -55,12 +46,9 @@ std::string Transaction::Input::toJson() const
     return json;
 }
 
-Transaction::Output::Output(uint8_t const *& in, size_t & size)
+Transaction::Output::Output(uint8_t const * & in, size_t & size)
 {
     value = Utility::deserialize<uint64_t>(in, size);
-    if (in == nullptr)
-        return;
-
     script = Utility::VarArray<uint8_t>(in, size).value();
 }
 
@@ -91,28 +79,17 @@ Transaction::Transaction(int version, InputList const & inputs, OutputList const
 {
 }
 
-Transaction::Transaction(uint8_t const *& in, size_t & size)
+Transaction::Transaction(uint8_t const * & in, size_t & size)
     : valid_(false)
 {
     version_ = Utility::deserialize<uint32_t>(in, size);
-    if (in == nullptr)
-        return;
-
     // Only version 1 is valid now.
     if (version_ != 1)
-        return;
+        throw Utility::DeserializationError();
 
     inputs_ = Utility::VarArray<Input>(in, size).value();
-    if (in == nullptr)
-        return;
-
     outputs_ = Utility::VarArray<Output>(in, size).value();
-    if (in == nullptr)
-        return;
-
     lockTime_ = Utility::deserialize<uint32_t>(in, size);
-    if (in == nullptr)
-        return;
 
     valid_ = true;
 }

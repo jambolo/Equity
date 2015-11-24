@@ -12,22 +12,21 @@ Txid::Txid(std::string const & json)
 {
 }
 
-Txid::Txid(uint8_t const *& in, size_t & size)
+Txid::Txid(uint8_t const * & in, size_t & size)
 {
     if (size < Crypto::SHA256_HASH_SIZE)
-    {
-        in = nullptr;
-        return;
-    }
+        throw Utility::DeserializationError();
     insert(end(), in, in + Crypto::SHA256_HASH_SIZE);
-    std::reverse(begin(), end());   // Txid's are stored and displayed as big-endian, but serialized as little-endian.
+    std::reverse(begin(), end());   // Txid's are stored and displayed as big-endian, but serialized as
+                                    // little-endian.
     in += Crypto::SHA256_HASH_SIZE;
     size -= Crypto::SHA256_HASH_SIZE;
 }
 
 void Txid::serialize(std::vector<uint8_t> & out) const
 {
-    out.insert(out.end(), rbegin(), rend());    // Txid's are stored and displayed as big-endian, but serialized as little-endian.
+    out.insert(out.end(), rbegin(), rend());    // Txid's are stored and displayed as big-endian, but serialized as
+                                                // little-endian.
 }
 
 std::string Txid::toHex() const
@@ -35,10 +34,7 @@ std::string Txid::toHex() const
     return Utility::toHex(*this);
 }
 
-
 std::string Txid::toJson() const
 {
     return Utility::toJson(*this);
 }
-
-

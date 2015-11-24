@@ -1,12 +1,13 @@
 #pragma once
 
-namespace Equity {
+namespace Equity
+{
 
-    class Output
-    {
-    public:
-        Output();
-        ~Output();
-    };
+class Output
+{
+public:
+    Output();
+    ~Output();
+};
 
-}
+} // namespace Equity

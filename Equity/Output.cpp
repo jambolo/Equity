@@ -2,11 +2,9 @@
 
 using namespace Equity;
 
-
 Output::Output()
 {
 }
-
 
 Output::~Output()
 {

@@ -28,133 +28,134 @@ namespace Utility
 {
 
 /********************************************************************************************************************/
-/*                                           H E X   C O N V E R S I O N                                            */
+/*                                           H E X   C O N V E R S I O N
+                                              */
 /********************************************************************************************************************/
 
-    std::string toHex(std::vector<uint8_t> const & v)
+std::string toHex(std::vector<uint8_t> const & v)
+{
+    if (v.empty())
     {
-        if (v.empty())
-        {
-            return toHex(NULL, 0);
-        }
-        else
-        {
-            return toHex(v.data(), v.size());
-        }
+        return toHex(NULL, 0);
+    }
+    else
+    {
+        return toHex(v.data(), v.size());
+    }
+}
+
+std::string toHex(uint8_t const * v, size_t length)
+{
+    if (length == 0)
+    {
+        return std::string();
     }
 
-    std::string toHex(uint8_t const * v, size_t length)
+    std::string x;
+    x.reserve(length * 2);
+
+    for (int i = 0; i < length; ++i)
     {
-        if (length == 0)
-        {
-            return std::string();
-        }
-
-        std::string x;
-        x.reserve(length * 2);
-
-        for (int i = 0; i < length; ++i)
-        {
-            x.push_back(itox(*v >> 4));
-            x.push_back(itox(*v & 0x0f));
-            ++v;
-        }
-
-        return x;
+        x.push_back(itox(*v >> 4));
+        x.push_back(itox(*v & 0x0f));
+        ++v;
     }
 
-    std::vector<uint8_t> fromHex(std::string const & x)
-    {
-        if (x.empty())
-        {
-            return std::vector<uint8_t>();
-        }
+    return x;
+}
 
-        return fromHex(x.data(), x.size());
+std::vector<uint8_t> fromHex(std::string const & x)
+{
+    if (x.empty())
+    {
+        return std::vector<uint8_t>();
     }
 
-    std::vector<uint8_t> fromHex(char const * x, size_t length)
+    return fromHex(x.data(), x.size());
+}
+
+std::vector<uint8_t> fromHex(char const * x, size_t length)
+{
+    if (length == 0)
     {
-        if (length == 0)
-        {
-            return std::vector<uint8_t>();
-        }
-
-        std::vector<uint8_t> v;
-        v.reserve(length / 2);
-
-        for (int i = 0; i < length; i += 2)
-        {
-            v.push_back((xtoi(x[i + 0]) << 4) + xtoi(x[i + 1]));
-        }
-
-        return v;
+        return std::vector<uint8_t>();
     }
 
-    std::string toHexR(std::vector<uint8_t> const & v)
+    std::vector<uint8_t> v;
+    v.reserve(length / 2);
+
+    for (int i = 0; i < length; i += 2)
     {
-        if (v.empty())
-        {
-            return toHexR(NULL, 0);
-        }
-        else
-        {
-            return toHexR(v.data(), v.size());
-        }
+        v.push_back((xtoi(x[i + 0]) << 4) + xtoi(x[i + 1]));
     }
 
-    std::string toHexR(uint8_t const * v, size_t length)
+    return v;
+}
+
+std::string toHexR(std::vector<uint8_t> const & v)
+{
+    if (v.empty())
     {
-        if (length == 0)
-        {
-            return std::string();
-        }
+        return toHexR(NULL, 0);
+    }
+    else
+    {
+        return toHexR(v.data(), v.size());
+    }
+}
 
-        std::string x;
-        x.reserve(length * 2);
-
-        v += length;
-        for (int i = 0; i < length; ++i)
-        {
-            --v;
-            x.push_back(itox(*v >> 4));
-            x.push_back(itox(*v & 0x0f));
-        }
-
-        return x;
+std::string toHexR(uint8_t const * v, size_t length)
+{
+    if (length == 0)
+    {
+        return std::string();
     }
 
-    std::vector<uint8_t> fromHexR(std::string const & x)
-    {
-        if (x.empty())
-        {
-            return std::vector<uint8_t>();
-        }
+    std::string x;
+    x.reserve(length * 2);
 
-        return fromHexR(x.data(), x.size());
+    v += length;
+    for (int i = 0; i < length; ++i)
+    {
+        --v;
+        x.push_back(itox(*v >> 4));
+        x.push_back(itox(*v & 0x0f));
     }
 
-    std::vector<uint8_t> fromHexR(char const * x, size_t length)
+    return x;
+}
+
+std::vector<uint8_t> fromHexR(std::string const & x)
+{
+    if (x.empty())
     {
-        if (length == 0)
-        {
-            return std::vector<uint8_t>();
-        }
-
-        std::vector<uint8_t> v;
-        v.reserve(length / 2);
-
-        for (size_t i = length; i > 0; i -= 2)
-        {
-            v.push_back((xtoi(x[i - 2]) << 4) + xtoi(x[i - 1]));
-        }
-
-        return v;
+        return std::vector<uint8_t>();
     }
 
-    /********************************************************************************************************************/
+    return fromHexR(x.data(), x.size());
+}
+
+std::vector<uint8_t> fromHexR(char const * x, size_t length)
+{
+    if (length == 0)
+    {
+        return std::vector<uint8_t>();
+    }
+
+    std::vector<uint8_t> v;
+    v.reserve(length / 2);
+
+    for (size_t i = length; i > 0; i -= 2)
+    {
+        v.push_back((xtoi(x[i - 2]) << 4) + xtoi(x[i - 1]));
+    }
+
+    return v;
+}
+
+/********************************************************************************************************************/
 /*                                          J S O N   C O N V E R S I O N
-                                             */
+ */
 /********************************************************************************************************************/
 
 static std::string const DOUBLE_QUOTE("\"");
@@ -187,7 +188,7 @@ std::vector<uint8_t> fromJson(std::string const & j)
 
 /********************************************************************************************************************/
 /*                                            M I S C E L L A N E O U S
-                                               */
+ */
 /********************************************************************************************************************/
 
 std::string shorten(std::string const & in, size_t size /* = 11*/)

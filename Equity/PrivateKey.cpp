@@ -22,7 +22,7 @@ PrivateKey::PrivateKey(std::string const & wif)
 {
     unsigned version;
     bool valid = Base58Check::decode(wif, value_, version);
-    
+
     if (value_.size() == SIZE + 1 && value_.back() == COMPRESSED_FLAG)
     {
         value_.resize(SIZE);
@@ -39,7 +39,7 @@ PrivateKey::PrivateKey(std::vector<uint8_t> const & k)
 }
 
 PrivateKey::PrivateKey(uint8_t const * k)
-    : value_(k, k+SIZE)
+    : value_(k, k + SIZE)
     , compressed_(false)
 {
     valid_ = isValid();
@@ -73,17 +73,13 @@ bool PrivateKey::isValid()
     BN_bin2bn(value_.data(), (int)value_.size(), i.get());
 
     if (BN_is_zero(i.get()))
-    {
         return false;
-    }
 
     std::shared_ptr<BIGNUM> maxPrivateKey(BN_new(), BN_free);
     BN_bin2bn(MAX_PRIVATE_KEY, (int)sizeof(MAX_PRIVATE_KEY), maxPrivateKey.get());
 
     if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
-    {
         return false;
-    }
 
     return true;
 }

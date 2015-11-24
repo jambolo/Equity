@@ -2,10 +2,10 @@
 
 Validator::Validator()
 {
-    
+
 }
 
 Validator::~Validator()
 {
-    
+
 }

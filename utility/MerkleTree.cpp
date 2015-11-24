@@ -125,10 +125,10 @@ Crypto::Sha256HashList MerkleTree::proof(size_t i) const
     return p;
 }
 
-bool MerkleTree::verify(Crypto::Sha256Hash const &              hash,
-                        size_t                                  i,
+bool MerkleTree::verify(Crypto::Sha256Hash const &     hash,
+                        size_t                         i,
                         Crypto::Sha256HashList const & proof,
-                        Crypto::Sha256Hash const &              root)
+                        Crypto::Sha256Hash const &     root)
 {
     Crypto::Sha256Hash result = hash;
     for (auto const & p: proof)

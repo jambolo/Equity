@@ -18,7 +18,7 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
     // 1. Take the version byte and payload bytes, and concatenate them together(bytewise).
     std::vector<uint8_t> work;
     work.push_back(version);
-    work.insert(work.end(), input, input+length);
+    work.insert(work.end(), input, input + length);
 
     // 2. Take the first four bytes of SHA256(SHA256(results of step 1))
     std::vector<uint8_t> check = doubleSha256(work);
@@ -84,7 +84,9 @@ bool Base58Check::decode(char const * input, std::vector<uint8_t> & output, unsi
 
     // Make sure there is a 1 byte version, 4 byte checksum, and at least one byte of data
     if (work.size() < 6)
+    {
         return false;
+    }
 
     // Check the checksum
     std::vector<uint8_t> check = doubleSha256(work.data(), work.size() - 4);

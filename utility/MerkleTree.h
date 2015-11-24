@@ -17,10 +17,10 @@ public:
     Crypto::Sha256HashList proof(size_t i) const;
 
     //! Verifies that the given hash is the hash for the ith item given a proof and a root
-    static bool verify(Crypto::Sha256Hash const &              hash,
-                       size_t                                  i,
+    static bool verify(Crypto::Sha256Hash const &     hash,
+                       size_t                         i,
                        Crypto::Sha256HashList const & proof,
-                       Crypto::Sha256Hash const &              root);
+                       Crypto::Sha256Hash const &     root);
 
 private:
 

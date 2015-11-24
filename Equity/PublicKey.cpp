@@ -34,16 +34,14 @@ PublicKey::PublicKey(PrivateKey const & k)
     std::shared_ptr<BN_CTX>   ctx(BN_CTX_new(), BN_CTX_free);
 
     if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), NULL, NULL, ctx.get()))
-    {
         return;
-    }
 
-    size_t length = EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
+    size_t length =
+        EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
 
-    if (EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE-length], length, ctx.get()) != length)
-    {
+    if (EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE - length], length,
+                           ctx.get()) != length)
         return;
-    }
 
     valid_ = true;
 }
@@ -52,4 +50,3 @@ std::string PublicKey::toHex() const
 {
     return Utility::toHex(value_);
 }
-
