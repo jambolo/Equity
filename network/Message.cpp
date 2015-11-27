@@ -1,35 +1,41 @@
 #include "Message.h"
 
 #include "crypto/Sha256.h"
+#include "network/Configuration.h"
+#include "utility/Endian.h"
 #include "utility/Serialize.h"
+
+#include <algorithm>
+#include <cassert>
 
 using namespace Network;
 
-Message::Message(uint32_t m, std::string const & c)
-    : magic_(m)
+Message::Message(std::string const & c)
+    : magic_(Network::Configuration::get().network)
     , command_(c)
+    , checksum_(0)
 {
-}
-
-Message::Message(uint8_t const * & in, size_t & size)
-    : magic_(0)
-{
-    magic_ = Utility::deserialize<uint32_t>(in, size);
-    std::vector<uint8_t> commandBuffer = Utility::deserializeArray<uint8_t>(12, in, size);
-    commandBuffer.push_back(0); // Ensure termination
-    command_ = (char *)commandBuffer.data();
+    assert(magic_ == MAGIC_MAIN || magic_ == MAGIC_TEST || magic_ == MAGIC_TEST3);
+    assert(!command_.empty() && command_.length() < COMMAND_SIZE);
 }
 
 void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> commandBuffer(12);
-    command_.copy((char *)commandBuffer.data(), command_.length());
-    Crypto::Sha256Hash check = Crypto::sha256(payload);
-    check.resize(4);
+    // Network ID (4 uint32_t, little-endian)
+    Utility::serialize(Utility::littleEndian(magic_), out);
 
-    Utility::serialize(magic_, out);
-    Utility::serializeArray(commandBuffer, out);
-    Utility::serialize((uint32_t)payload.size(), out);
+    // Command (11 bytes + 0 terminator, padded with 0s)
+    assert(command_.length() < COMMAND_SIZE);
+    out.insert(out.end(), COMMAND_SIZE, 0);
+    std::copy(command_.begin(), command_.end(), out.end() - COMMAND_SIZE);
+
+    // Payload size (uint32_t, little-endian)
+    Utility::serialize(Utility::littleEndian((uint32_t)payload.size()), out);
+
+    // Checksum (4 bytes)
+    std::vector<uint8_t> check = Crypto::checksum(payload);
     Utility::serializeArray(check, out);
+
+    // Payload
     Utility::serializeArray(payload, out);
 }

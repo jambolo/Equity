@@ -21,8 +21,7 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
     work.insert(work.end(), input, input + length);
 
     // 2. Take the first four bytes of SHA256(SHA256(results of step 1))
-    std::vector<uint8_t> check = doubleSha256(work);
-    check.resize(4);
+    std::vector<uint8_t> check = checksum(work);
 
     // 3. Concatenate the results of step 1 and the results of step 2 together(bytewise).
     work.insert(work.end(), check.begin(), check.end());

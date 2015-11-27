@@ -4,6 +4,8 @@ set(SOURCES
 
 include_directories(..)
 add_executable(list-prefixes ${SOURCES})
+source_group(Sources FILES ${SOURCES})
+
 target_link_libraries(list-prefixes equity crypto)
 
 find_package (OpenSSL)

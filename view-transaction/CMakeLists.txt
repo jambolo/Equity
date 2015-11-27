@@ -4,6 +4,8 @@ set(SOURCES
 
 include_directories(..)
 add_executable(view-transaction ${SOURCES})
+source_group(Sources FILES ${SOURCES})
+
 target_link_libraries(view-transaction crypto equity utility)
 
 find_package (OpenSSL)

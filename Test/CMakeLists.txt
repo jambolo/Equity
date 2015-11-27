@@ -30,14 +30,16 @@ SOURCE_GROUP(utility FILES ${UTILITY_TESTS})
 
 set(SOURCES
 	Test.cpp
+)
+
+add_executable(equity-test
+    ${SOURCES}
     ${CRYPTO_TESTS}
     ${EQUITY_TESTS}
     ${NETWORK_TESTS}
     ${VALIDATION_TESTS}
     ${UTILITY_TESTS}
 )
-
-add_executable(equity-test ${SOURCES})
 
 include_directories(..)
 
@@ -48,6 +50,7 @@ target_link_libraries(equity-test
 	validation
     utility
 )
+source_group(Sources FILES ${SOURCES})
 
 find_package (OpenSSL)
 if (OPENSSL_FOUND)

@@ -7,6 +7,8 @@ set(SOURCES
 	Base58Check.h
     BlockHeader.cpp
     BlockHeader.h
+	Configuration.cpp
+	Configuration.h
 	Input.cpp
 	Input.h
     Instruction.cpp
@@ -19,6 +21,8 @@ set(SOURCES
 	PublicKey.h
 	Script.cpp
 	Script.h
+	Target.cpp
+	Target.h
 	Transaction.cpp
 	Transaction.h
 	Txid.cpp
@@ -36,3 +40,4 @@ if (OPENSSL_FOUND)
 endif (OPENSSL_FOUND)
 
 add_library(equity ${SOURCES})
+source_group(Sources FILES ${SOURCES})

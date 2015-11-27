@@ -17,3 +17,4 @@ endif (OPENSSL_FOUND)
 include_directories(..)
 
 add_library(crypto ${SOURCES})
+source_group(Sources FILES ${SOURCES})

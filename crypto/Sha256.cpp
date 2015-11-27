@@ -26,4 +26,26 @@ Sha256Hash sha256(uint8_t const * input, size_t length)
     return Sha256Hash(output, output + outputLength);
 }
 
+Sha256Hash doubleSha256(std::vector<uint8_t> const & input)
+{
+    return sha256(sha256(input.data(), input.size()).data(), SHA256_HASH_SIZE);
+}
+
+Sha256Hash doubleSha256(uint8_t const * input, size_t length)
+{
+    return sha256(sha256(input, length).data(), SHA256_HASH_SIZE);
+}
+
+Checksum checksum(std::vector<uint8_t> const & input)
+{
+    return checksum(input.data(), input.size());
+}
+
+Checksum checksum(uint8_t const * input, size_t length)
+{
+    Checksum c = doubleSha256(input, length);
+    c.resize(CHECKSUM_SIZE);
+    return c;
+}
+
 } // namespace Crypto

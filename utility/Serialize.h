@@ -92,6 +92,7 @@ template <typename T>
 class VarArray
 {
 public:
+    VarArray() {}
     VarArray(std::vector<T> const & v) : data_(v) {}
     VarArray(uint8_t const * & in, size_t & size)
     {

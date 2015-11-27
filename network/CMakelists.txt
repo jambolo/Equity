@@ -1,10 +1,68 @@
+set(MESSAGE_SOURCES
+	Messages/AddrMessage.cpp
+	Messages/AddrMessage.h
+	Messages/AlertMessage.cpp
+	Messages/AlertMessage.h
+	Messages/BlockMessage.cpp
+	Messages/BlockMessage.h
+	Messages/CheckOrderMessage.cpp
+	Messages/CheckOrderMessage.h
+	Messages/FilterAddMessage.cpp
+	Messages/FilterAddMessage.h
+	Messages/FilterClearMessage.cpp
+	Messages/FilterClearMessage.h
+	Messages/FilterLoadMessage.cpp
+	Messages/FilterLoadMessage.h
+	Messages/GetAddrMessage.cpp
+	Messages/GetAddrMessage.h
+	Messages/GetBlocksMessage.cpp
+	Messages/GetBlocksMessage.h
+	Messages/GetDataMessage.cpp
+	Messages/GetDataMessage.h
+	Messages/GetHeadersMessage.cpp
+	Messages/GetHeadersMessage.h
+	Messages/HeadersMessage.cpp
+	Messages/HeadersMessage.h
+	Messages/InvMessage.cpp
+	Messages/InvMessage.h
+	Messages/MempoolMessage.cpp
+	Messages/MempoolMessage.h
+	Messages/MerkleBlockMessage.cpp
+	Messages/MerkleBlockMessage.h
+	Messages/NotFoundMessage.cpp
+	Messages/NotFoundMessage.h
+	Messages/PingMessage.cpp
+	Messages/PingMessage.h
+	Messages/PongMessage.cpp
+	Messages/PongMessage.h
+	Messages/RejectMessage.cpp
+	Messages/RejectMessage.h
+	Messages/ReplyMessage.cpp
+	Messages/ReplyMessage.h
+	Messages/SubmitOrderMessage.cpp
+	Messages/SubmitOrderMessage.h
+	Messages/TxMessage.cpp
+	Messages/TxMessage.h
+	Messages/VerackMessage.cpp
+	Messages/VerackMessage.h
+	Messages/VersionMessage.cpp
+	Messages/VersionMessage.h
+)
+
 set(SOURCES
+	Address.cpp
+	Address.h
+    Configuration.cpp
+	Configuration.h
 	Message.cpp
 	Message.h
 	Utility.cpp
 	Utility.h
 )
-
+    
 include_directories(..)
 
-add_library(network ${SOURCES})
+add_library(network ${MESSAGE_SOURCES} ${SOURCES})
+
+source_group(Sources FILES ${SOURCES})
+source_group(Messages FILES ${MESSAGE_SOURCES})

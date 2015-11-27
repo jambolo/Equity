@@ -1,4 +1,6 @@
 set(SOURCES
+    Endian.cpp
+	Endian.h
     MerkleTree.cpp
     MerkleTree.h
     Serialize.cpp
@@ -16,3 +18,4 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 endif (OPENSSL_FOUND)
 
 add_library(utility ${SOURCES})
+source_group(Sources FILES ${SOURCES})

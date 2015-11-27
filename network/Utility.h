@@ -6,14 +6,6 @@
 namespace Network
 {
 
-struct Address
-{
-    uint32_t time;
-    uint64_t services;
-    char ip[16];
-    uint16_t port;
-};
-
 struct Inventory
 {
     enum ObjectTypeId
