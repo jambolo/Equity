@@ -52,8 +52,12 @@ set(MESSAGE_SOURCES
 set(SOURCES
 	Address.cpp
 	Address.h
+    BlockHeader.cpp
+    BlockHeader.h
     Configuration.cpp
 	Configuration.h
+	Inventory.cpp
+	Inventory.h
 	Message.cpp
 	Message.h
 	Utility.cpp

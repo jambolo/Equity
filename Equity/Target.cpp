@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
 using namespace Equity;
 
@@ -22,10 +23,10 @@ Target::Target(Crypto::Sha256Hash const & hash)
 Target::Target(uint32_t compact)
     : hash_(convertToHash(compact))
 {
-    compact_ = std::max(compact, TARGET_0_COMPACT)
+    compact_ = std::max(compact, TARGET_0_COMPACT);
 }
 
-float Target::difficulty() const
+double Target::difficulty() const
 {
     return toDouble(DIFFICULTY_1_COMPACT) / toDouble(compact_);
 }
@@ -39,7 +40,7 @@ Crypto::Sha256Hash Target::convertToHash(uint32_t compact)
 
     assert(exponent >= -3 && exponent <= 0x1d);
 
-    Crypto::Sha256Hash out(0, Crypto::SHA256_HASH_SIZE);
+    Crypto::Sha256Hash out(Crypto::SHA256_HASH_SIZE, 0);
     if (exponent >= 0)
     {
         out[Crypto::SHA256_HASH_SIZE - 3 - exponent] = (mantissa >> 16) & 0xff;
@@ -63,13 +64,13 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
     Crypto::Sha256Hash::const_iterator i = std::find_if_not(hash.begin(), hash.end(), [](uint8_t x) {
         return x == 0;
     });
-    int zeros = std::distance(hash.begin(), i);
+    int zeros = (int)std::distance(hash.begin(), i);
 
     if (zeros == Crypto::SHA256_HASH_SIZE)
         return TARGET_0_COMPACT;
 
     // Get the exponent
-    int exponent = Crypto::SHA256_HASH_SIZE - 3 - zeros;
+    int exponent = (int)Crypto::SHA256_HASH_SIZE - 3 - zeros;
 
     // Get the mantissa
     uint32_t m0;

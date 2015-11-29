@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace Equity
+namespace Network
 {
 
 class BlockHeader
@@ -34,4 +34,7 @@ private:
     uint64_t count_;
 };
 
-} // namespace Equity
+//! List of block headers
+typedef std::vector<BlockHeader> BlockHeaderList;
+
+} // namespace Network

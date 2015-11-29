@@ -1,19 +1,24 @@
-#include "network/Message.h"
+#include "CheckOrderMessage.h"
+
+#include <cassert>
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const CheckOrderMessage::COMMAND[] = "checkorder";
+
+CheckOrderMessage::CheckOrderMessage()
+    : Message(COMMAND)
 {
+    assert(false);  // not supported
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+CheckOrderMessage::CheckOrderMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    assert(false);  // not supported
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void CheckOrderMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
+    assert(false);  // not supported
 }

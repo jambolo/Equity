@@ -5,17 +5,23 @@
 namespace Network
 {
 
-class Message : public Message
+//! @brief Filter Clear message
+//!
+//! This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//!
+//! This message deletes the current filter and goes back to regular pre-BIP37 usage
+
+class FilterClearMessage : public Message
 {
 public:
 
-    Message(uint32_t m, std::string const & c);
-    Message(uint8_t const * & in, size_t & size);
+    FilterClearMessage();
+    FilterClearMessage(uint8_t const * & in, size_t & size);
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
-private:
-
+    //! Command string for this message type
+    static char const COMMAND[];
 };
 
 } // namespace Network

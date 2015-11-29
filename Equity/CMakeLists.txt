@@ -5,8 +5,6 @@ set(SOURCES
 	Base58.h
 	Base58Check.cpp
 	Base58Check.h
-    BlockHeader.cpp
-    BlockHeader.h
 	Configuration.cpp
 	Configuration.h
 	Input.cpp

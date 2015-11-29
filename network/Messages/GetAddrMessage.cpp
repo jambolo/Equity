@@ -1,19 +1,20 @@
-#include "network/Message.h"
+#include "GetAddrMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const GetAddrMessage::COMMAND[] = "getaddr";
+
+GetAddrMessage::GetAddrMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+GetAddrMessage::GetAddrMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void GetAddrMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
+    Message::serialize(std::vector<uint8_t>(), out);
 }

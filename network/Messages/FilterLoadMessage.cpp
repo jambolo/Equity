@@ -1,19 +1,47 @@
-#include "network/Message.h"
+#include "FilterLoadMessage.h"
+
+#include "utility/Serialize.h"
+#include "utility/Endian.h"
 
 using namespace Network;
+using namespace Utility;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+static int const    MAX_NUM_HASH_FUNCIONS   = 50;       // Maximum number of hash functions allowed in a message
+static size_t const MAX_FILTER_SIZE         = 36000;    // Maximum size of a filter in a message
+
+char const FilterLoadMessage::COMMAND[] = "filterload";
+
+FilterLoadMessage::FilterLoadMessage(std::vector<uint8_t> const & filter,
+                                     uint32_t                     nHashFuncs,
+                                     uint32_t                     tweak,
+                                     uint8_t                      flags)
+    : Message(COMMAND)
+    , filter_(filter)
+    , nHashFuncs_(nHashFuncs)
+    , tweak_(tweak)
+    , flags_(flags)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+FilterLoadMessage::FilterLoadMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    filter_ = VarArray<uint8_t>(in, size).value();
+    if (filter_.size() > MAX_FILTER_SIZE)
+        throw InvalidMessageError();
+    nHashFuncs_ = littleEndian(deserialize<uint32_t>(in, size));
+    if (nHashFuncs_ > MAX_NUM_HASH_FUNCIONS)
+        throw InvalidMessageError();
+    tweak_ = littleEndian(deserialize<uint32_t>(in, size));
+    flags_ = deserialize<uint8_t>(in, size);
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void FilterLoadMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
+    VarArray<uint8_t>(filter_).serialize(payload);
+    Utility::serialize(littleEndian(nHashFuncs_), payload);
+    Utility::serialize(littleEndian(tweak_), payload);
+    Utility::serialize(flags_, payload);
     Message::serialize(payload, out);
 }

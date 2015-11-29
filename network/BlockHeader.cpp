@@ -3,7 +3,7 @@
 #include "crypto/Sha256.h"
 #include "utility/Serialize.h"
 
-namespace Equity
+namespace Network
 {
 
 BlockHeader::BlockHeader(uint8_t const * & in, size_t & size)
@@ -28,4 +28,4 @@ void BlockHeader::serialize(std::vector<uint8_t> & out) const
     Utility::serialize(count_, out);
 }
 
-} // namespace Equity
+} // namespace Network

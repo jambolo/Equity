@@ -1,12 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
 namespace Network
 {
+
+//! @brief  Message base class
+//!
+//! All message classes are derived from this class.
 
 class Message
 {
@@ -22,9 +26,18 @@ public:
     //! Serializes the message
     virtual void serialize(std::vector<uint8_t> & out) const = 0;
 
+    //! Returns the network magic number
+    uint32_t magic() const { return magic_; }
+
+    //! Returns the command string
+    std::string command() const { return command_; }
+
+    //! Returns the checksum (first 4 bytes of the double SHA-256 hash of the payload)
+    uint32_t checksum() const { return checksum_; }
+
 protected:
 
-    //! Called by the derived class to serialize the entire message with the given payload
+    //! Must be called by the derived class to serialize the entire message with the given payload
     void serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const;
 
 private:
@@ -35,9 +48,10 @@ private:
     uint32_t checksum_;
 };
 
+//! Thrown by a message constructor if the data in the message is invalid.
 struct InvalidMessageError : public std::runtime_error
 {
-    InvalidMessageError() : std::runtime_error("invalid message") {}
+    InvalidMessageError() : std::runtime_error("invalid message data") {}
 };
 
 } // namespace Network

@@ -1,19 +1,28 @@
-#include "network/Message.h"
+#include "FilterAddMessage.h"
+
+#include "utility/Serialize.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+static size_t const MAX_FILTER_SIZE = 520;
+
+char const FilterAddMessage::COMMAND[] = "filteradd";
+
+FilterAddMessage::FilterAddMessage(std::vector<uint8_t> const & data)
+    : Message(COMMAND)
+    , data_(data)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+FilterAddMessage::FilterAddMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    data_ = Utility::VarArray<uint8_t>(in, size).value();
+    if (data_.size() > MAX_FILTER_SIZE)
+        throw InvalidMessageError();
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
+    Message::serialize(data_, out);
 }

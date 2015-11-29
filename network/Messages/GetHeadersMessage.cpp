@@ -1,19 +1,35 @@
-#include "network/Message.h"
+#include "GetHeadersMessage.h"
+
+#include "utility/Endian.h"
+#include "utility/Serialize.h"
 
 using namespace Network;
+using namespace Utility;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const GetHeadersMessage::COMMAND{} = "getheaders";
+
+GetHeadersMessage::GetHeadersMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last)
+    : Message(COMMAND)
+    , version_(version)
+    , hashes_(hashes)
+    , last_(last)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+GetHeadersMessage::GetHeadersMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    version_ = littleEndian(deserialize<uint32_t>(in, size));
+    hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();
+    last_ = deserializeArray<uint8_t>(Crypto::SHA256_HASH_SIZE, in, size);
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
+    Utility::serialize(version_, payload);
+    VarArray<Crypto::Sha256Hash>(hashes_).serialize(payload);
+    Utility::serializeArray<uint8_t>(last_, payload);
+
     Message::serialize(payload, out);
 }

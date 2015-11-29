@@ -6,7 +6,7 @@
 namespace Network
 {
 
-//! @brief alert Message
+//! @brief Alert message
 //!
 //! An alert is sent between nodes to send a general notification message throughout the network. If the alert can be confirmed
 //! with the signature as having come from the core development group of the Bitcoin software, the message is suggested to be
@@ -22,7 +22,10 @@ public:
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
+    //! The raw alert message data
     std::vector<uint8_t> message_;
+
+    //! Command string for this message type
     static char const COMMAND[];
 };
 

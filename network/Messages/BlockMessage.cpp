@@ -4,7 +4,7 @@ using namespace Network;
 
 char const BlockMessage::COMMAND[] = "block";
 
-BlockMessage::BlockMessage(Equity::BlockHeader const & header)
+BlockMessage::BlockMessage(BlockHeader const & header)
     : Message(COMMAND)
     , header_(header)
 {

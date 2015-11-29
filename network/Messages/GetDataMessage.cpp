@@ -1,19 +1,27 @@
-#include "network/Message.h"
+#include "GetDataMessage.h"
+
+#include "utility/Serialize.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const GetDataMessage::COMMAND[] = "getdata";
+
+GetDataMessage::GetDataMessage(InventoryList const & inventory)
+    : Message(COMMAND)
+    , inventory_(inventory)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+GetDataMessage::GetDataMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    inventory_ = Utility::VarArray<InventoryId>(in, size).value();
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void GetDataMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
+    Utility::VarArray<InventoryId>(inventory_).serialize(payload);
+
     Message::serialize(payload, out);
 }

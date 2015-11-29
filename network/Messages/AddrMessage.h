@@ -8,7 +8,7 @@ namespace Network
 
 class Address;
 
-//! @brief addr Message
+//! @brief Address message
 //!
 //! Provide information on known nodes of the network. Non-advertised nodes should be forgotten after typically 3 hours.
 
@@ -21,7 +21,10 @@ public:
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
-    std::vector<Address> addresses_;    //!< Addresses
+    //! Node addresses
+    std::vector<Address> addresses_;
+
+    //! Command string for this message type
     static char const COMMAND[];
 };
 

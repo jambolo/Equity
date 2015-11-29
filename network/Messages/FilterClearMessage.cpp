@@ -1,19 +1,20 @@
-#include "network/Message.h"
+#include "FilterClearMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const FilterClearMessage::COMMAND[] = "filterclear";
+
+FilterClearMessage::FilterClearMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+FilterClearMessage::FilterClearMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void FilterClearMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
+    Message::serialize(std::vector<uint8_t>(), out);
 }

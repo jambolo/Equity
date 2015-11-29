@@ -11,6 +11,7 @@ add_definitions(
 )
 
 add_subdirectory(crypto)
+add_subdirectory(bits)
 add_subdirectory(equity)
 add_subdirectory(list-prefixes)
 add_subdirectory(network)

@@ -28,22 +28,28 @@ namespace Utility
         return ((uint64_t)high << 32) | (uint64_t)low;
     }
 
+    // Note: Conversions in each direction are identical, so the same function is used for both.
+
 #if defined(TARGET_LITTLE_ENDIAN)
 
+    inline uint8_t  littleEndian(uint8_t  x) { return x; }
     inline uint16_t littleEndian(uint16_t x) { return x; }
     inline uint32_t littleEndian(uint32_t x) { return x; }
     inline uint64_t littleEndian(uint64_t x) { return x; }
 
+    inline uint8_t  bigEndian(uint8_t  x) { return x; }
     inline uint16_t bigEndian(uint16_t x) { return swapEndian(x); }
     inline uint32_t bigEndian(uint32_t x) { return swapEndian(x); }
     inline uint64_t bigEndian(uint64_t x) { return swapEndian(x); }
 
 #elif defined(TARGET_BIG_ENDIAN)
 
+    inline uint8_t  littleEndian(uint8_t  x) { return x; }
     inline uint16_t littleEndian(uint16_t x) { return swapEndian(x); }
     inline uint32_t littleEndian(uint32_t x) { return swapEndian(x); }
     inline uint64_t littleEndian(uint64_t x) { return swapEndian(x); }
 
+    inline uint8_t  bigEndian(uint8_t  x) { return x; }
     inline uint16_t bigEndian(uint16_t x) { return x; }
     inline uint32_t bigEndian(uint32_t x) { return x; }
     inline uint64_t bigEndian(uint64_t x) { return x; }
