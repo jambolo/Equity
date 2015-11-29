@@ -1,18 +1,20 @@
-#include "network/Message.h"
+#include "RejectMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const RejectMessage::COMMAND[] = "reject";
+
+RejectMessage::RejectMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+RejectMessage::RejectMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void RejectMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
     Message::serialize(payload, out);

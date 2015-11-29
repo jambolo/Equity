@@ -4,7 +4,7 @@
 
 using namespace Network;
 
-char const COMMAND[] = "headers";
+char const HeadersMessage::COMMAND[] = "headers";
 
 HeadersMessage::HeadersMessage(BlockHeaderList const & headers)
     : Message(COMMAND)

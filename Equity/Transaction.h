@@ -78,4 +78,7 @@ private:
     bool valid_;
 };
 
+//! List of transactions
+typedef std::vector<Transaction> TransactionList;
+
 }

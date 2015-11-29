@@ -15,11 +15,10 @@ public:
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
-    BlockHeaderList const & headers_; //!< Block headers
+    BlockHeaderList headers_; //!< Block headers
 
     //! Command string for this message type
     static char const COMMAND[];
-
 };
 
 } // namespace Network

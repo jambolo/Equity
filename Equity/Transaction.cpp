@@ -6,15 +6,15 @@
 
 using namespace Equity;
 
-static std::string const TXID_LABEL("\"txid\":");
-static std::string const INDEX_LABEL("\"index\":");
-static std::string const SCRIPT_LABEL("\"script\":");
-static std::string const SEQUENCE_LABEL("\"sequence\":");
-static std::string const VALUE_LABEL("\"value\":");
-static std::string const VERSION_LABEL("\"version\":");
-static std::string const INPUTS_LABEL("\"inputs\":");
-static std::string const OUTPUTS_LABEL("\"outputs\":");
-static std::string const LOCKTIME_LABEL("\"locktime\":");
+static char const TXID_LABEL[]      = "\"txid\":";
+static char const INDEX_LABEL[]     = "\"index\":";
+static char const SCRIPT_LABEL[]    = "\"script\":";
+static char const SEQUENCE_LABEL[]  = "\"sequence\":";
+static char const VALUE_LABEL[]     = "\"value\":";
+static char const VERSION_LABEL[]   = "\"version\":";
+static char const INPUTS_LABEL[]    = "\"inputs\":";
+static char const OUTPUTS_LABEL[]   = "\"outputs\":";
+static char const LOCKTIME_LABEL[]  = "\"locktime\":";
 
 Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {

@@ -41,16 +41,16 @@ std::string toJson(std::vector<T> const & v)
 {
     std::string json;
     json += '[';
-    typename std::vector<T>::const_iterator i = v.begin();
-    if (i != v.end())
+    if (!v.empty())
     {
+        typename std::vector<T>::const_iterator i = v.begin();
         json += i->toJson();
         ++i;
-    }
-    for (; i != v.end(); ++i)
-    {
-        json += ',';
-        json += i->toJson();
+        for (; i != v.end(); ++i)
+        {
+            json += ',';
+            json += i->toJson();
+        }
     }
     json += ']';
     return json;

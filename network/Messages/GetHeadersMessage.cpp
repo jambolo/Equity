@@ -6,7 +6,7 @@
 using namespace Network;
 using namespace Utility;
 
-char const GetHeadersMessage::COMMAND{} = "getheaders";
+char const GetHeadersMessage::COMMAND[] = "getheaders";
 
 GetHeadersMessage::GetHeadersMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last)
     : Message(COMMAND)

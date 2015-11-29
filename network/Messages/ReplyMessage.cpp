@@ -1,14 +1,16 @@
-#include "network/Message.h"
+#include "ReplyMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const ReplyMessage::COMMAND[] = "reply";
+
+ReplyMessage::ReplyMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+ReplyMessage::ReplyMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 

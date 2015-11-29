@@ -11,7 +11,7 @@ namespace Network
 class BlockHeader
 {
 public:
-    BlockHeader(uint8_t const * & out, size_t & size);
+    BlockHeader(uint8_t const * & in, size_t & size);
 
     void serialize(std::vector<uint8_t> & out) const;
 

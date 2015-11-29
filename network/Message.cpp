@@ -10,9 +10,9 @@
 
 using namespace Network;
 
-Message::Message(std::string const & c)
+Message::Message(char const * command)
     : magic_(Network::Configuration::get().network)
-    , command_(c)
+    , command_(command)
     , checksum_(0)
 {
     assert(magic_ == MAGIC_MAIN || magic_ == MAGIC_TEST || magic_ == MAGIC_TEST3);

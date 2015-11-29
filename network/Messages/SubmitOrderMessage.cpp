@@ -1,19 +1,24 @@
-#include "network/Message.h"
+#include "SubmitOrderMessage.h"
+
+#include <cassert>
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const SubmitOrderMessage::COMMAND[] = "submitorder";
+
+SubmitOrderMessage::SubmitOrderMessage()
+    : Message(COMMAND)
 {
+    assert(false);
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+SubmitOrderMessage::SubmitOrderMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
+    assert(false);
 }
 
 void Message::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
+    assert(false);
 }

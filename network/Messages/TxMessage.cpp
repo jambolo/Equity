@@ -1,18 +1,20 @@
-#include "network/Message.h"
+#include "TxMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const TxMessage::COMMAND[] = "tx";
+
+TxMessage::TxMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+TxMessage::TxMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void TxMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
     Message::serialize(payload, out);

@@ -1,14 +1,16 @@
-#include "network/Message.h"
+#include "MerkleBlockMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const MerkleBlockMessage::COMMAND[] = "merkleblock";
+
+MerkleBlockMessage::MerkleBlockMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 

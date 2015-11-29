@@ -1,14 +1,16 @@
-#include "network/Message.h"
+#include "MempoolMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const MempoolMessage::COMMAND[] = "mempool";
+
+MempoolMessage::MempoolMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+MempoolMessage::MempoolMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 

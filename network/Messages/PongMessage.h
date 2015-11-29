@@ -5,17 +5,17 @@
 namespace Network
 {
 
-class Message : public Message
+class PongMessage : public Message
 {
 public:
 
-    Message(uint32_t m, std::string const & c);
-    Message(uint8_t const * & in, size_t & size);
+    PongMessage();
+    PongMessage(uint8_t const * & in, size_t & size);
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
-private:
-
+    //! Command string for this message type
+    static char const COMMAND[];
 };
 
 } // namespace Network

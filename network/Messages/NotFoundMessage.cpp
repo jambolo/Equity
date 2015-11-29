@@ -1,14 +1,16 @@
-#include "network/Message.h"
+#include "NotFoundMessage.h"
 
 using namespace Network;
 
-Message::Message(uint32_t m)
-    : Message(m, "")
+char const NotFoundMessage::COMMAND[] = "notfound";
+
+NotFoundMessage::NotFoundMessage()
+    : Message(COMMAND)
 {
 }
 
-Message::Message(uint8_t const * & in, size_t & size)
-    : Message(in, size)
+NotFoundMessage::NotFoundMessage(uint8_t const * & in, size_t & size)
+    : Message(COMMAND)
 {
 }
 
