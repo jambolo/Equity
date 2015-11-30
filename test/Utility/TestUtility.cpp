@@ -2301,12 +2301,14 @@ static int TestMerkleTree()
         Crypto::Sha256HashList hashes;
         for (auto s : c.data)
         {
-            hashes.push_back(fromHexR(s));
+            std::vector<uint8_t> h = fromHexR(s);
+            hashes.emplace_back(h.begin(), h.end());
         }
 
         MerkleTree m(hashes);
 
-        if (m.root() != fromHexR(c.expected))
+        std::vector<uint8_t> expected = fromHexR(c.expected);
+        if (expected.size() != m.root().size() || !std::equal(m.root().begin(), m.root().end(), expected.begin()))
         {
             printf("        +== constructor: expected \"%s\", got \"%s\"\n", shorten(c.expected).c_str(), shorten(toHexR(m.root())).c_str());
             ++errors;

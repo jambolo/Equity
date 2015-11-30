@@ -16,8 +16,10 @@
 int main(int argc, char ** argv)
 {
     {
-        Crypto::Ripemd160Hash hashLow(Crypto::RIPEMD160_HASH_SIZE, 0);
-        Crypto::Ripemd160Hash hashHigh(Crypto::RIPEMD160_HASH_SIZE, 0xff);
+        Crypto::Ripemd160Hash hashLow;
+        Crypto::Ripemd160Hash hashHigh;
+        hashLow.fill(0);
+        hashHigh.fill(0xff);
         for (int i = 0; i < 256; ++i)
         {
             std::string low = Equity::Base58Check::encode(hashLow, i);
@@ -28,8 +30,10 @@ int main(int argc, char ** argv)
     }
 
     {
-        Crypto::Sha256Hash hashLow(Crypto::SHA256_HASH_SIZE, 0);
-        Crypto::Sha256Hash hashHigh(Crypto::SHA256_HASH_SIZE, 0xff);
+        Crypto::Sha256Hash hashLow;
+        Crypto::Sha256Hash hashHigh;
+        hashLow.fill(0);
+        hashHigh.fill(0xff);
         for (int i = 0; i < 256; ++i)
         {
             std::string low = Equity::Base58Check::encode(hashLow, i);

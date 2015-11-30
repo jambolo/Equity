@@ -9,8 +9,8 @@ using namespace Equity;
 Block::Header::Header(uint8_t const * & in, size_t & size)
 {
     version_ = Utility::deserialize<uint32_t>(in, size);
-    previousBlock_ = Utility::deserializeArray<uint8_t>(Crypto::SHA256_HASH_SIZE, in, size);
-    merkleRoot_ = Utility::deserializeArray<uint8_t>(Crypto::SHA256_HASH_SIZE, in, size);
+    previousBlock_ = Utility::deserializeArray<Crypto::Sha256Hash>(in, size);
+    merkleRoot_ = Utility::deserializeArray<Crypto::Sha256Hash>(in, size);
     timestamp_ = Utility::deserialize<uint32_t>(in, size);
     target_ = Utility::deserialize<uint32_t>(in, size);
     nonce_ = Utility::deserialize<uint32_t>(in, size);
@@ -19,6 +19,12 @@ Block::Header::Header(uint8_t const * & in, size_t & size)
 void Block::Header::serialize(std::vector<uint8_t> & out) const
 {
 
+}
+
+Block::Block(Header const & header, TransactionList const & transactions)
+    : header_(header)
+    , transactions_(transactions)
+{
 }
 
 Block::Block(uint8_t const * & in, size_t & size)

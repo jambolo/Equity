@@ -1,6 +1,6 @@
 #pragma once
 
-#include "network/BlockHeader.h"
+#include "equity/Block.h"
 #include "network/Message.h"
 
 namespace Network
@@ -8,18 +8,18 @@ namespace Network
 
 //! @brief Block message
 //!
-//! The block message is sent in response to a getdata message which requests transaction information from a block hash.
+//! The block message contains a block and is sent in response to a getdata message which requests information from a block hash.
 
 class BlockMessage : public Message
 {
 public:
 
-    BlockMessage(BlockHeader const & header);
+    BlockMessage(Equity::Block const & block);
     BlockMessage(uint8_t const * & in, size_t & size);
 
     virtual void serialize(std::vector<uint8_t> & out) const;
 
-    BlockHeader header_;    //!< A block header
+    Equity::Block block_;   //!< A block
 
     //! Command string for this message type
     static char const COMMAND[];

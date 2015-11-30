@@ -28,8 +28,7 @@ namespace Utility
 {
 
 /********************************************************************************************************************/
-/*                                           H E X   C O N V E R S I O N
-                                              */
+/*                                           H E X   C O N V E R S I O N                                            */
 /********************************************************************************************************************/
 
 std::string toHex(std::vector<uint8_t> const & v)
@@ -96,7 +95,7 @@ std::string toHexR(std::vector<uint8_t> const & v)
 {
     if (v.empty())
     {
-        return toHexR(NULL, 0);
+        return std::string();
     }
     else
     {
@@ -154,8 +153,7 @@ std::vector<uint8_t> fromHexR(char const * x, size_t length)
 }
 
 /********************************************************************************************************************/
-/*                                          J S O N   C O N V E R S I O N
- */
+/*                                          J S O N   C O N V E R S I O N                                           */
 /********************************************************************************************************************/
 
 static std::string const DOUBLE_QUOTE("\"");
@@ -174,6 +172,19 @@ std::string toJson<uint8_t>(std::vector<uint8_t> const & v)
     }
 }
 
+template <>
+std::string toJson<uint8_t>(uint8_t const * a, size_t size)
+{
+    if (size > 0)
+    {
+        return DOUBLE_QUOTE + toHex(a, size) + DOUBLE_QUOTE;
+    }
+    else
+    {
+        return EMPTY_JSON_STRING;
+    }
+}
+
 std::vector<uint8_t> fromJson(std::string const & j)
 {
     if (j.length() < 3 || j.front() != '\"' || j.back() != '\"')
@@ -187,8 +198,7 @@ std::vector<uint8_t> fromJson(std::string const & j)
 }
 
 /********************************************************************************************************************/
-/*                                            M I S C E L L A N E O U S
- */
+/*                                            M I S C E L L A N E O U S                                             */
 /********************************************************************************************************************/
 
 std::string shorten(std::string const & in, size_t size /* = 11*/)

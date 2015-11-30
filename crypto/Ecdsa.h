@@ -1,18 +1,20 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <array>
 
 namespace Crypto
 {
 
-// IMPORTANT NOTE: Key values are always big-endian.
+// IMPORTANT NOTE: Key values are assumed to be big-endian.
 class Ecdsa
 {
 public:
 
-    typedef std::vector<uint8_t> PublicKey;
-    typedef std::vector<uint8_t> PrivateKey;
+    static size_t const PUBLIC_KEY_SIZE = 256 / 8;
+    static size_t const PRIVATE_KEY_SIZE = 256 / 8;
+    typedef std::array<uint8_t, PUBLIC_KEY_SIZE> PublicKey;
+    typedef std::array<uint8_t, PRIVATE_KEY_SIZE> PrivateKey;
 };
 
 } // namespace Crypto

@@ -21,15 +21,15 @@ GetBlocksMessage::GetBlocksMessage(uint8_t const * & in, size_t & size)
 {
     version_ = littleEndian(deserialize<uint32_t>(in, size));
     hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();
-    last_ = deserializeArray<uint8_t>(Crypto::SHA256_HASH_SIZE, in, size);
+    last_ = deserializeArray<Crypto::Sha256Hash>(in, size);
 }
 
 void GetBlocksMessage::serialize(std::vector<uint8_t> & out) const
 {
     std::vector<uint8_t> payload;
-    Utility::serialize(version_, payload);
-    VarArray<Crypto::Sha256Hash>(hashes_).serialize(payload);
-    Utility::serializeArray<uint8_t>(last_, payload);
+    Utility::serialize(littleEndian(version_), payload);
+    Utility::VarArrayOfArrays<Crypto::Sha256Hash>(hashes_).serialize(payload);
+    Utility::serializeArray(last_, payload);
 
     Message::serialize(payload, out);
 }

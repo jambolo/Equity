@@ -5,7 +5,7 @@
 namespace Equity
 {
 
-struct Txid : public Crypto::Sha256Hash
+struct Txid 
 {
     Txid() {}
     Txid(std::string const & json);
@@ -15,6 +15,7 @@ struct Txid : public Crypto::Sha256Hash
     std::string toHex() const;
     std::string toJson() const;
 
+    Crypto::Sha256Hash hash_;
 };
 
 } // namespace Equity

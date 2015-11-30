@@ -1,11 +1,18 @@
 #include "Sha256.h"
 
 #include <openssl/evp.h>
+#include <cassert>
+#include <algorithm>
 
 namespace Crypto
 {
 
 Sha256Hash sha256(std::vector<uint8_t> const & input)
+{
+    return sha256(input.data(), input.size());
+}
+
+Sha256Hash sha256(Sha256Hash const & input)
 {
     return sha256(input.data(), input.size());
 }
@@ -23,7 +30,11 @@ Sha256Hash sha256(uint8_t const * input, size_t length)
     EVP_DigestFinal_ex(mdctx, output, &outputLength);
     EVP_MD_CTX_destroy(mdctx);
 
-    return Sha256Hash(output, output + outputLength);
+    Sha256Hash hash;
+    assert(outputLength == hash.size());
+    std::copy(output, output + outputLength, hash.begin());
+
+    return hash;
 }
 
 Sha256Hash doubleSha256(std::vector<uint8_t> const & input)
@@ -43,8 +54,9 @@ Checksum checksum(std::vector<uint8_t> const & input)
 
 Checksum checksum(uint8_t const * input, size_t length)
 {
-    Checksum c = doubleSha256(input, length);
-    c.resize(CHECKSUM_SIZE);
+    Checksum c;
+    Sha256Hash hash = doubleSha256(input, length);
+    std::copy(hash.begin(), hash.begin() + CHECKSUM_SIZE, c.begin());
     return c;
 }
 

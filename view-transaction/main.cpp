@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
         {
             Equity::Transaction::Input const & input = inputs[i];
             Equity::Script script(input.script);
-            printf("    %2zu:     txid : %s\n", i, Utility::toHex(input.txid).c_str());
+            printf("    %2zu:     txid : %s\n", i, Utility::toHex(input.txid.hash_).c_str());
             printf("           index : %u\n", input.outputIndex);
             printf("          script : %s\n", script.toSource().c_str());
             printf("        sequence : %u\n", input.sequence);

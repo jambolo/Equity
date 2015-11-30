@@ -9,6 +9,7 @@
 #include <cassert>
 
 using namespace Network;
+using namespace Utility;
 
 Message::Message(char const * command)
     : magic_(Network::Configuration::get().network)
@@ -22,7 +23,7 @@ Message::Message(char const * command)
 void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_t> & out) const
 {
     // Network ID (4 uint32_t, little-endian)
-    Utility::serialize(Utility::littleEndian(magic_), out);
+    Utility::serialize(littleEndian(magic_), out);
 
     // Command (11 bytes + 0 terminator, padded with 0s)
     assert(command_.length() < COMMAND_SIZE);
@@ -30,12 +31,12 @@ void Message::serialize(std::vector<uint8_t> const & payload, std::vector<uint8_
     std::copy(command_.begin(), command_.end(), out.end() - COMMAND_SIZE);
 
     // Payload size (uint32_t, little-endian)
-    Utility::serialize(Utility::littleEndian((uint32_t)payload.size()), out);
+    Utility::serialize(littleEndian((uint32_t)payload.size()), out);
 
     // Checksum (4 bytes)
-    std::vector<uint8_t> check = Crypto::checksum(payload);
-    Utility::serializeArray(check, out);
+    Crypto::Checksum check = Crypto::checksum(payload);
+    serializeArray(check, out);
 
     // Payload
-    Utility::serializeArray(payload, out);
+    serializeVector(payload, out);
 }

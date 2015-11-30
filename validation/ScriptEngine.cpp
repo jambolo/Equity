@@ -629,27 +629,32 @@ bool ScriptEngine::run(Script const & script)
 
             case Instruction::OP_RIPEMD160:
             {
-                mainStack_.back() = Crypto::ripemd160(*p0);
+                Crypto::Ripemd160Hash hash = Crypto::ripemd160(*p0);
+                mainStack_.back().assign(hash.begin(), hash.end());
                 break;
             }
             case Instruction::OP_SHA1:
             {
-                mainStack_.back() = Crypto::sha1(*p0);
+                Crypto::Sha1Hash hash = Crypto::sha1(*p0);
+                mainStack_.back().assign(hash.begin(), hash.end());
                 break;
             }
             case Instruction::OP_SHA256:
             {
-                mainStack_.back() = Crypto::sha256(*p0);
+                Crypto::Sha256Hash hash = Crypto::sha256(*p0);
+                mainStack_.back().assign(hash.begin(), hash.end());
                 break;
             }
             case Instruction::OP_HASH160:
             {
-                mainStack_.back() = Crypto::ripemd160(Crypto::sha256(*p0));
+                Crypto::Ripemd160Hash hash = Crypto::ripemd160(Crypto::sha256(*p0));
+                mainStack_.back().assign(hash.begin(), hash.end());
                 break;
             }
             case Instruction::OP_HASH256:
             {
-                mainStack_.back() = Crypto::sha256(Crypto::sha256(*p0));
+                Crypto::Sha256Hash hash = Crypto::doubleSha256(*p0);
+                mainStack_.back().assign(hash.begin(), hash.end());
                 break;
             }
             case Instruction::OP_CODESEPARATOR:

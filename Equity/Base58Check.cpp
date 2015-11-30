@@ -21,7 +21,7 @@ std::string Base58Check::encode(uint8_t const * input, size_t length, unsigned v
     work.insert(work.end(), input, input + length);
 
     // 2. Take the first four bytes of SHA256(SHA256(results of step 1))
-    std::vector<uint8_t> check = checksum(work);
+    Crypto::Checksum check = checksum(work);
 
     // 3. Concatenate the results of step 1 and the results of step 2 together(bytewise).
     work.insert(work.end(), check.begin(), check.end());
@@ -88,13 +88,51 @@ bool Base58Check::decode(char const * input, std::vector<uint8_t> & output, unsi
     }
 
     // Check the checksum
-    std::vector<uint8_t> check = doubleSha256(work.data(), work.size() - 4);
-    if (!std::equal(check.begin(), check.begin() + 4, work.end() - 4))
+    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - 4);
+    if (!std::equal(check.begin(), check.end(), work.end() - 4))
     {
         return false;
     }
 
     version = work[0];
     output.assign(work.begin() + 1, work.end() - 4);
+    return true;
+}
+
+bool decode(char const * input, uint8_t * output, size_t size, unsigned & version)
+{
+    // Skip and count the leading 1's
+    int nLeadingOnes = 0;
+    while (*input == '1')
+    {
+        ++nLeadingOnes;
+        ++input;
+    }
+
+    // Decode the input into binary
+    std::vector<uint8_t> work;
+    if (!Base58::decode(input, work))
+    {
+        return false;
+    }
+
+    // Prepend the leading zeros
+    work.insert(work.begin(), nLeadingOnes, 0);
+
+    // Make sure there is a 1 byte version, 4 byte checksum, and size bytes of data
+    if (work.size() == size + 5)
+    {
+        return false;
+    }
+
+    // Check the checksum
+    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - 4);
+    if (!std::equal(check.begin(), check.end(), work.end() - 4))
+    {
+        return false;
+    }
+
+    version = work[0];
+    std::copy(work.begin() + 1, work.end() - 4, output);
     return true;
 }

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace Equity
 {
@@ -23,14 +24,14 @@ public:
     explicit Address(PublicKey const & publicKey);
     explicit Address(PrivateKey const & privateKey);
 
-    std::vector<uint8_t> value() const { return value_; }
+    std::array<uint8_t, SIZE> value() const { return value_; }
     bool valid() const { return valid_; }
 
     std::string toString(unsigned network) const;
 
 private:
 
-    std::vector<uint8_t> value_;
+    std::array<uint8_t, SIZE> value_;
     bool valid_;
 };
 

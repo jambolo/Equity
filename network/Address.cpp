@@ -19,7 +19,7 @@ Address::Address(uint8_t const *& in, size_t & size)
 {
     time_ = littleEndian(deserialize<uint32_t>(in, size));
     services_ = littleEndian(deserialize<uint64_t>(in, size));
-    ipv6_ = deserializeArray<uint8_t>(16, in, size);
+    ipv6_ = deserializeVector<uint8_t>(16, in, size);
     port_ = littleEndian(deserialize<uint16_t>(in, size));
 }
 
@@ -27,6 +27,6 @@ void Address::serialize(std::vector<uint8_t> & out) const
 {
     Utility::serialize(littleEndian(time_), out);
     Utility::serialize(littleEndian(services_), out);
-    Utility::serializeArray<uint8_t>(ipv6_, out);
+    Utility::serializeVector<uint8_t>(ipv6_, out);
     Utility::serialize(littleEndian(port_), out);
 }

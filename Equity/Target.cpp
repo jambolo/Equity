@@ -40,7 +40,8 @@ Crypto::Sha256Hash Target::convertToHash(uint32_t compact)
 
     assert(exponent >= -3 && exponent <= 0x1d);
 
-    Crypto::Sha256Hash out(Crypto::SHA256_HASH_SIZE, 0);
+    Crypto::Sha256Hash out;
+    out.fill(0);
     if (exponent >= 0)
     {
         out[Crypto::SHA256_HASH_SIZE - 3 - exponent] = (mantissa >> 16) & 0xff;

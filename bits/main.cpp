@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 
     Equity::Target t(bits);
     printf("Bits = %u (0x%08x)\n", bits, bits);
-    printf("Hash = %s\n", Utility::toHex(t).c_str());
+    printf("Hash = %s\n", Utility::toHex(static_cast<Crypto::Sha256Hash>(t)).c_str());
     printf("Difficulty = %.0lf\n", t.difficulty());
     return 0;
 }

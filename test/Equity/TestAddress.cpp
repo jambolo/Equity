@@ -80,7 +80,7 @@ int TestAddress()
         std::string name = Utility::shorten(c.stringForm);
 
         Address result(c.data);
-        std::vector<uint8_t> value = result.value();
+        Crypto::Ripemd160Hash value = result.value();
 
         if (!result.valid())
         {
@@ -128,7 +128,7 @@ int TestAddress()
     {
         std::string name = Utility::shorten(c.stringForm);
         Address result(c.stringForm);
-        std::vector<uint8_t> value = result.value();
+        Crypto::Ripemd160Hash value = result.value();
 
         if (!result.valid())
         {
@@ -157,7 +157,7 @@ int TestAddress()
     {
         std::string name = Utility::shorten(c.address);
         Address result(PublicKey(c.publicKey));
-        std::vector<uint8_t> value = result.value();
+        Crypto::Ripemd160Hash value = result.value();
 
         if (!result.valid())
         {

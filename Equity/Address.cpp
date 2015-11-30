@@ -13,7 +13,8 @@ using namespace Crypto;
 Address::Address(std::string const & s)
 {
     unsigned network;
-    valid_ = Base58Check::decode(s, value_, network) && value_.size() == SIZE;
+    std::vector<uint8_t> decoded;
+    valid_ = Base58Check::decode(s.c_str(), value_.data(), value_.size(), network);
 }
 Address::Address(Crypto::Ripemd160Hash const & k)
     : value_(k)
@@ -21,10 +22,11 @@ Address::Address(Crypto::Ripemd160Hash const & k)
 {
 }
 Address::Address(uint8_t const * k)
-    : value_(k, k + SIZE)
-    , valid_(true)
+    : valid_(true)
 {
+    std::copy(k, k + SIZE, value_.data());
 }
+
 Address::Address(PublicKey const & publicKey)
     : value_(ripemd160(sha256(publicKey.value())))
     , valid_(true)

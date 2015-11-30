@@ -5,9 +5,7 @@
 namespace Network
 {
 
-//! @brief  Filter Add message
-//!
-//! This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//! @brief  Add Filter message
 //!
 //! This message adds the given data element to the connections current filter without requiring a completely new one to be set.
 //!
@@ -15,6 +13,10 @@ namespace Network
 //! This command is useful if a new key or script is added to a clients wallet whilst it has connections to the network open,
 //! it avoids the need to re-calculate and send an entirely new filter to every peer (though doing so is usually advisable to
 //! maintain anonymity).
+//!
+//! @note   This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//! @sa     FilterClearMessage, FilterLoadMessage, MerkleBlockMessage
+
 
 class FilterAddMessage : public Message
 {

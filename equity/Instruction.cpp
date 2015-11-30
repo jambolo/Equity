@@ -383,7 +383,7 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
             size_ += 4;
         }
 
-        data_ = Utility::deserializeArray<uint8_t>(count, in, size);
+        data_ = Utility::deserializeVector<uint8_t>(count, in, size);
         size_ += count;
     }
 
@@ -398,22 +398,22 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
 
         if (op_ >= 0x1 && op_ <= 0x4b)
         {
-            Utility::serializeArray(data_, out);
+            Utility::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA1)
         {
             Utility::serialize((uint8_t)data_.size(), out);
-            Utility::serializeArray(data_, out);
+            Utility::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA2)
         {
             Utility::serialize((uint16_t)data_.size(), out);
-            Utility::serializeArray(data_, out);
+            Utility::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA4)
         {
             Utility::serialize((uint32_t)data_.size(), out);
-            Utility::serializeArray(data_, out);
+            Utility::serializeVector(data_, out);
         }
     }
     else

@@ -8,10 +8,10 @@ namespace Network
 
 //! @brief Get Headers message
 //!
-//! Requests an inventory message containing the headers of blocks starting right after the last known hash in the block locator
-// object, up to hash_stop or 2000 blocks, whichever comes first.
+//! Requests an Headers message containing the headers of blocks starting right after the last known hash in the block locator
+//! object, up to hash_stop or 2000 blocks, whichever comes first.
 //!
-//! @sa InvMessage
+//! @sa HeadersMessage
 
 class GetHeadersMessage : public Message
 {

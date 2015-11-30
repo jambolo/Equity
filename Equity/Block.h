@@ -9,6 +9,10 @@
 namespace Equity
 {
 
+    //! @brief  A block in the block chain
+    //!
+    //! A Block contains a list of validated transactions and information about its inclusion in the block chain
+
 class Block
 {
 public:
@@ -30,6 +34,7 @@ public:
     };
 
     Block() {}
+    Block(Header const & header, TransactionList const & transactions);
     Block(uint8_t const * & in, size_t & size);
     void serialize(std::vector<uint8_t> & out) const;
 
@@ -43,5 +48,8 @@ private:
     Header header_;
     TransactionList transactions_;
 };
+
+typedef std::vector<Block> BlockList;
+typedef std::vector<Block::Header> BlockHeaderList;
 
 } // namespace Equity

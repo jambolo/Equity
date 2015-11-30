@@ -46,7 +46,7 @@ void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
 }
 
 template <>
-void serializeArray<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
+void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
 {
     out.insert(out.end(), a.begin(), a.end());
 }
@@ -117,7 +117,7 @@ uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-std::vector<uint8_t> deserializeArray<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
+std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
 {
     if (size < n)
     {
