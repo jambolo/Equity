@@ -78,28 +78,31 @@ bool Base58Check::decode(char const * input, std::vector<uint8_t> & output, unsi
         return false;
     }
 
+    size_t const VERSION_SIZE = 1;
+    size_t const CHECKSUM_SIZE = 4;
+
     // Prepend the leading zeros
     work.insert(work.begin(), nLeadingOnes, 0);
 
     // Make sure there is a 1 byte version, 4 byte checksum, and at least one byte of data
-    if (work.size() < 6)
+    if (work.size() < VERSION_SIZE + CHECKSUM_SIZE + 1)
     {
         return false;
     }
 
     // Check the checksum
-    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - 4);
-    if (!std::equal(check.begin(), check.end(), work.end() - 4))
+    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - CHECKSUM_SIZE);
+    if (!std::equal(check.begin(), check.end(), work.end() - CHECKSUM_SIZE))
     {
         return false;
     }
 
     version = work[0];
-    output.assign(work.begin() + 1, work.end() - 4);
+    output.assign(work.begin() + VERSION_SIZE, work.end() - CHECKSUM_SIZE);
     return true;
 }
 
-bool decode(char const * input, uint8_t * output, size_t size, unsigned & version)
+bool Base58Check::decode(char const * input, uint8_t * output, size_t size, unsigned & version)
 {
     // Skip and count the leading 1's
     int nLeadingOnes = 0;
@@ -116,23 +119,26 @@ bool decode(char const * input, uint8_t * output, size_t size, unsigned & versio
         return false;
     }
 
+    size_t const VERSION_SIZE = 1;
+    size_t const CHECKSUM_SIZE = 4;
+
     // Prepend the leading zeros
     work.insert(work.begin(), nLeadingOnes, 0);
 
     // Make sure there is a 1 byte version, 4 byte checksum, and size bytes of data
-    if (work.size() == size + 5)
+    if (work.size() == VERSION_SIZE + CHECKSUM_SIZE + size)
     {
         return false;
     }
 
     // Check the checksum
-    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - 4);
-    if (!std::equal(check.begin(), check.end(), work.end() - 4))
+    Crypto::Checksum check = Crypto::checksum(work.data(), work.size() - CHECKSUM_SIZE);
+    if (!std::equal(check.begin(), check.end(), work.end() - CHECKSUM_SIZE))
     {
         return false;
     }
 
     version = work[0];
-    std::copy(work.begin() + 1, work.end() - 4, output);
+    std::copy(work.begin() + VERSION_SIZE, work.end() - CHECKSUM_SIZE, output);
     return true;
 }

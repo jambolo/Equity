@@ -30,7 +30,7 @@ std::vector<uint8_t> concatenate(Crypto::Sha256Hash const & left, Crypto::Sha256
 {
     std::vector<uint8_t> concatenated;
     concatenated.reserve(2 * Crypto::SHA256_HASH_SIZE);
-    concatenated = left;
+    concatenated.assign(left.begin(), left.end());
     concatenated.insert(concatenated.end(), right.begin(), right.end());
     return concatenated;
 }

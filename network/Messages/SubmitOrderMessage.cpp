@@ -18,7 +18,7 @@ SubmitOrderMessage::SubmitOrderMessage(uint8_t const * & in, size_t & size)
     assert(false);
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void SubmitOrderMessage::serialize(std::vector<uint8_t> & out) const
 {
     assert(false);
 }

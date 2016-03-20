@@ -12,7 +12,7 @@ namespace Crypto
 size_t const RIPEMD160_HASH_SIZE = 160 / 8;                         //!< The sized of a RIPEMD-160 hash in bytes
 typedef std::array<uint8_t, RIPEMD160_HASH_SIZE> Ripemd160Hash;     //!< A RIPEMD-160 hash
 
-                                                                    //! Computes the RIPEMD-160 hash of the input
+//! Computes the RIPEMD-160 hash of the input
 Ripemd160Hash ripemd160(std::vector<uint8_t> const & input);
 
 //! Computes the RIPEMD-160 hash of the input

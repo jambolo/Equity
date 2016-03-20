@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <stdexcept>
 #include <vector>
-#include <array>
 
 namespace Utility
 {
@@ -14,6 +14,10 @@ class DeserializationError : public std::runtime_error
 public:
     DeserializationError() : std::runtime_error("deserialization error") {}
 };
+
+/******************************************************************************************************************/
+/*                                           S E R I A L I Z A T I O N                                            */
+/******************************************************************************************************************/
 
 //! Serialization of a single object
 template <typename T>
@@ -36,16 +40,68 @@ template <> void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & 
 
 //! Serialization of a vector
 template <typename T>
-void serializeVector(std::vector<T> const & a, std::vector<uint8_t> & out)
+void serializeVector(std::vector<T> const & v, std::vector<uint8_t> & out)
 {
-    for (auto const & element : a)
+    for (auto const & element : v)
     {
         serialize(element, out);
     }
 }
 
+//! Serialization of a vector of std::array
+template <typename T, size_t N>
+void serializeVector(std::vector< std::array<T, N> > const & v, std::vector<uint8_t> & out)
+{
+    for (auto const & element : v)
+    {
+        serializeArray(element, out);
+    }
+}
+
 //! Serialization of a vector of uint8_t
 template <> void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
+
+//! @brief  Serialization of an std::array helper class
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T, size_t N>
+struct SerializeArrayImpl
+{
+    void operator ()(std::array<T, N> const & a, std::vector<uint8_t> & out)
+    {
+        for (auto const & element : a)
+        {
+            serialize(element, out);
+        }
+    }
+};
+
+//! @brief  Serialization of a std::array of uint8_t helper class
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <size_t N>
+struct SerializeArrayImpl<uint8_t, N>
+{
+    void operator ()(std::array<uint8_t, N> const & a, std::vector<uint8_t> & out)
+    {
+        out.insert(out.end(), a.begin(), a.end());
+    }
+};
+
+//! @brief  Serialization of an std::array
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T>
+void serializeArray(T const & a, std::vector<uint8_t> & out)
+{
+    SerializeArrayImpl<T::value_type, std::tuple_size<T>::value> impl;
+    impl(a, out);
+}
+
+
+/******************************************************************************************************************/
+/*                                         D E S E R I A L I Z A T I O N                                          */
+/******************************************************************************************************************/
 
 //! Deserialization of a single object
 template <typename T>
@@ -79,35 +135,74 @@ std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
     return v;
 }
 
+//! Deserialization of a vector of arrays
+template <typename T, size_t N>
+std::vector< std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size)
+{
+    typedef std::array<T, N> A;
+
+    std::vector<A> v;
+    v.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        v.push_back(deserializeArray<A>(in, size));
+    }
+    return v;
+}
+
 //! Deserialization of a vector of uint8_t
 template <> std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size);
 
-// //! Deserialization of an std::array
-// template <typename T, size_t N>
-// std::array<T, N> deserializeArray<std::array<T, N> >(uint8_t const * & in, size_t & size)
-// {
-//     std::array<T, N> a;
-//     for (auto & element : a)
-//     {
-//         element = deserialize<T>(in, size);
-//     }
-//     return a;
-// }
-// 
-// //! Deserialization of a std::array of uint8_t
-// template <size_t N>
-// std::array<uint8_t, N> deserializeArray<std::array<uint8_t, N> >(uint8_t const * & in, size_t & size)
-// {
-//     if (size < N)
-//     {
-//         throw Utility::DeserializationError();
-//     }
-//     std::array<uint8_t, N> a;
-//     std::copy(in, in + N, a.data());
-//     in += N;
-//     size -= N;
-//     return a;
-// }
+//! @brief  Deserialization of an std::array helper class
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T>
+struct DeserializeArrayImpl
+{
+    T operator ()(uint8_t const * & in, size_t & size)
+    {
+        T a;
+        for (auto & element : a)
+        {
+            element = deserialize<T>(in, size);
+        }
+        return a;
+    }
+
+};
+
+//! @brief  Deserialization of a std::array of uint8_t helper class
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <size_t N>
+struct DeserializeArrayImpl< std::array<uint8_t, N> >
+{
+    std::array<uint8_t, N> operator ()(uint8_t const * & in, size_t & size)
+    {
+        if (size < N)
+            throw Utility::DeserializationError();
+        std::array<uint8_t, N> a;
+        std::copy(in, in + N, a.data());
+        in += N;
+        size -= N;
+        return a;
+    }
+
+};
+
+//! @brief  Deserialization of a std::array
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T>
+T deserializeArray(uint8_t const * & in, size_t & size)
+{
+    DeserializeArrayImpl<T> impl;
+    return impl(in, size);
+}
+
+/******************************************************************************************************************/
+/*                                          V A R I A B L E   A R R A Y                                           */
+/******************************************************************************************************************/
 
 //! @brief Compressed 64-bit value
 //!
@@ -156,7 +251,36 @@ private:
     std::vector<T> data_;
 };
 
-//! @brief Array of uint8_t
+//! @brief Array of std::array
+//!
+//! This array is primarily used for serialization of a vector of objects in certain cases.
+//!
+//! @sa VASize
+
+template <typename T, size_t N>
+class VarArray< std::array<T, N> >
+{
+public:
+    VarArray() {}
+    VarArray(std::vector< std::array<T, N> > const & v) : data_(v) {}
+    VarArray(uint8_t const * & in, size_t & size)
+    {
+        VASize arraySize(in, size);
+        data_ = deserializeVector<T, N>(arraySize.value(), in, size);
+    }
+
+    void serialize(std::vector<uint8_t> & out) const
+    {
+        VASize(data_.size()).serialize(out);
+        serializeVector(data_, out);
+    }
+
+    std::vector< std::array<T, N> > value() const { return data_; }
+private:
+    std::vector< std::array<T, N> > data_;
+};
+
+//! @brief  Array of uint8_t
 //!
 //! This array is primarily used for serialization of a vector of uint8_t in certain cases.
 //!
@@ -184,42 +308,43 @@ private:
     std::vector<uint8_t> data_;
 };
 
-//! @brief Array of std::arrays of objects
-//!
-//! This array is primarily used for serialization of a vector of std::arrays of objects in certain cases.
-//!
-//! @sa VASize
+// //! @brief  Array of std::arrays of objects
+// //!
+// //! This array is primarily used for serialization of a vector of std::arrays of objects in certain cases.
+// //!
+// //! @sa VASize
+// 
+// template <typename T, size_t N>
+// class VarArrayOfArrays
+// {
+// public:
+//     typedef std::array<T, N> A;
+//     VarArrayOfArrays() {}
+//     VarArrayOfArrays(std::vector<A> const & vofa) : data_(vofa) {}
+//     VarArrayOfArrays(uint8_t const * & in, size_t & size)
+//     {
+//         VASize vectorSize(in, size);
+//         data.reserve(vectorSize.value());
+//         for (size_t i = 0; i < vectorSize.value(); ++i)
+//         {
+//             data_.emplace_back(deserializeArray<T, N>(in, size));
+//         }
+//     }
+// 
+//     void serialize(std::vector<uint8_t> & out) const
+//     {
+//         VASize(data_.size()).serialize(out);
+//         for (auto const & a : data_)
+//         {
+//             serializeArray(a, out);
+//         }
+//     }
+// 
+//     std::vector<A> value() const { return data_; }
+// private:
+//     std::vector<A> data_;
+// };
 
-template <typename T, size_t N>
-class VarArrayOfArrays
-{
-public:
-    typedef std::array<T, N> A;
-    VarArrayOfArrays() {}
-    VarArrayOfArrays(std::vector<A> const & vofa) : data_(vofa) {}
-    VarArrayOfArrays(uint8_t const * & in, size_t & size)
-    {
-        VASize vectorSize(in, size);
-        data.reserve(vectorSize.value());
-        for (size_t i = 0; i < vectorSize.value(); ++i)
-        {
-            data_.emplace_back(deserializeArray<T, N>(in, size));
-        }
-    }
-
-    void serialize(std::vector<uint8_t> & out) const
-    {
-        VASize(data_.size()).serialize(out);
-        for (auto const & a : data_)
-        {
-            serializeArray(a, out);
-        }
-    }
-
-    std::vector<A> value() const { return data_; }
-private:
-    std::vector<A> data_;
-};
 
 
 } // namespace Utility

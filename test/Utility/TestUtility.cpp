@@ -2302,7 +2302,9 @@ static int TestMerkleTree()
         for (auto s : c.data)
         {
             std::vector<uint8_t> h = fromHexR(s);
-            hashes.emplace_back(h.begin(), h.end());
+            Crypto::Sha256Hash hash;
+            std::copy(h.begin(), h.end(), hash.begin());
+            hashes.emplace_back(hash);
         }
 
         MerkleTree m(hashes);
