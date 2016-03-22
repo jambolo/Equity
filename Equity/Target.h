@@ -5,7 +5,7 @@
 namespace Equity
 {
 
-//! @brief Represents a target value in both hash form and compact form
+//! @brief Represents a target value in both 256-bit hash form and compact form
 //!
 //!                            31                              0
 //! Format of the compact form: eeeeeeeemmmmmmmmmmmmmmmmmmmmmmmm
@@ -53,5 +53,17 @@ private:
     Crypto::Sha256Hash hash_;
     uint32_t compact_;
 };
+
+//! Less-than operator overload for Target
+inline bool operator <(Target const & a, Target const b)
+{
+    return uint32_t(a) < uint32_t(b);
+}
+
+//! Less-than-or-equal operator overload for Target
+inline bool operator <=(Target const & a, Target const b)
+{
+    return !(b < a);
+}
 
 } // namespace Equity

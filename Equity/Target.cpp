@@ -8,6 +8,22 @@
 
 using namespace Equity;
 
+namespace
+{
+    uint32_t const MANTISSA_MASK = 0x7fffff;
+    int const EXPONENT_OFFSET = 24;
+
+    uint32_t extractMantissa(uint32_t x)
+    {
+        return x & MANTISSA_MASK;
+    }
+
+    int extractExponent(uint32_t x)
+    {
+        return ((x >> EXPONENT_OFFSET) & 0xff) - 3;
+    }
+}
+
 Crypto::Sha256Hash const Target::DIFFICULTY_1 =
 {
     0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -35,8 +51,8 @@ Crypto::Sha256Hash Target::convertToHash(uint32_t compact)
 {
     assert((compact & 0x800000) == 0);         // No negative numbers
 
-    uint32_t mantissa = compact & 0x7fffff;
-    int exponent = ((compact >> 24) & 0xff) - 3;
+    uint32_t mantissa = extractMantissa(compact);
+    int exponent = extractExponent(compact);
 
     assert(exponent >= -3 && exponent <= 0x1d);
 
@@ -97,14 +113,14 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
         mantissa >>= 8;
         exponent += 1;
     }
-    uint32_t compact = (exponent + 3) << 24 | mantissa;
+    uint32_t compact = (exponent + 3) << EXPONENT_OFFSET | mantissa;
 
     return compact;
 }
 
 double Target::toDouble(uint32_t compact)
 {
-    int mantissa = compact & 0x7fffff;
-    int exponent = ((compact >> 24) & 0xff) - 3;
+    int mantissa = extractMantissa(compact);
+    int exponent = extractExponent(compact);
     return double(mantissa) * pow(256.0, exponent);
 }
