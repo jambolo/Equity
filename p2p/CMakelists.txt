@@ -7,8 +7,10 @@ set(SOURCES
     Serialize.h
 )
     
-include_directories(..)
+set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR})
 
 add_library(p2p ${SOURCES})
+target_link_libraries(p2p utility crypto)
+target_include_directories(p2p PUBLIC ${INTERFACE_INCLUDE_PATH})
 
 source_group(Sources FILES ${SOURCES})

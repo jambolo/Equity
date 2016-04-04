@@ -8,13 +8,10 @@ set(SOURCES
     Utility.h
 )
 
-
-include_directories(..)
-
-find_package (OpenSSL)
-if (OPENSSL_FOUND)
-include_directories(${OPENSSL_INCLUDE_DIR})
-endif (OPENSSL_FOUND)
+set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR})
 
 add_library(utility ${SOURCES})
+target_include_directories(utility PUBLIC ${INTERFACE_INCLUDE_PATH})
+target_link_libraries(utility crypto)
+
 source_group(Sources FILES ${SOURCES})

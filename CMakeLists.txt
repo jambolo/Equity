@@ -1,5 +1,10 @@
-cmake_minimum_required (VERSION 3.4)
-project(Equity)
+cmake_minimum_required (VERSION 3.5)
+project(Equity CXX)
+
+#set(Equity_VERSION_MAJOR 0)
+#set(Equity_VERSION_MINOR 1)
+#configure_file("$(PROJECT_SOURCE_DIR)/Version.h.in" "$(PROJECT_BINARY_DIR)/Version.h")
+#include_directories("$(PROJECT_BINARY_DIR)")
 
 add_definitions(
     -DNOMINMAX
@@ -12,16 +17,16 @@ add_definitions(
 
 # Libraries
 
-add_subdirectory(crypto)		# Crypto support
-add_subdirectory(equity)		# Bitcoin objects
-add_subdirectory(network)		# Bitcoin network
-add_subdirectory(p2p)			# P2P network
-add_subdirectory(utility)		# Utility functions
-add_subdirectory(validation)	# Validation
+add_subdirectory(crypto)        # Crypto support
+add_subdirectory(equity)        # Bitcoin objects
+add_subdirectory(network)       # Bitcoin network
+add_subdirectory(p2p)           # P2P network
+add_subdirectory(utility)       # Utility functions
+add_subdirectory(validation)    # Validation
 
 # Applications and tests
 
-add_subdirectory(bits)				# Converts difficulty and target values
-add_subdirectory(list-prefixes)		# Lists address ranges for all prefix values
-add_subdirectory(test)				# Unit tests for the equity library
-add_subdirectory(view-transaction)	# Display a transaction in human-readable form
+add_subdirectory(bits)                # Converts difficulty and target values
+add_subdirectory(list-prefixes)       # Lists address ranges for all prefix values
+add_subdirectory(test)                # Unit tests for the equity library
+add_subdirectory(view-transaction)    # Display a transaction in human-readable form
