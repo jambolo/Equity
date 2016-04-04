@@ -20,7 +20,7 @@ public:
     GetBlocksMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last);
     GetBlocksMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     uint32_t version_;              //!< The protocol version
     Crypto::Sha256HashList hashes_; //!< List of block hashes to look for

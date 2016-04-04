@@ -26,10 +26,7 @@ GetBlocksMessage::GetBlocksMessage(uint8_t const * & in, size_t & size)
 
 void GetBlocksMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::serialize(littleEndian(version_), payload);
-    Utility::VarArray<Crypto::Sha256Hash>(hashes_).serialize(payload);
-    Utility::serializeArray(last_, payload);
-
-    Message::serialize(payload, out);
+    Utility::serialize(littleEndian(version_), out);
+    Utility::VarArray<Crypto::Sha256Hash>(hashes_).serialize(out);
+    Utility::serializeArray(last_, out);
 }

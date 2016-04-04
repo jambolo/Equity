@@ -20,7 +20,7 @@ public:
     AlertMessage(std::vector<uint8_t> const & message);
     AlertMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! The raw alert message data
     std::vector<uint8_t> message_;

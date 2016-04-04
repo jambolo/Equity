@@ -1,5 +1,7 @@
 #include "FilterClearMessage.h"
 
+#include "utility/Serialize.h"
+
 using namespace Network;
 
 char const FilterClearMessage::COMMAND[] = "filterclear";
@@ -16,5 +18,4 @@ FilterClearMessage::FilterClearMessage(uint8_t const * & in, size_t & size)
 
 void FilterClearMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Message::serialize(std::vector<uint8_t>(), out);
 }

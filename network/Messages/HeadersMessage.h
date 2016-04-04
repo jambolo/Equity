@@ -20,7 +20,7 @@ public:
     HeadersMessage(Equity::BlockList const & blocks);
     HeadersMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     Equity::BlockList blocks_;   //!< Blocks with the transactions removed
 

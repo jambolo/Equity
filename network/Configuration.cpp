@@ -1,6 +1,6 @@
 #include "Configuration.h"
 
-#include "network/Message.h"
+#include "p2p/Message.h"
 #include <cstdint>
 
 namespace Network
@@ -8,7 +8,7 @@ namespace Network
 
     Configuration instance_ =
     {
-        Message::MAGIC_MAIN,
+        P2p::Message::Header::MAGIC_MAIN,
         8333
     };
 

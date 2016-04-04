@@ -22,7 +22,5 @@ PingMessage::PingMessage(uint8_t const * & in, size_t & size)
 
 void PingMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::serialize(littleEndian(nonce_), payload);
-    Message::serialize(payload, out);
+    Utility::serialize(littleEndian(nonce_), out);
 }

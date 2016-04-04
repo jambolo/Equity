@@ -20,7 +20,5 @@ NotFoundMessage::NotFoundMessage(uint8_t const * & in, size_t & size)
 
 void NotFoundMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::VarArray<InventoryId>(missing_).serialize(payload);
-    Message::serialize(payload, out);
+    Utility::VarArray<InventoryId>(missing_).serialize(out);
 }

@@ -38,10 +38,8 @@ FilterLoadMessage::FilterLoadMessage(uint8_t const * & in, size_t & size)
 
 void FilterLoadMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    VarArray<uint8_t>(filter_).serialize(payload);
-    Utility::serialize(littleEndian(nHashFuncs_), payload);
-    Utility::serialize(littleEndian(tweak_), payload);
-    Utility::serialize(flags_, payload);
-    Message::serialize(payload, out);
+    VarArray<uint8_t>(filter_).serialize(out);
+    Utility::serialize(littleEndian(nHashFuncs_), out);
+    Utility::serialize(littleEndian(tweak_), out);
+    Utility::serialize(flags_, out);
 }

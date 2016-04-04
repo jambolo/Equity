@@ -1,0 +1,12 @@
+set(SOURCES
+    Message.cpp
+	Message.h
+	Peer.cpp
+	Peer.h
+)
+    
+include_directories(..)
+
+add_library(p2p ${SOURCES})
+
+source_group(Sources FILES ${SOURCES})

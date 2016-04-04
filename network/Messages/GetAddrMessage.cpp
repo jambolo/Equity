@@ -1,5 +1,7 @@
 #include "GetAddrMessage.h"
 
+#include "utility/Serialize.h"
+
 using namespace Network;
 
 char const GetAddrMessage::COMMAND[] = "getaddr";
@@ -16,5 +18,4 @@ GetAddrMessage::GetAddrMessage(uint8_t const * & in, size_t & size)
 
 void GetAddrMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Message::serialize(std::vector<uint8_t>(), out);
 }

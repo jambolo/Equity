@@ -1,5 +1,7 @@
 #include "RejectMessage.h"
 
+#include "utility/Serialize.h"
+
 using namespace Network;
 
 char const RejectMessage::COMMAND[] = "reject";
@@ -16,6 +18,4 @@ RejectMessage::RejectMessage(uint8_t const * & in, size_t & size)
 
 void RejectMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
 }

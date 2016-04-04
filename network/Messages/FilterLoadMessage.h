@@ -24,7 +24,7 @@ public:
                       uint8_t                      flags);
     FilterLoadMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     std::vector<uint8_t> filter_;   //!< The filter itself is simply a bit field of arbitrary byte-aligned size. The maximum size is
                                     //!< 36,000 bytes.

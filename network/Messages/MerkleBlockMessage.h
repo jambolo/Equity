@@ -25,7 +25,7 @@ public:
                        BitArray const &               flags);
     MerkleBlockMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     Equity::Block::Header header_;
     uint32_t count_;

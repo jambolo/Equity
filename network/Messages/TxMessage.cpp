@@ -1,5 +1,7 @@
 #include "TxMessage.h"
 
+#include "utility/Serialize.h"
+
 using namespace Network;
 
 char const TxMessage::COMMAND[] = "tx";
@@ -16,6 +18,4 @@ TxMessage::TxMessage(uint8_t const * & in, size_t & size)
 
 void TxMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Message::serialize(payload, out);
 }

@@ -20,7 +20,7 @@ public:
     NotFoundMessage(InventoryList const & missing);
     NotFoundMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     InventoryList missing_;     //! Missing inventory
 

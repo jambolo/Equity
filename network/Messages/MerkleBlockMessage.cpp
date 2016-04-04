@@ -31,10 +31,8 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
 
 void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    header_.serialize(payload);
-    Utility::serialize(littleEndian(count_), payload);
-    VarArray<Crypto::Sha256Hash>(hashes_).serialize(payload);
-    flags_.serialize(payload);
-    Message::serialize(payload, out);
+    header_.serialize(out);
+    Utility::serialize(littleEndian(count_), out);
+    VarArray<Crypto::Sha256Hash>(hashes_).serialize(out);
+    flags_.serialize(out);
 }

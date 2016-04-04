@@ -19,7 +19,7 @@ public:
     InvMessage(InventoryList const & inventory);
     InvMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     InventoryList inventory_;   //! Inventory
 

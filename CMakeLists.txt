@@ -10,13 +10,18 @@ add_definitions(
     -D_SCL_SECURE_NO_WARNINGS
 )
 
-add_subdirectory(crypto)
-add_subdirectory(bits)
-add_subdirectory(equity)
-add_subdirectory(list-prefixes)
-add_subdirectory(network)
-add_subdirectory(test)
-add_subdirectory(utility)
-add_subdirectory(validation)
-add_subdirectory(view-transaction)
+# Libraries
 
+add_subdirectory(crypto)		# Crypto support
+add_subdirectory(equity)		# Bitcoin objects
+add_subdirectory(network)		# Bitcoin network
+add_subdirectory(p2p)			# P2P network
+add_subdirectory(utility)		# Utility functions
+add_subdirectory(validation)	# Validation
+
+# Applications and tests
+
+add_subdirectory(bits)				# Converts difficulty and target values
+add_subdirectory(list-prefixes)		# Lists address ranges for all prefix values
+add_subdirectory(test)				# Unit tests for the equity library
+add_subdirectory(view-transaction)	# Display a transaction in human-readable form

@@ -20,7 +20,5 @@ InvMessage::InvMessage(uint8_t const * & in, size_t & size)
 
 void InvMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::VarArray<InventoryId>(inventory_).serialize(payload);
-    Message::serialize(payload, out);
+    Utility::VarArray<InventoryId>(inventory_).serialize(out);
 }

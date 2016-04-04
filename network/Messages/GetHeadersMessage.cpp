@@ -26,10 +26,7 @@ GetHeadersMessage::GetHeadersMessage(uint8_t const * & in, size_t & size)
 
 void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::serialize(littleEndian(version_), payload);
-    VarArray<Crypto::Sha256Hash>(hashes_).serialize(payload);
-    Utility::serializeArray<Crypto::Sha256Hash>(last_, payload);
-
-    Message::serialize(payload, out);
+    Utility::serialize(littleEndian(version_), out);
+    VarArray<Crypto::Sha256Hash>(hashes_).serialize(out);
+    Utility::serializeArray<Crypto::Sha256Hash>(last_, out);
 }

@@ -25,7 +25,7 @@ public:
     FilterAddMessage(std::vector<uint8_t> const & data);
     FilterAddMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! Data element to add to the current filter.
     std::vector<uint8_t> data_;

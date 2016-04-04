@@ -218,13 +218,14 @@ public:
     void serialize(std::vector<uint8_t> & out) const;
 
     uint64_t value() const { return value_; }
+
 private:
     uint64_t value_;
 };
 
 //! @brief Array of objects
 //!
-//! This array is primarily used for serialization of a vector of objects in certain cases.
+//! This array is used for serialization of an array of objects along with the number of elements in the array.
 //!
 //! @sa VASize
 
@@ -242,18 +243,19 @@ public:
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        VASize(data_.size()).serialize(out);
-        serializeVector(data_, out);
+        Utility::serialize(VASize(data_.size()), out);
+        Utility::serializeVector(data_, out);
     }
 
     std::vector<T> value() const { return data_; }
+
 private:
     std::vector<T> data_;
 };
 
 //! @brief Array of std::array
 //!
-//! This array is primarily used for serialization of a vector of objects in certain cases.
+//! This array is used for serialization of an array of std::array along with the number of elements in the array.
 //!
 //! @sa VASize
 
@@ -271,11 +273,12 @@ public:
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        VASize(data_.size()).serialize(out);
-        serializeVector(data_, out);
+        Utility::serialize(VASize(data_.size()), out);
+        Utility::serializeVector(data_, out);
     }
 
     std::vector< std::array<T, N> > value() const { return data_; }
+
 private:
     std::vector< std::array<T, N> > data_;
 };
@@ -299,8 +302,8 @@ public:
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        VASize(data_.size()).serialize(out);
-        serializeVector(data_, out);
+        Utility::serialize(VASize(data_.size()), out);
+        Utility::serializeVector(data_, out);
     }
 
     std::vector<uint8_t> value() const { return data_; }

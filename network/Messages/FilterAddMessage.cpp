@@ -24,5 +24,5 @@ FilterAddMessage::FilterAddMessage(uint8_t const * & in, size_t & size)
 
 void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Message::serialize(data_, out);
+    Utility::serializeVector(data_, out);
 }

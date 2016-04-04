@@ -15,6 +15,8 @@
 #include <memory>
 #include <vector>
 
+using namespace Equity;
+
 static void syntax(int argc, char ** argv);
 
 int main(int argc, char ** argv)
@@ -36,28 +38,28 @@ int main(int argc, char ** argv)
     size_t size = data.size();
     try
     {
-        Equity::Transaction transaction(in, size);
+        Transaction transaction(in, size);
         printf("valid: %s\n", transaction.valid() ? "true" : "false");
         printf("version: %u\n", transaction.version());
 
-        Equity::Transaction::InputList inputs = transaction.inputs();
+        Transaction::InputList inputs = transaction.inputs();
         printf("inputs:\n");
         for (size_t i = 0; i < inputs.size(); ++i)
         {
-            Equity::Transaction::Input const & input = inputs[i];
-            Equity::Script script(input.script);
+            Transaction::Input const & input = inputs[i];
+            Script script(input.script);
             printf("    %2zu:     txid : %s\n", i, Utility::toHex(input.txid.hash_).c_str());
             printf("           index : %u\n", input.outputIndex);
             printf("          script : %s\n", script.toSource().c_str());
             printf("        sequence : %u\n", input.sequence);
         }
 
-        Equity::Transaction::OutputList outputs = transaction.outputs();
+        Transaction::OutputList outputs = transaction.outputs();
         printf("outputs:\n");
         for (size_t i = 0; i < outputs.size(); ++i)
         {
-            Equity::Transaction::Output const & output = outputs[i];
-            Equity::Script script(output.script);
+            Transaction::Output const & output = outputs[i];
+            Script script(output.script);
             printf("    %2zu:   value : %llu (%lf BTC)\n", i, output.value, (double)output.value / 100000000.0);
             printf("         script : %s\n", script.toSource().c_str());
         }

@@ -20,7 +20,5 @@ AddrMessage::AddrMessage(uint8_t const * & in, size_t & size)
 
 void AddrMessage::serialize(std::vector<uint8_t> & out) const
 {
-    std::vector<uint8_t> payload;
-    Utility::VarArray<Address>(addresses_).serialize(payload);
-    Message::serialize(payload, out);
+    Utility::VarArray<Address>(addresses_).serialize(out);
 }

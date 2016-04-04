@@ -18,7 +18,7 @@ public:
     PingMessage(uint64_t nonce);
     PingMessage(uint8_t const * & in, size_t & size);
 
-    virtual void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     uint64_t nonce_;    //!< Nonce
 
