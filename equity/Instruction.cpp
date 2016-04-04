@@ -1,6 +1,6 @@
 #include "Instruction.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 #include <cassert>
 
@@ -347,7 +347,7 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
     , valid_(false)
 {
     // Get the opcode
-    op_ = Utility::deserialize<uint8_t>(in, size);
+    op_ = P2p::deserialize<uint8_t>(in, size);
     size_ += 1;
 
     assert(DESCRIPTIONS[op_].value == op_);    // Sanity check
@@ -368,22 +368,22 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
         }
         else if (op_ == OP_PUSHDATA1)
         {
-            count = Utility::deserialize<uint8_t>(in, size);
+            count = P2p::deserialize<uint8_t>(in, size);
             size_ += 1;
         }
         else if (op_ == OP_PUSHDATA2)
         {
-            count = Utility::deserialize<uint16_t>(in, size);
+            count = P2p::deserialize<uint16_t>(in, size);
             size_ += 2;
         }
         else
         {
             assert(op_ == OP_PUSHDATA4);
-            count = Utility::deserialize<uint32_t>(in, size);
+            count = P2p::deserialize<uint32_t>(in, size);
             size_ += 4;
         }
 
-        data_ = Utility::deserializeVector<uint8_t>(count, in, size);
+        data_ = P2p::deserializeVector<uint8_t>(count, in, size);
         size_ += count;
     }
 
@@ -394,31 +394,31 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
 {
     if (valid_)
     {
-        Utility::serialize<uint8_t>(op_, out);
+        P2p::serialize<uint8_t>(op_, out);
 
         if (op_ >= 0x1 && op_ <= 0x4b)
         {
-            Utility::serializeVector(data_, out);
+            P2p::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA1)
         {
-            Utility::serialize((uint8_t)data_.size(), out);
-            Utility::serializeVector(data_, out);
+            P2p::serialize((uint8_t)data_.size(), out);
+            P2p::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA2)
         {
-            Utility::serialize((uint16_t)data_.size(), out);
-            Utility::serializeVector(data_, out);
+            P2p::serialize((uint16_t)data_.size(), out);
+            P2p::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA4)
         {
-            Utility::serialize((uint32_t)data_.size(), out);
-            Utility::serializeVector(data_, out);
+            P2p::serialize((uint32_t)data_.size(), out);
+            P2p::serializeVector(data_, out);
         }
     }
     else
     {
-        Utility::serialize<uint8_t>(OP_INVALID, out);
+        P2p::serialize<uint8_t>(OP_INVALID, out);
     }
 }
 

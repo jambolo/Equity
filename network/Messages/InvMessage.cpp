@@ -1,6 +1,6 @@
 #include "InvMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -14,11 +14,11 @@ InvMessage::InvMessage(InventoryList const & inventory)
 
 InvMessage::InvMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
-    , inventory_(Utility::VarArray<InventoryId>(in, size).value())
+    , inventory_(P2p::VarArray<InventoryId>(in, size).value())
 {
 }
 
 void InvMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::VarArray<InventoryId>(inventory_).serialize(out);
+    P2p::VarArray<InventoryId>(inventory_).serialize(out);
 }

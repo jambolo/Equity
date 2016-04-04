@@ -8,7 +8,7 @@
 
 #include "equity/Script.h"
 #include "equity/Transaction.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "utility/Utility.h"
 
 #include <cstdio>

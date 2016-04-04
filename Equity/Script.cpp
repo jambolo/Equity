@@ -3,7 +3,7 @@
 #include "crypto/Ripemd.h"
 #include "crypto/Sha1.h"
 #include "crypto/Sha256.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "utility/Utility.h"
 
 #include <algorithm>

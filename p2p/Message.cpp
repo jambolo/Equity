@@ -2,7 +2,7 @@
 
 #include "crypto/Sha256.h"
 #include "utility/Endian.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 #include <cassert>
 
@@ -19,15 +19,15 @@ Message::Message(char const * type, std::vector<uint8_t> const & payload)
 void Message::Header::serialize(std::vector<uint8_t> & out) const
 {
     // Network ID (uint32_t, little-endian)
-    Utility::serialize(littleEndian(magic_), out);
+    P2p::serialize(littleEndian(magic_), out);
 
     // Type (up to 11 bytes + 0 terminator, padded with 0s)
     out.insert(out.end(), &type_[0], &type_[TYPE_SIZE]);
 
     // Payload size (uint32_t, little-endian)
-    Utility::serialize(littleEndian((uint32_t)length_), out);
+    P2p::serialize(littleEndian((uint32_t)length_), out);
 
     // Checksum (uint32_t, little-endian)
     // FIXME: Little-endian?
-    Utility::serialize(littleEndian((uint32_t)checksum_), out);
+    P2p::serialize(littleEndian((uint32_t)checksum_), out);
 }

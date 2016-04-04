@@ -1,7 +1,7 @@
 #include "HeadersMessage.h"
 
 #include "equity/Block.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -21,10 +21,10 @@ HeadersMessage::HeadersMessage(Equity::BlockList const & blocks)
 HeadersMessage::HeadersMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    blocks_ = Utility::VarArray<Equity::Block>(in, size).value();
+    blocks_ = P2p::VarArray<Equity::Block>(in, size).value();
 }
 
 void HeadersMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::VarArray<Equity::Block>(blocks_).serialize(out);
+    P2p::VarArray<Equity::Block>(blocks_).serialize(out);
 }

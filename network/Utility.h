@@ -3,7 +3,7 @@
 #include "crypto/Sha256.h"
 #include <cstdint>
 #include <vector>
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 namespace Network
 {
@@ -24,7 +24,7 @@ public:
     // Constructor
     BitArray(uint8_t const * & in, size_t & size)
     {
-        bits_ = Utility::VarArray<uint8_t>(in, size).value();
+        bits_ = P2p::VarArray<uint8_t>(in, size).value();
     }
 
     //! Returns the value of the bit at the given index
@@ -63,7 +63,7 @@ public:
     //! Serializes the bits in the network format
     void serialize(std::vector<uint8_t> & out) const
     {
-        Utility::VarArray<uint8_t>(bits_).serialize(out);
+        P2p::VarArray<uint8_t>(bits_).serialize(out);
     }
 
 private:

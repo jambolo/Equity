@@ -6,7 +6,7 @@ include_directories(..)
 add_executable(view-transaction ${SOURCES})
 source_group(Sources FILES ${SOURCES})
 
-target_link_libraries(view-transaction crypto equity utility)
+target_link_libraries(view-transaction crypto equity utility p2p)
 
 find_package (OpenSSL)
 if (OPENSSL_FOUND)

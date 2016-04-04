@@ -1,20 +1,20 @@
 #include "Serialize.h"
 
-#include "Utility.h"
+//#include "Utility.h"
 
 #include <algorithm>
 
-namespace Utility
+namespace P2p
 {
 
 template <>
-void Utility::serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out)
+void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out)
 {
     out.push_back(a);
 }
 
 template <>
-void Utility::serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
+void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 2);
     out.push_back(a & 0xff);
@@ -22,7 +22,7 @@ void Utility::serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out
 }
 
 template <>
-void Utility::serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
+void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 4);
     out.push_back(a & 0xff);
@@ -32,7 +32,7 @@ void Utility::serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out
 }
 
 template <>
-void Utility::serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
+void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 8);
     out.push_back(a & 0xff);
@@ -46,13 +46,13 @@ void Utility::serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out
 }
 
 template <>
-void Utility::serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
+void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
 {
     out.insert(out.end(), a.begin(), a.end());
 }
 
 template <>
-uint8_t Utility::deserialize<uint8_t>(uint8_t const * & in, size_t & size)
+uint8_t deserialize<uint8_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 1)
         throw DeserializationError();
@@ -65,7 +65,7 @@ uint8_t Utility::deserialize<uint8_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint16_t Utility::deserialize<uint16_t>(uint8_t const * & in, size_t & size)
+uint16_t deserialize<uint16_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 2)
         throw DeserializationError();
@@ -77,7 +77,7 @@ uint16_t Utility::deserialize<uint16_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint32_t Utility::deserialize<uint32_t>(uint8_t const * & in, size_t & size)
+uint32_t deserialize<uint32_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 4)
         throw DeserializationError();
@@ -91,7 +91,7 @@ uint32_t Utility::deserialize<uint32_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint64_t Utility::deserialize<uint64_t>(uint8_t const * & in, size_t & size)
+uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 8)
         throw DeserializationError();
@@ -109,7 +109,7 @@ uint64_t Utility::deserialize<uint64_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-std::vector<uint8_t> Utility::deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
+std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
 {
     if (size < n)
         throw DeserializationError();
@@ -123,7 +123,7 @@ std::vector<uint8_t> Utility::deserializeVector<uint8_t>(size_t n, uint8_t const
 
 VASize::VASize(uint8_t const * & in, size_t & size)
 {
-    uint8_t e = deserialize<uint8_t>(in, size);
+    uint8_t e = P2p::deserialize<uint8_t>(in, size);
     switch (e)
     {
         case 0xff:  value_ = deserialize<uint64_t>(in, size); break;
@@ -143,19 +143,19 @@ void VASize::serialize(std::vector<uint8_t> & out) const
     {
         out.reserve(out.size() + 3);
         out.push_back(0xfd);
-        Utility::serialize((uint16_t)value_, out);
+        P2p::serialize((uint16_t)value_, out);
     }
     else if (value_ < 0x100000000Ui64)
     {
         out.reserve(out.size() + 5);
         out.push_back(0xfe);
-        Utility::serialize((uint32_t)value_, out);
+        P2p::serialize((uint32_t)value_, out);
     }
     else
     {
         out.reserve(out.size() + 9);
         out.push_back(0xff);
-        Utility::serialize((uint64_t)value_, out);
+        P2p::serialize((uint64_t)value_, out);
     }
 }
 

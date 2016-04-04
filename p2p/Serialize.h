@@ -21,7 +21,7 @@ public:
 
 };
 
-namespace Utility
+namespace P2p
 {
 
 /******************************************************************************************************************/
@@ -258,13 +258,13 @@ public:
     VarArray(uint8_t const * & in, size_t & size)
     {
         VASize arraySize(in, size);
-        data_ = Utility::deserializeVector<T>(arraySize.value(), in, size);
+        data_ = P2p::deserializeVector<T>(arraySize.value(), in, size);
     }
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        Utility::serialize(VASize(data_.size()), out);
-        Utility::serializeVector(data_, out);
+        P2p::serialize(VASize(data_.size()), out);
+        P2p::serializeVector(data_, out);
     }
 
     std::vector<T> value() const { return data_; }
@@ -288,13 +288,13 @@ public:
     VarArray(uint8_t const * & in, size_t & size)
     {
         VASize arraySize(in, size);
-        data_ = Utility::deserializeVector<T, N>(arraySize.value(), in, size);
+        data_ = P2p::deserializeVector<T, N>(arraySize.value(), in, size);
     }
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        Utility::serialize(VASize(data_.size()), out);
-        Utility::serializeVector(data_, out);
+        P2p::serialize(VASize(data_.size()), out);
+        P2p::serializeVector(data_, out);
     }
 
     std::vector<std::array<T, N> > value() const { return data_; }
@@ -317,13 +317,13 @@ public:
     VarArray(uint8_t const * & in, size_t & size)
     {
         VASize arraySize(in, size);
-        data_ = Utility::deserializeVector<uint8_t>(arraySize.value(), in, size);
+        data_ = P2p::deserializeVector<uint8_t>(arraySize.value(), in, size);
     }
 
     void serialize(std::vector<uint8_t> & out) const
     {
-        Utility::serialize(VASize(data_.size()), out);
-        Utility::serializeVector(data_, out);
+        P2p::serialize(VASize(data_.size()), out);
+        P2p::serializeVector(data_, out);
     }
 
     std::vector<uint8_t> value() const { return data_; }

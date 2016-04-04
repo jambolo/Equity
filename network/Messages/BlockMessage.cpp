@@ -1,7 +1,7 @@
 #include "BlockMessage.h"
 
 #include "equity/Block.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -21,5 +21,5 @@ BlockMessage::BlockMessage(uint8_t const * & in, size_t & size)
 
 void BlockMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(block_, out);
+    P2p::serialize(block_, out);
 }

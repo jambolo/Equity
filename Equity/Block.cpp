@@ -1,6 +1,6 @@
 #include "Block.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "crypto/Sha256.h"
 #include "utility/Utility.h"
 
@@ -8,12 +8,12 @@ using namespace Equity;
 
 Block::Header::Header(uint8_t const * & in, size_t & size)
 {
-    version_ = Utility::deserialize<uint32_t>(in, size);
-    previousBlock_ = Utility::deserializeArray<Crypto::Sha256Hash>(in, size);
-    merkleRoot_ = Utility::deserializeArray<Crypto::Sha256Hash>(in, size);
-    timestamp_ = Utility::deserialize<uint32_t>(in, size);
-    target_ = Utility::deserialize<uint32_t>(in, size);
-    nonce_ = Utility::deserialize<uint32_t>(in, size);
+    version_ = P2p::deserialize<uint32_t>(in, size);
+    previousBlock_ = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
+    merkleRoot_ = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
+    timestamp_ = P2p::deserialize<uint32_t>(in, size);
+    target_ = P2p::deserialize<uint32_t>(in, size);
+    nonce_ = P2p::deserialize<uint32_t>(in, size);
 }
 
 void Block::Header::serialize(std::vector<uint8_t> & out) const
@@ -30,13 +30,13 @@ Block::Block(Header const & header, TransactionList const & transactions)
 Block::Block(uint8_t const * & in, size_t & size)
 {
     header_ = Header(in, size);
-    transactions_ = Utility::VarArray<Transaction>(in, size).value();
+    transactions_ = P2p::VarArray<Transaction>(in, size).value();
 }
 
 void Block::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(header_, out);
-    Utility::serialize(Utility::VarArray<Transaction>(transactions_), out);
+    P2p::serialize(header_, out);
+    P2p::serialize(P2p::VarArray<Transaction>(transactions_), out);
 }
 
 static char const VERSION_LABEL[] = "\"version\":";

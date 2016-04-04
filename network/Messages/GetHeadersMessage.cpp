@@ -1,7 +1,7 @@
 #include "GetHeadersMessage.h"
 
 #include "utility/Endian.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 using namespace Utility;
@@ -19,14 +19,14 @@ GetHeadersMessage::GetHeadersMessage(uint32_t version, Crypto::Sha256HashList co
 GetHeadersMessage::GetHeadersMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    version_ = littleEndian(deserialize<uint32_t>(in, size));
-    hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();
-    last_ = deserializeArray<Crypto::Sha256Hash>(in, size);
+    version_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
+    hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
+    last_ = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
 }
 
 void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(littleEndian(version_), out);
-    VarArray<Crypto::Sha256Hash>(hashes_).serialize(out);
-    Utility::serializeArray<Crypto::Sha256Hash>(last_, out);
+    P2p::serialize(littleEndian(version_), out);
+    P2p::serialize(P2p::VarArray<Crypto::Sha256Hash>(hashes_), out);
+    P2p::serializeArray<Crypto::Sha256Hash>(last_, out);
 }

@@ -1,7 +1,7 @@
 #include "MerkleBlockMessage.h"
 
 #include "utility/Endian.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 using namespace Utility;
@@ -24,15 +24,15 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
     header_ = Equity::Block::Header(in, size);
-    count_ = littleEndian(deserialize<uint32_t>(in, size));
-    hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();
+    count_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
+    hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
     flags_ = BitArray(in, size);
 }
 
 void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const
 {
-    header_.serialize(out);
-    Utility::serialize(littleEndian(count_), out);
-    VarArray<Crypto::Sha256Hash>(hashes_).serialize(out);
-    flags_.serialize(out);
+    P2p::serialize(header_, out);
+    P2p::serialize(littleEndian(count_), out);
+    P2p::serialize(P2p::VarArray<Crypto::Sha256Hash>(hashes_), out);
+    P2p::serialize(flags_, out);
 }

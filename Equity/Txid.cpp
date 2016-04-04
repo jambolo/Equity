@@ -1,6 +1,6 @@
 #include "Txid.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "utility/Utility.h"
 
 #include <algorithm>

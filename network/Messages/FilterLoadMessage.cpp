@@ -1,6 +1,6 @@
 #include "FilterLoadMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
 using namespace Network;
@@ -26,20 +26,20 @@ FilterLoadMessage::FilterLoadMessage(std::vector<uint8_t> const & filter,
 FilterLoadMessage::FilterLoadMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    filter_ = VarArray<uint8_t>(in, size).value();
+    filter_ = P2p::VarArray<uint8_t>(in, size).value();
     if (filter_.size() > MAX_FILTER_SIZE)
         throw InvalidMessageError();
-    nHashFuncs_ = littleEndian(deserialize<uint32_t>(in, size));
+    nHashFuncs_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
     if (nHashFuncs_ > MAX_NUM_HASH_FUNCIONS)
         throw InvalidMessageError();
-    tweak_ = littleEndian(deserialize<uint32_t>(in, size));
-    flags_ = deserialize<uint8_t>(in, size);
+    tweak_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
+    flags_ = P2p::deserialize<uint8_t>(in, size);
 }
 
 void FilterLoadMessage::serialize(std::vector<uint8_t> & out) const
 {
-    VarArray<uint8_t>(filter_).serialize(out);
-    Utility::serialize(littleEndian(nHashFuncs_), out);
-    Utility::serialize(littleEndian(tweak_), out);
-    Utility::serialize(flags_, out);
+    P2p::serialize(P2p::VarArray<uint8_t>(filter_), out);
+    P2p::serialize(littleEndian(nHashFuncs_), out);
+    P2p::serialize(littleEndian(tweak_), out);
+    P2p::serialize(flags_, out);
 }

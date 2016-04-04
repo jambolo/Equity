@@ -1,6 +1,6 @@
 #include "AlertMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -23,5 +23,5 @@ AlertMessage::AlertMessage(uint8_t const * & in, size_t & size)
 
 void AlertMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serializeVector(message_, out);
+    P2p::serializeVector(message_, out);
 }

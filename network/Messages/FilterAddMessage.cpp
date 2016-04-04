@@ -1,6 +1,6 @@
 #include "FilterAddMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -17,12 +17,12 @@ FilterAddMessage::FilterAddMessage(std::vector<uint8_t> const & data)
 FilterAddMessage::FilterAddMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    data_ = Utility::VarArray<uint8_t>(in, size).value();
+    data_ = P2p::VarArray<uint8_t>(in, size).value();
     if (data_.size() > MAX_FILTER_SIZE)
         throw InvalidMessageError();
 }
 
 void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serializeVector(data_, out);
+    P2p::serializeVector(data_, out);
 }

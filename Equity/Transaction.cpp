@@ -1,7 +1,7 @@
 #include "Transaction.h"
 
 #include "equity/Script.h"
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 #include "utility/Utility.h"
 
 using namespace Equity;
@@ -19,17 +19,17 @@ static char const LOCKTIME_LABEL[]  = "\"locktime\":";
 Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {
     txid = Txid(in, size);
-    outputIndex = Utility::deserialize<uint32_t>(in, size);
-    script = Utility::VarArray<uint8_t>(in, size).value();
-    sequence = Utility::deserialize<uint32_t>(in, size);
+    outputIndex = P2p::deserialize<uint32_t>(in, size);
+    script = P2p::VarArray<uint8_t>(in, size).value();
+    sequence = P2p::deserialize<uint32_t>(in, size);
 }
 
 void Transaction::Input::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(txid, out);
-    Utility::serialize(outputIndex, out);
-    Utility::VarArray<uint8_t>(script).serialize(out);
-    Utility::serialize(sequence, out);
+    P2p::serialize(txid, out);
+    P2p::serialize(outputIndex, out);
+    P2p::VarArray<uint8_t>(script).serialize(out);
+    P2p::serialize(sequence, out);
 }
 
 std::string Transaction::Input::toJson() const
@@ -48,14 +48,14 @@ std::string Transaction::Input::toJson() const
 
 Transaction::Output::Output(uint8_t const * & in, size_t & size)
 {
-    value = Utility::deserialize<uint64_t>(in, size);
-    script = Utility::VarArray<uint8_t>(in, size).value();
+    value = P2p::deserialize<uint64_t>(in, size);
+    script = P2p::VarArray<uint8_t>(in, size).value();
 }
 
 void Transaction::Output::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(value, out);
-    Utility::serialize(Utility::VarArray<uint8_t>(script), out);
+    P2p::serialize(value, out);
+    P2p::serialize(P2p::VarArray<uint8_t>(script), out);
 }
 
 std::string Transaction::Output::toJson() const
@@ -82,14 +82,14 @@ Transaction::Transaction(int version, InputList const & inputs, OutputList const
 Transaction::Transaction(uint8_t const * & in, size_t & size)
     : valid_(false)
 {
-    version_ = Utility::deserialize<uint32_t>(in, size);
+    version_ = P2p::deserialize<uint32_t>(in, size);
     // Only version 1 is valid now.
     if (version_ != 1)
         throw DeserializationError();
 
-    inputs_ = Utility::VarArray<Input>(in, size).value();
-    outputs_ = Utility::VarArray<Output>(in, size).value();
-    lockTime_ = Utility::deserialize<uint32_t>(in, size);
+    inputs_ = P2p::VarArray<Input>(in, size).value();
+    outputs_ = P2p::VarArray<Output>(in, size).value();
+    lockTime_ = P2p::deserialize<uint32_t>(in, size);
 
     valid_ = true;
 }
@@ -102,10 +102,10 @@ Transaction::Transaction(std::string const & json)
 
 void Transaction::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize<uint32_t>(version_, out);
-    Utility::serialize(Utility::VarArray<Input>(inputs_), out);
-    Utility::serialize(Utility::VarArray<Output>(outputs_), out);
-    Utility::serialize<uint32_t>(lockTime_, out);
+    P2p::serialize<uint32_t>(version_, out);
+    P2p::serialize(P2p::VarArray<Input>(inputs_), out);
+    P2p::serialize(P2p::VarArray<Output>(outputs_), out);
+    P2p::serialize<uint32_t>(lockTime_, out);
 }
 
 std::string Transaction::toHex() const

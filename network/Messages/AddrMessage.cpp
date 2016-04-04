@@ -1,6 +1,6 @@
 #include "AddrMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 
@@ -15,10 +15,10 @@ AddrMessage::AddrMessage(std::vector<Address> const & addresses)
 AddrMessage::AddrMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    addresses_ = Utility::VarArray<Address>(in, size).value();
+    addresses_ = P2p::VarArray<Address>(in, size).value();
 }
 
 void AddrMessage::serialize(std::vector<uint8_t> & out) const
 {
-    Utility::serialize(Utility::VarArray<Address>(addresses_), out);
+    P2p::serialize(P2p::VarArray<Address>(addresses_), out);
 }

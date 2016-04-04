@@ -4,8 +4,6 @@ set(SOURCES
 	Endian.h
     MerkleTree.cpp
     MerkleTree.h
-    Serialize.cpp
-    Serialize.h
     Utility.cpp
     Utility.h
 )

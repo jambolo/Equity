@@ -1,6 +1,6 @@
 #include "GetAddrMessage.h"
 
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 using namespace Network;
 

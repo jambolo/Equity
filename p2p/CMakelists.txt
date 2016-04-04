@@ -3,6 +3,8 @@ set(SOURCES
 	Message.h
 	Peer.cpp
 	Peer.h
+    Serialize.cpp
+    Serialize.h
 )
     
 include_directories(..)

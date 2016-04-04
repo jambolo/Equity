@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "utility/Serialize.h"
+#include "p2p/Serialize.h"
 
 namespace Network
 {
