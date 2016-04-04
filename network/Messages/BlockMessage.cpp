@@ -5,21 +5,21 @@
 
 using namespace Network;
 
-char const BlockMessage::COMMAND[] = "block";
+char const BlockMessage::TYPE[] = "block";
 
 BlockMessage::BlockMessage(Equity::Block const & block)
-    : Message(COMMAND)
+    : Message(TYPE)
     , block_(block)
 {
 }
 
 BlockMessage::BlockMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
     , block_(in, size)
 {
 }
 
 void BlockMessage::serialize(std::vector<uint8_t> & out) const
 {
-    block_.serialize(out);
+    Utility::serialize(block_, out);
 }

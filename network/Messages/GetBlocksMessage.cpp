@@ -6,10 +6,10 @@
 using namespace Network;
 using namespace Utility;
 
-char const GetBlocksMessage::COMMAND[] = "getblocks";
+char const GetBlocksMessage::TYPE[] = "getblocks";
 
 GetBlocksMessage::GetBlocksMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last)
-    : Message(COMMAND)
+    : Message(TYPE)
     , version_(version)
     , hashes_(hashes)
     , last_(last)
@@ -17,7 +17,7 @@ GetBlocksMessage::GetBlocksMessage(uint32_t version, Crypto::Sha256HashList cons
 }
 
 GetBlocksMessage::GetBlocksMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     version_ = littleEndian(deserialize<uint32_t>(in, size));
     hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();

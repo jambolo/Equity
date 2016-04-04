@@ -4,18 +4,18 @@
 
 using namespace Network;
 
-char const MempoolMessage::COMMAND[] = "mempool";
+char const MempoolMessage::TYPE[] = "mempool";
 
 MempoolMessage::MempoolMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 MempoolMessage::MempoolMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
-void Message::serialize(std::vector<uint8_t> & out) const
+void MempoolMessage::serialize(std::vector<uint8_t> & out) const
 {
 }

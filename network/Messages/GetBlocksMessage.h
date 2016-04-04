@@ -26,8 +26,8 @@ public:
     Crypto::Sha256HashList hashes_; //!< List of block hashes to look for
     Crypto::Sha256Hash last_;       //!< Last hash to return
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

@@ -5,10 +5,10 @@
 
 using namespace Network;
 
-char const HeadersMessage::COMMAND[] = "headers";
+char const HeadersMessage::TYPE[] = "headers";
 
 HeadersMessage::HeadersMessage(Equity::BlockList const & blocks)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     // The message sends entire blocks with the transactions omitted.
     blocks_.reserve(blocks.size());
@@ -19,7 +19,7 @@ HeadersMessage::HeadersMessage(Equity::BlockList const & blocks)
 }
 
 HeadersMessage::HeadersMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     blocks_ = Utility::VarArray<Equity::Block>(in, size).value();
 }

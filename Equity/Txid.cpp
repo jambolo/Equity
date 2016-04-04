@@ -17,7 +17,7 @@ Txid::Txid(std::string const & json)
 Txid::Txid(uint8_t const * & in, size_t & size)
 {
     if (size < Crypto::SHA256_HASH_SIZE)
-        throw Utility::DeserializationError();
+        throw DeserializationError();
     std::copy(in, in + hash_.size(), hash_.data());
     std::reverse(hash_.begin(), hash_.end());   // Txid's are stored and displayed as big-endian, but serialized as little-endian.
     in += Crypto::SHA256_HASH_SIZE;

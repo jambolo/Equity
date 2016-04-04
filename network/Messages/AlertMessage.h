@@ -25,8 +25,8 @@ public:
     //! The raw alert message data
     std::vector<uint8_t> message_;
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

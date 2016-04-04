@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const VersionMessage::COMMAND[] = "version";
+char const VersionMessage::TYPE[] = "version";
 
 VersionMessage::VersionMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 VersionMessage::VersionMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

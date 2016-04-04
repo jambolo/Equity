@@ -1,24 +1,24 @@
 #include "CheckOrderMessage.h"
 
-#include <cassert>
+#include "utility/Debug.h"
 
 using namespace Network;
 
-char const CheckOrderMessage::COMMAND[] = "checkorder";
+char const CheckOrderMessage::TYPE[] = "checkorder";
 
 CheckOrderMessage::CheckOrderMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
-    assert(false);  // not supported
+    THIS_SHOULD_NEVER_HAPPEN();  // not supported
 }
 
 CheckOrderMessage::CheckOrderMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
-    assert(false);  // not supported
+    THIS_SHOULD_NEVER_HAPPEN();  // not supported
 }
 
 void CheckOrderMessage::serialize(std::vector<uint8_t> & out) const
 {
-    assert(false);  // not supported
+    THIS_SHOULD_NEVER_HAPPEN();  // not supported
 }

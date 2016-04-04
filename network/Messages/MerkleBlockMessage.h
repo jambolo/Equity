@@ -32,8 +32,8 @@ public:
     Crypto::Sha256HashList hashes_;
     BitArray flags_;
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

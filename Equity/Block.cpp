@@ -35,8 +35,8 @@ Block::Block(uint8_t const * & in, size_t & size)
 
 void Block::serialize(std::vector<uint8_t> & out) const
 {
-    header_.serialize(out);
-    Utility::VarArray<Transaction>(transactions_).serialize(out);
+    Utility::serialize(header_, out);
+    Utility::serialize(Utility::VarArray<Transaction>(transactions_), out);
 }
 
 static char const VERSION_LABEL[] = "\"version\":";

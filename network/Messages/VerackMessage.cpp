@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const VerackMessage::COMMAND[] = "verack";
+char const VerackMessage::TYPE[] = "verack";
 
 VerackMessage::VerackMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 VerackMessage::VerackMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

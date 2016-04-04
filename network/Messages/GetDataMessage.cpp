@@ -4,16 +4,16 @@
 
 using namespace Network;
 
-char const GetDataMessage::COMMAND[] = "getdata";
+char const GetDataMessage::TYPE[] = "getdata";
 
 GetDataMessage::GetDataMessage(InventoryList const & inventory)
-    : Message(COMMAND)
+    : Message(TYPE)
     , inventory_(inventory)
 {
 }
 
 GetDataMessage::GetDataMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     inventory_ = Utility::VarArray<InventoryId>(in, size).value();
 }

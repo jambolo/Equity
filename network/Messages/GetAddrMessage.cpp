@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const GetAddrMessage::COMMAND[] = "getaddr";
+char const GetAddrMessage::TYPE[] = "getaddr";
 
 GetAddrMessage::GetAddrMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 GetAddrMessage::GetAddrMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "utility/Serialize.h"
 
 namespace Network
 {
@@ -11,15 +12,12 @@ namespace Network
 //!
 //! All network message classes are derived from this class.
 
-class Message
+class Message : public Serializable
 {
 public:
 
     // Constructor
     Message(char const * type);
-
-    //! Serializes the message
-    virtual void serialize(std::vector<uint8_t> & out) const = 0;
 
     //! Returns the type
     std::string type() const { return type_; }

@@ -30,8 +30,8 @@ public:
     //! Data element to add to the current filter.
     std::vector<uint8_t> data_;
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

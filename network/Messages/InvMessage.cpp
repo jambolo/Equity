@@ -4,16 +4,16 @@
 
 using namespace Network;
 
-char const InvMessage::COMMAND[] = "inv";
+char const InvMessage::TYPE[] = "inv";
 
 InvMessage::InvMessage(InventoryList const & inventory)
-    : Message(COMMAND)
+    : Message(TYPE)
     , inventory_(inventory)
 {
 }
 
 InvMessage::InvMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
     , inventory_(Utility::VarArray<InventoryId>(in, size).value())
 {
 }

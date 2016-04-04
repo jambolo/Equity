@@ -8,13 +8,13 @@ namespace Utility
 {
 
 template <>
-void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out)
+void Utility::serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out)
 {
     out.push_back(a);
 }
 
 template <>
-void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
+void Utility::serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 2);
     out.push_back(a & 0xff);
@@ -22,7 +22,7 @@ void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
 }
 
 template <>
-void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
+void Utility::serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 4);
     out.push_back(a & 0xff);
@@ -32,7 +32,7 @@ void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
 }
 
 template <>
-void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
+void Utility::serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 8);
     out.push_back(a & 0xff);
@@ -46,18 +46,16 @@ void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
 }
 
 template <>
-void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
+void Utility::serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
 {
     out.insert(out.end(), a.begin(), a.end());
 }
 
 template <>
-uint8_t deserialize<uint8_t>(uint8_t const * & in, size_t & size)
+uint8_t Utility::deserialize<uint8_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 1)
-    {
-        throw Utility::DeserializationError();
-    }
+        throw DeserializationError();
     uint8_t out;
     out = in[0];
     in += 1;
@@ -67,12 +65,10 @@ uint8_t deserialize<uint8_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint16_t deserialize<uint16_t>(uint8_t const * & in, size_t & size)
+uint16_t Utility::deserialize<uint16_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 2)
-    {
-        throw Utility::DeserializationError();
-    }
+        throw DeserializationError();
     uint16_t out = (uint16_t)in[0] +
                    ((uint16_t)in[1] << 8);
     in += 2;
@@ -81,12 +77,10 @@ uint16_t deserialize<uint16_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint32_t deserialize<uint32_t>(uint8_t const * & in, size_t & size)
+uint32_t Utility::deserialize<uint32_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 4)
-    {
-        throw Utility::DeserializationError();
-    }
+        throw DeserializationError();
     uint32_t out = (uint32_t)in[0] +
                    ((uint32_t)in[1] << 8) +
                    ((uint32_t)in[2] << 16) +
@@ -97,12 +91,10 @@ uint32_t deserialize<uint32_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size)
+uint64_t Utility::deserialize<uint64_t>(uint8_t const * & in, size_t & size)
 {
     if (size < 8)
-    {
-        throw Utility::DeserializationError();
-    }
+        throw DeserializationError();
     uint64_t out = (uint64_t)in[0] +
                    ((uint64_t)in[1] << 8) +
                    ((uint64_t)in[2] << 16) +
@@ -117,12 +109,10 @@ uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size)
 }
 
 template <>
-std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
+std::vector<uint8_t> Utility::deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size)
 {
     if (size < n)
-    {
-        throw Utility::DeserializationError();
-    }
+        throw DeserializationError();
     std::vector<uint8_t> v;
     v.assign(in, in + n);
     in += n;

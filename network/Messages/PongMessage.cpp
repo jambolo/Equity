@@ -6,16 +6,16 @@
 using namespace Network;
 using namespace Utility;
 
-char const PongMessage::COMMAND[] = "pong";
+char const PongMessage::TYPE[] = "pong";
 
 PongMessage::PongMessage(uint64_t nonce)
-    : Message(COMMAND)
+    : Message(TYPE)
     , nonce_(nonce)
 {
 }
 
 PongMessage::PongMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
     , nonce_(deserialize<uint64_t>(in, size))
 {
 }

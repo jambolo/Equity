@@ -6,13 +6,13 @@
 using namespace Network;
 using namespace Utility;
 
-char const MerkleBlockMessage::COMMAND[] = "merkleblock";
+char const MerkleBlockMessage::TYPE[] = "merkleblock";
 
 MerkleBlockMessage::MerkleBlockMessage(Equity::Block::Header const &  header,
                                        uint32_t                       count,
                                        Crypto::Sha256HashList const & hashes,
                                        BitArray const &               flags)
-    : Message(COMMAND)
+    : Message(TYPE)
     , header_(header)
     , count_(count)
     , hashes_(hashes)
@@ -21,7 +21,7 @@ MerkleBlockMessage::MerkleBlockMessage(Equity::Block::Header const &  header,
 }
 
 MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     header_ = Equity::Block::Header(in, size);
     count_ = littleEndian(deserialize<uint32_t>(in, size));

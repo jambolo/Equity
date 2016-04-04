@@ -6,10 +6,10 @@
 using namespace Network;
 using namespace Utility;
 
-char const GetHeadersMessage::COMMAND[] = "getheaders";
+char const GetHeadersMessage::TYPE[] = "getheaders";
 
 GetHeadersMessage::GetHeadersMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last)
-    : Message(COMMAND)
+    : Message(TYPE)
     , version_(version)
     , hashes_(hashes)
     , last_(last)
@@ -17,7 +17,7 @@ GetHeadersMessage::GetHeadersMessage(uint32_t version, Crypto::Sha256HashList co
 }
 
 GetHeadersMessage::GetHeadersMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     version_ = littleEndian(deserialize<uint32_t>(in, size));
     hashes_ = VarArray<Crypto::Sha256Hash>(in, size).value();

@@ -26,7 +26,7 @@ Transaction::Input::Input(uint8_t const * & in, size_t & size)
 
 void Transaction::Input::serialize(std::vector<uint8_t> & out) const
 {
-    txid.serialize(out);
+    Utility::serialize(txid, out);
     Utility::serialize(outputIndex, out);
     Utility::VarArray<uint8_t>(script).serialize(out);
     Utility::serialize(sequence, out);
@@ -55,7 +55,7 @@ Transaction::Output::Output(uint8_t const * & in, size_t & size)
 void Transaction::Output::serialize(std::vector<uint8_t> & out) const
 {
     Utility::serialize(value, out);
-    Utility::VarArray<uint8_t>(script).serialize(out);
+    Utility::serialize(Utility::VarArray<uint8_t>(script), out);
 }
 
 std::string Transaction::Output::toJson() const
@@ -85,7 +85,7 @@ Transaction::Transaction(uint8_t const * & in, size_t & size)
     version_ = Utility::deserialize<uint32_t>(in, size);
     // Only version 1 is valid now.
     if (version_ != 1)
-        throw Utility::DeserializationError();
+        throw DeserializationError();
 
     inputs_ = Utility::VarArray<Input>(in, size).value();
     outputs_ = Utility::VarArray<Output>(in, size).value();
@@ -103,8 +103,8 @@ Transaction::Transaction(std::string const & json)
 void Transaction::serialize(std::vector<uint8_t> & out) const
 {
     Utility::serialize<uint32_t>(version_, out);
-    Utility::VarArray<Input>(inputs_).serialize(out);
-    Utility::VarArray<Output>(outputs_).serialize(out);
+    Utility::serialize(Utility::VarArray<Input>(inputs_), out);
+    Utility::serialize(Utility::VarArray<Output>(outputs_), out);
     Utility::serialize<uint32_t>(lockTime_, out);
 }
 

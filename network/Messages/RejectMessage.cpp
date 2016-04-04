@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const RejectMessage::COMMAND[] = "reject";
+char const RejectMessage::TYPE[] = "reject";
 
 RejectMessage::RejectMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 RejectMessage::RejectMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

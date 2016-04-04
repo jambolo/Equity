@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const TxMessage::COMMAND[] = "tx";
+char const TxMessage::TYPE[] = "tx";
 
 TxMessage::TxMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 TxMessage::TxMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

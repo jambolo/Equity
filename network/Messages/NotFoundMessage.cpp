@@ -4,16 +4,16 @@
 
 using namespace Network;
 
-char const NotFoundMessage::COMMAND[] = "notfound";
+char const NotFoundMessage::TYPE[] = "notfound";
 
 NotFoundMessage::NotFoundMessage(InventoryList const & missing)
-    : Message(COMMAND)
+    : Message(TYPE)
     , missing_(missing)
 {
 }
 
 NotFoundMessage::NotFoundMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
     , missing_(Utility::VarArray<InventoryId>(in, size).value())
 {
 }

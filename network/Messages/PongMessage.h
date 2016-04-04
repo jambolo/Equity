@@ -22,8 +22,8 @@ public:
 
     uint64_t nonce_;    //!< Nonce to return
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

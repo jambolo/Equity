@@ -4,15 +4,15 @@
 
 using namespace Network;
 
-char const ReplyMessage::COMMAND[] = "reply";
+char const ReplyMessage::TYPE[] = "reply";
 
 ReplyMessage::ReplyMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 
 ReplyMessage::ReplyMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
 }
 

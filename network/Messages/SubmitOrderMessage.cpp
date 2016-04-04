@@ -4,16 +4,16 @@
 
 using namespace Network;
 
-char const SubmitOrderMessage::COMMAND[] = "submitorder";
+char const SubmitOrderMessage::TYPE[] = "submitorder";
 
 SubmitOrderMessage::SubmitOrderMessage()
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     assert(false);
 }
 
 SubmitOrderMessage::SubmitOrderMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
 {
     assert(false);
 }

@@ -24,8 +24,8 @@ public:
 
     Equity::BlockList blocks_;   //!< Blocks with the transactions removed
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

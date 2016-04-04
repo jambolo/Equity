@@ -9,8 +9,8 @@
 using namespace Utility;
 using namespace P2p;
 
-Message::Message(char const * command, std::vector<uint8_t> const & payload)
-    : type_(command)
+Message::Message(char const * type, std::vector<uint8_t> const & payload)
+    : type_(type)
     , payload_(payload)
 {
     assert(!type_.empty() && type_.length() < Header::TYPE_SIZE);

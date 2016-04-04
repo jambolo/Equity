@@ -23,8 +23,8 @@ public:
 
     InventoryList inventory_;   //! Inventory
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
 
         printf("lockTime: %u\n", transaction.lockTime());
     }
-    catch (Utility::DeserializationError)
+    catch (DeserializationError)
     {
         fprintf(stderr, "Invalid transaction.\n");
         return 2;

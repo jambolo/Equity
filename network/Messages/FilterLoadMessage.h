@@ -33,8 +33,8 @@ public:
     uint32_t tweak_;                //!< A random value to add to the seed value in the hash function used by the bloom filter.
     uint8_t flags_;                 //!< A set of flags that control how matched items are added to the filter.
 
-    //! Command string for this message type
-    static char const COMMAND[];
+    //! Message type
+    static char const TYPE[];
 };
 
 } // namespace Network

@@ -355,7 +355,7 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
     // If the opcode is not valid, then abort
     if (!DESCRIPTIONS[op_].valid)
     {
-        throw Utility::DeserializationError();
+        throw DeserializationError();
     }
 
     // Certain instructions contain data

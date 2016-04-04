@@ -1,4 +1,5 @@
 set(SOURCES
+    Debug.h
     Endian.cpp
 	Endian.h
     MerkleTree.cpp

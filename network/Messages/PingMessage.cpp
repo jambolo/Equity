@@ -6,16 +6,16 @@
 using namespace Network;
 using namespace Utility;
 
-char const PingMessage::COMMAND[] = "ping";
+char const PingMessage::TYPE[] = "ping";
 
 PingMessage::PingMessage(uint64_t nonce)
-    : Message(COMMAND)
+    : Message(TYPE)
     , nonce_(nonce)
 {
 }
 
 PingMessage::PingMessage(uint8_t const * & in, size_t & size)
-    : Message(COMMAND)
+    : Message(TYPE)
     , nonce_(deserialize<uint64_t>(in, size))
 {
 }
