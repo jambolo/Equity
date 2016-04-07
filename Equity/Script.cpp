@@ -78,7 +78,7 @@ bool Script::parse(std::vector<uint8_t> const & raw)
             Instruction i(p, size, p - raw.data());
             instructions_.push_back(i);
         }
-        catch (DeserializationError)
+        catch (ScriptParsingError const &)
         {
             return false;
         }

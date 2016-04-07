@@ -25,7 +25,7 @@ Ripemd160Hash ripemd160(uint8_t const * input, size_t length)
     EVP_DigestFinal_ex(mdctx, output, &outputLength);
     EVP_MD_CTX_destroy(mdctx);
 
-    Ripemd160Hash hash;
+    Ripemd160Hash hash = {};
     assert(outputLength == hash.size());
     std::copy(output, output + outputLength, hash.begin());
 

@@ -1,7 +1,7 @@
 set(SOURCES
     Debug.h
     Endian.cpp
-	Endian.h
+    Endian.h
     MerkleTree.cpp
     MerkleTree.h
     Utility.cpp

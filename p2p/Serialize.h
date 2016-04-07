@@ -5,7 +5,10 @@
 #include <stdexcept>
 #include <vector>
 
-//! Exception thrown by deserialization error
+namespace P2p
+{
+
+//! Exception thrown for a deserialization error
 class DeserializationError : public std::runtime_error
 {
 public:
@@ -21,9 +24,6 @@ public:
 
 };
 
-namespace P2p
-{
-
 /******************************************************************************************************************/
 /*                                           S E R I A L I Z A T I O N                                            */
 /******************************************************************************************************************/
@@ -36,20 +36,16 @@ void serialize(T const & a, std::vector<uint8_t> & out)
 }
 
 //! Serialization of a single uint8_t
-template <>
-void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out);
+template <> void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out);
 
 //! Serialization of a single uint16_t
-template <>
-void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out);
+template <> void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out);
 
 //! Serialization of a single uint32_t
-template <>
-void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out);
+template <> void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out);
 
 //! Serialization of a single uint64_t
-template <>
-void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out);
+template <> void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out);
 
 //! Serialization of a vector
 template <typename T>

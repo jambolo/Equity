@@ -85,7 +85,7 @@ Transaction::Transaction(uint8_t const * & in, size_t & size)
     version_ = P2p::deserialize<uint32_t>(in, size);
     // Only version 1 is valid now.
     if (version_ != 1)
-        throw DeserializationError();
+        throw P2p::DeserializationError();
 
     inputs_ = P2p::VarArray<Input>(in, size).value();
     outputs_ = P2p::VarArray<Output>(in, size).value();

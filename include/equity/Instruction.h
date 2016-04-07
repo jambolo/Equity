@@ -6,6 +6,14 @@
 namespace Equity
 {
 
+//! Exception thrown for a script parsing error
+class ScriptParsingError : public std::runtime_error
+{
+public:
+    ScriptParsingError() : std::runtime_error("script parsing error") {}
+};
+
+
 //! @brief Script instruction
 //!
 //! A script instruction contains an opcode and optional data. It also contains additional information used for branching and

@@ -10,10 +10,14 @@ set(SOURCES
     PrivateKey.cpp
     PublicKey.cpp
     Script.cpp
+    ScriptEngine.cpp
+    ScriptEngine.h
     Target.cpp
     Transaction.cpp
     Txid.cpp
     Wallet.cpp
+    Validator.cpp
+    Validator.h
 )
 
 set(HEADERS
@@ -45,7 +49,7 @@ set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 
 add_library(equity ${SOURCES} ${HEADERS})
 target_include_directories(equity PUBLIC ${INTERFACE_INCLUDE_PATH} PRIVATE ${INCLUDE_PATHS})
-target_link_libraries(equity crypto validation utility p2p ${OPENSSL_LIBRARIES})
+target_link_libraries(equity crypto utility p2p ${OPENSSL_LIBRARIES})
 
 source_group(Sources FILES ${SOURCES})
 source_group(Headers FILES ${HEADERS})

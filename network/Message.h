@@ -12,7 +12,7 @@ namespace Network
 //!
 //! All network message classes are derived from this class.
 
-class Message : public Serializable
+class Message : public P2p::Serializable
 {
 public:
 

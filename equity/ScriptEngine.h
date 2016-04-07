@@ -1,11 +1,11 @@
 #pragma once
 
-#include "equity/Script.h"
+#include "Script.h"
 #include <cstdint>
 #include <stack>
 #include <vector>
 
-namespace Validation
+namespace Equity
 {
 
 class ScriptEngine
@@ -30,4 +30,4 @@ private:
     size_t codeSeparator_;
 };
 
-} // namespace Validation
+} // namespace Equity

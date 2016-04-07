@@ -25,7 +25,7 @@ Sha1Hash sha1(uint8_t const * input, size_t length)
     EVP_DigestFinal_ex(mdctx, output, &outputLength);
     EVP_MD_CTX_destroy(mdctx);
 
-    Sha1Hash hash;
+    Sha1Hash hash = {};
     assert(outputLength == hash.size());
     std::copy(output, output + outputLength, hash.begin());
 

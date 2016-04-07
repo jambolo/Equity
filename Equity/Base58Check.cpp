@@ -126,7 +126,7 @@ bool Base58Check::decode(char const * input, uint8_t * output, size_t size, unsi
     work.insert(work.begin(), nLeadingOnes, 0);
 
     // Make sure there is a 1 byte version, 4 byte checksum, and size bytes of data
-    if (work.size() == VERSION_SIZE + CHECKSUM_SIZE + size)
+    if (work.size() != VERSION_SIZE + CHECKSUM_SIZE + size)
     {
         return false;
     }

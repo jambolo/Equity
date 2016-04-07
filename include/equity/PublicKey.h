@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -19,14 +20,14 @@ public:
     explicit PublicKey(uint8_t const * k);
     explicit PublicKey(PrivateKey const & k);
 
-    std::vector<uint8_t> value() const { return value_; }
+    std::array<uint8_t, SIZE> value() const { return value_; }
     bool valid() const { return valid_; }
 
     std::string toHex() const;
 
 private:
 
-    std::vector<uint8_t> value_;
+    std::array<uint8_t, SIZE> value_;
     bool valid_;
 };
 

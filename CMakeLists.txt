@@ -15,18 +15,18 @@ add_definitions(
     -D_SCL_SECURE_NO_WARNINGS
 )
 
+option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
+
 # Libraries
 
-add_subdirectory(crypto)        # Crypto support
-add_subdirectory(equity)        # Bitcoin objects
-add_subdirectory(network)       # Bitcoin network
-add_subdirectory(p2p)           # P2P network
-add_subdirectory(utility)       # Utility functions
-add_subdirectory(validation)    # Validation
+add_subdirectory(crypto)            # Crypto support
+add_subdirectory(equity)            # Bitcoin
+add_subdirectory(network)           # Bitcoin network
+add_subdirectory(p2p)               # P2P network
+add_subdirectory(utility)           # Utility functions
 
 # Applications and tests
 
-add_subdirectory(bits)                # Converts difficulty and target values
-add_subdirectory(list-prefixes)       # Lists address ranges for all prefix values
-add_subdirectory(test)                # Unit tests for the equity library
-add_subdirectory(view-transaction)    # Display a transaction in human-readable form
+add_subdirectory(bits)              # Converts difficulty and target values
+add_subdirectory(list-prefixes)     # Lists address ranges for all prefix values
+add_subdirectory(view-transaction)  # Display a transaction in human-readable form

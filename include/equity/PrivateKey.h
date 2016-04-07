@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -20,7 +21,7 @@ public:
 
     void setCompressed(bool yes = true) { compressed_ = yes; }
 
-    std::vector<uint8_t> value() const { return value_; }
+    std::array<uint8_t, SIZE> value() const { return value_; }
     bool compressed() const { return compressed_; }
     bool valid() const { return valid_; }
 
@@ -31,7 +32,7 @@ private:
 
     bool isValid();
 
-    std::vector<uint8_t> value_;
+    std::array<uint8_t, SIZE> value_;
     bool valid_;
     bool compressed_;
 };

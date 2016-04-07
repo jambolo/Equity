@@ -2,6 +2,7 @@
 
 #include "Base58Check.h"
 #include "utility/Utility.h"
+#include "crypto/Sha256.h"
 
 #include <openssl/bn.h>
 
@@ -17,39 +18,84 @@ static uint8_t const MAX_PRIVATE_KEY[] =
     0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x40
 };
 
-PrivateKey::PrivateKey(std::string const & wif)
-    : compressed_(false)
-{
-    unsigned version;
-    bool valid = Base58Check::decode(wif, value_, version);
+// A private key in mini-key format has exactly 30 characters including the S prefix
+static size_t const MINI_KEY_FORMAT_SIZE = 30;
 
-    if (value_.size() == SIZE + 1 && value_.back() == COMPRESSED_FLAG)
+PrivateKey::PrivateKey(std::string const & s)
+    : valid_(true)
+    , compressed_(false)
+{
+    if (s.size() == MINI_KEY_FORMAT_SIZE)
     {
-        value_.resize(SIZE);
-        compressed_ = true;
+        if (s[0] != 'S')
+        {
+            valid_ = false;
+            return;
+        }
+        std::string appended = s + '?';
+        Crypto::Sha256Hash check = Crypto::sha256(reinterpret_cast<uint8_t const *>(appended.c_str()), appended.length());
+        if (check[0] != 0)
+        {
+            valid_ = false;
+            return;
+        }
+
+        value_ = Crypto::sha256(reinterpret_cast<uint8_t const *>(s.c_str()), s.length());
     }
-    valid_ = valid && isValid();
+    else
+    {
+        unsigned version;       // Throw away the version byte?
+        std::vector<uint8_t> decoded;
+        valid_ = Base58Check::decode(s, decoded, version);
+        if (!valid_)
+            return;
+
+        if (decoded.size() == SIZE + 1 && decoded.back() == COMPRESSED_FLAG)
+        {
+            compressed_ = true;
+            decoded.resize(SIZE);
+        }
+        else if (decoded.size() != SIZE)
+        {
+            valid_ = false;
+            return;
+        }
+
+        std::copy(decoded.begin(), decoded.end(), value_.begin());
+    }
+    valid_ = isValid();
 }
 
 PrivateKey::PrivateKey(std::vector<uint8_t> const & k)
-    : value_(k)
+    : valid_(true)
     , compressed_(false)
 {
+    if (k.size() != SIZE)
+    {
+        valid_ = false;
+        return;
+    }
+
+    std::copy(k.begin(), k.end(), value_.begin());
     valid_ = isValid();
 }
 
 PrivateKey::PrivateKey(uint8_t const * k)
-    : value_(k, k + SIZE)
+    : valid_(true)
     , compressed_(false)
 {
+    std::copy(k, k+SIZE, value_.begin());
     valid_ = isValid();
 }
 
 std::string PrivateKey::toWif(unsigned version) const
 {
+    if (!valid_)
+        return std::string();
+
     if (compressed_)
     {
-        std::vector<uint8_t> extended = value_;
+        std::vector<uint8_t> extended(value_.begin(), value_.end());
         extended.push_back(COMPRESSED_FLAG);
         return Base58Check::encode(extended, version);
     }
@@ -66,7 +112,7 @@ std::string PrivateKey::toHex() const
 
 bool PrivateKey::isValid()
 {
-    if (value_.size() != SIZE)
+    if (!valid_)
         return false;
 
     std::shared_ptr<BIGNUM> i(BN_new(), BN_free);

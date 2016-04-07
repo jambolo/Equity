@@ -6,25 +6,27 @@
 #include "openssl/ec.h"
 #include "openssl/evp.h"
 #include "openssl/obj_mac.h"
+#include <cassert>
 #include <memory>
 
 using namespace Equity;
 
 PublicKey::PublicKey(std::vector<uint8_t> const & k)
-    : value_(k)
-    , valid_(k.size() == SIZE)
+    : valid_(k.size() == SIZE && k[0] == 4)
 {
+    if (valid_)
+        std::copy(k.begin(), k.end(), value_.begin());
 }
 
 PublicKey::PublicKey(uint8_t const * k)
-    : value_(k, k + SIZE)
-    , valid_(true)
+    : valid_(k[0] == 4)
 {
+    if (valid_)
+        std::copy(k, k + SIZE, value_.begin());
 }
 
 PublicKey::PublicKey(PrivateKey const & k)
-    : value_(SIZE)
-    , valid_(false)
+    : valid_(false)
 {
     std::shared_ptr<BIGNUM> prvKey(BN_new(), BN_free);
     BN_bin2bn(k.value().data(), (int)PrivateKey::SIZE, prvKey.get());
@@ -36,14 +38,15 @@ PublicKey::PublicKey(PrivateKey const & k)
     if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), NULL, NULL, ctx.get()))
         return;
 
-    size_t length =
-        EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, NULL, 0, ctx.get());
-
-    if (EC_POINT_point2oct(group.get(), pubKey.get(), POINT_CONVERSION_UNCOMPRESSED, &value_[SIZE - length], length,
-                           ctx.get()) != length)
-        return;
-
-    valid_ = true;
+    size_t length = EC_POINT_point2oct(group.get(),
+                                       pubKey.get(),
+                                       POINT_CONVERSION_UNCOMPRESSED,
+                                       value_.data(),
+                                       value_.size(),
+                                       ctx.get());
+    assert(length == SIZE);
+    assert(value_[0] == 4);
+    valid_ = (length == SIZE) && (value_[0] == 4);
 }
 
 std::string PublicKey::toHex() const

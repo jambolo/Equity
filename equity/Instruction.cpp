@@ -266,9 +266,9 @@ Instruction::Description const Instruction::DESCRIPTIONS[Instruction::NUMBER_OF_
     { OP_INVALID,               "(invalid)",            0, false }  /* ff */
 };
 
-Instruction::Instruction(int op, std::vector<uint8_t> const & data /* = std::vector<uint8_t>()*/, size_t location /*
-                                                                                                                     =
-                                                                                                                     0*/)
+Instruction::Instruction(int                          op,
+                         std::vector<uint8_t> const & data /* = std::vector<uint8_t>()*/,
+                         size_t                       location /* = 0*/)
     : op_(op)
     , data_(data)
     , location_(location)
@@ -277,16 +277,12 @@ Instruction::Instruction(int op, std::vector<uint8_t> const & data /* = std::vec
     // Validate the opcode and override the opcode if necessary
     assert(op >= 0 && op < NUMBER_OF_INSTRUCTIONS);
     if (op < 0 || op >= NUMBER_OF_INSTRUCTIONS)
-    {
         op_ = op = OP_INVALID;
-    }
 
     valid_ = DESCRIPTIONS[op].valid;
 
     if (!valid_)
-    {
         return;
-    }
 
     // Validate data size and override the validity flag if necessary
     if (op >= 0x01 && op <= OP_PUSHDATA4)
@@ -303,39 +299,29 @@ Instruction::Instruction(int op, std::vector<uint8_t> const & data /* = std::vec
         {
             size_ += 1;
             if (data.size() > 0xffU)
-            {
                 valid_ = false;
-            }
         }
         else if (op == OP_PUSHDATA2)
         {
             size_ += 2;
             if (data.size() > 0xffffU)
-            {
                 valid_ = false;
-            }
         }
         else if (op == OP_PUSHDATA4)
         {
             size_ += 4;
             if (data.size() > 0xffffffffU)
-            {
                 valid_ = false;
-            }
         }
     }
     else
     {
         if (!data.empty())
-        {
             valid_ = false;
-        }
     }
 
     if (!valid_)
-    {
         return;
-    }
 
     size_ += data.size();
 }
@@ -346,45 +332,52 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
     , size_(0)
     , valid_(false)
 {
-    // Get the opcode
-    op_ = P2p::deserialize<uint8_t>(in, size);
-    size_ += 1;
-
-    assert(DESCRIPTIONS[op_].value == op_);    // Sanity check
-
-    // If the opcode is not valid, then abort
-    if (!DESCRIPTIONS[op_].valid)
+    try
     {
-        throw DeserializationError();
+        // Get the opcode
+        op_ = P2p::deserialize<uint8_t>(in, size);
+        size_ += 1;
+
+        assert(DESCRIPTIONS[op_].value == op_);    // Sanity check
+
+        // If the opcode is not valid, then abort
+        if (!DESCRIPTIONS[op_].valid)
+            throw ScriptParsingError();
+
+        // Certain instructions contain data
+        if (op_ >= 0x01 && op_ <= OP_PUSHDATA4)
+        {
+            size_t count;
+            if (op_ >= 0x01 && op_ <= 0x4b)
+            {
+                count = op_;
+            }
+            else if (op_ == OP_PUSHDATA1)
+            {
+                count = P2p::deserialize<uint8_t>(in, size);
+                size_ += 1;
+            }
+            else if (op_ == OP_PUSHDATA2)
+            {
+                count = P2p::deserialize<uint16_t>(in, size);
+                size_ += 2;
+            }
+            else
+            {
+                assert(op_ == OP_PUSHDATA4);
+                count = P2p::deserialize<uint32_t>(in, size);
+                size_ += 4;
+            }
+
+            data_ = P2p::deserializeVector<uint8_t>(count, in, size);
+            size_ += count;
+        }
     }
-
-    // Certain instructions contain data
-    if (op_ >= 0x01 && op_ <= OP_PUSHDATA4)
+    catch (P2p::DeserializationError const &)
     {
-        size_t count;
-        if (op_ >= 0x01 && op_ <= 0x4b)
-        {
-            count = op_;
-        }
-        else if (op_ == OP_PUSHDATA1)
-        {
-            count = P2p::deserialize<uint8_t>(in, size);
-            size_ += 1;
-        }
-        else if (op_ == OP_PUSHDATA2)
-        {
-            count = P2p::deserialize<uint16_t>(in, size);
-            size_ += 2;
-        }
-        else
-        {
-            assert(op_ == OP_PUSHDATA4);
-            count = P2p::deserialize<uint32_t>(in, size);
-            size_ += 4;
-        }
-
-        data_ = P2p::deserializeVector<uint8_t>(count, in, size);
-        size_ += count;
+        // The P2P deserializer is used to parse the script, but this is not really a error in deserialization. So,
+        // re-throw as a parsing error.
+        throw ScriptParsingError();
     }
 
     valid_ = true;
@@ -428,9 +421,7 @@ Instruction::Description const & Instruction::getDescription(int opcode)
 
     // Just return information about OP_INVALID if the value is not valid.
     if (opcode < 0 || opcode >= NUMBER_OF_INSTRUCTIONS)
-    {
         opcode = OP_INVALID;
-    }
 
     assert(DESCRIPTIONS[opcode].value == opcode);     // Sanity check
 

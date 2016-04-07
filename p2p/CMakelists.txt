@@ -1,8 +1,8 @@
 set(SOURCES
     Message.cpp
-	Message.h
-	Peer.cpp
-	Peer.h
+    Message.h
+    Peer.cpp
+    Peer.h
     Serialize.cpp
     Serialize.h
 )

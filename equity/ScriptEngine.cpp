@@ -1,16 +1,16 @@
 #include "ScriptEngine.h"
 
+#include "Script.h"
+
 #include "crypto/Ripemd.h"
 #include "crypto/Sha1.h"
 #include "crypto/Sha256.h"
-#include "equity/Script.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
 
 using namespace Equity;
-using namespace Validation;
 
 static bool toBool(std::vector<uint8_t> const & data)
 {
