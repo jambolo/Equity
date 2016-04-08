@@ -14,7 +14,7 @@ public:
 };
 
 
-//! @brief Script instruction
+//! A script instruction.
 //!
 //! A script instruction contains an opcode and optional data. It also contains additional information used for branching and
 //! validation.

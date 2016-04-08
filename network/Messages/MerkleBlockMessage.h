@@ -8,11 +8,11 @@
 namespace Network
 {
 
-//! @brief  Filtered Block message
+//! A filtered-block message.
 //!
 //! Contains information about a block and a filtered list of transactions in the block
 //!
-//! @note   This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//! @note   This message is related to bloom filtering of connections and is defined in BIP 0037.
 //! @sa     FilterAddMessage, FilterClearMessage, FilterLoadMessage
 
 class MerkleBlockMessage : public Message

@@ -3,21 +3,21 @@
 #include "network/Message.h"
 #include "network/Inventory.h"
 
-//! @brief  Inventory message
+//! An inventory message.
 //!
-//! Contains hashes corresponding to transactions and blocks. Can be sent unsolicited or in response to a GetBlocksMessage.
+//! Contains hashes corresponding to transactions and blocks. Can be sent unsolicited or in response to a get-blocks message.
 //!
 //! @sa     GetBlocksMessage
 
 namespace Network
 {
 
-class InvMessage : public Message
+class InventoryMessage : public Message
 {
 public:
 
-    InvMessage(InventoryList const & inventory);
-    InvMessage(uint8_t const * & in, size_t & size);
+    InventoryMessage(InventoryList const & inventory);
+    InventoryMessage(uint8_t const * & in, size_t & size);
 
     virtual void serialize(std::vector<uint8_t> & out) const override;
 

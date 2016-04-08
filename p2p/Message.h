@@ -8,7 +8,7 @@
 namespace P2p
 {
 
-//! @brief  P2P network message
+//! A P2P network message.
 //!
 //! @sa     https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure
 
@@ -41,7 +41,8 @@ private:
     Payload payload_;
 };
 
-//! @brief  P2P network message header
+//! A P2P network message header.
+
 class Message::Header
 {
 public:

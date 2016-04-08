@@ -16,11 +16,13 @@ Address::Address(std::string const & s)
     std::vector<uint8_t> decoded;
     valid_ = Base58Check::decode(s.c_str(), value_.data(), value_.size(), network);
 }
+
 Address::Address(Crypto::Ripemd160Hash const & k)
     : value_(k)
-    , valid_(k.size() == SIZE)
+    , valid_(true)
 {
 }
+
 Address::Address(uint8_t const * k)
     : valid_(true)
 {
@@ -32,11 +34,7 @@ Address::Address(PublicKey const & publicKey)
     , valid_(true)
 {
 }
-Address::Address(PrivateKey const & privateKey)
-    : value_(ripemd160(sha256(PublicKey(privateKey).value())))
-    , valid_(true)
-{
-}
+
 std::string Address::toString(unsigned network) const
 {
     return Base58Check::encode(value_, network);

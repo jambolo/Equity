@@ -3,9 +3,9 @@
 #include "network/Message.h"
 #include "equity/Block.h"
 
-//! @brief Headers message
+//! A headers message.
 //!
-//! Contains block headers in response to a getheaders message.
+//! Contains block headers in response to a get-headers message.
 //! 
 //! @note   The format of the data is a list of blocks that have had the transactions removed.
 //! @sa     GetHeadersMessage

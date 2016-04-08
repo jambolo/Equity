@@ -7,7 +7,7 @@
 namespace Network
 {
 
-//! @brief  Represents an object
+//! Represents an object in an inventory message
 //!
 //! Used in inventory requests for notifying other nodes about objects that they have or are requesting.
 //!

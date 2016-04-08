@@ -5,7 +5,7 @@
 namespace Network
 {
 
-//! @brief  Mempool message
+//! A mempool message.
 //!
 //! Request a node to provide information about transactions it has verified but which have not yet confirmed. The response to
 //! receiving this message is an inv message containing the transaction hashes for all the transactions in the node's mempool.
@@ -13,7 +13,7 @@ namespace Network
 //! This message is specified in BIP 35. With BIP 37, if a bloom filter is loaded, only transactions matching the filter are
 //! returned.
 //!
-//! @sa     InvMessage
+//! @sa     InventoryMessage
 
 class MempoolMessage : public Message
 {

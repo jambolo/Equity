@@ -5,13 +5,13 @@
 namespace Network
 {
 
-//! @brief Load Filter message
+//! A load-filter message.
 //!
-//! Upon receiving a filterload command, the remote peer will immediately restrict the broadcast transactions it announces (in inv
-//! packets) to transactions matching the filter, where the matching algorithm is specified below. The flags control the update
-//! behaviour of the matching algorithm.
+//! Upon receiving a load-filter message, the remote peer will immediately restrict the broadcast transactions it announces (in
+//! inventory messages) to transactions matching the filter, where the matching algorithm is specified below. The flags control
+//! the update behaviour of the matching algorithm.
 //!
-//! @note   This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//! @note   This message is related to bloom filtering of connections and is defined in BIP 0037.
 //! @sa     FilterAddMessage, FilterClearMessage, MerkleBlockMessage
 
 class FilterLoadMessage : public Message

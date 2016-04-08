@@ -5,11 +5,11 @@
 namespace Network
 {
 
-//! @brief  Clear Filter message
+//! A clear-filter message.
 //!
 //! This message deletes the current filter and goes back to regular pre-BIP37 usage
 //!
-//! @note   This message is related to Bloom filtering of connections and is defined in BIP 0037.
+//! @note   This message is related to bloom filtering of connections and is defined in BIP 0037.
 //! @sa     FilterAddMessage, FilterLoadMessage, MerkleBlockMessage
 
 class FilterClearMessage : public Message

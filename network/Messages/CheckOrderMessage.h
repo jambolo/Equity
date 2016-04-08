@@ -5,7 +5,7 @@
 namespace Network
 {
 
-//! @brief Check Order message
+//! A check-order message.
 //!
 //! This message was used for IP Transactions. As IP transactions have been deprecated, it is not supported.
 

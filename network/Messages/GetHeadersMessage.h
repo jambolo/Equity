@@ -6,9 +6,9 @@
 namespace Network
 {
 
-//! @brief Get Headers message
+//! A get-headers message.
 //!
-//! Requests an Headers message containing the headers of blocks starting right after the last known hash in the block locator
+//! Requests a headers message containing the headers of blocks starting right after the last known hash in the block locator
 //! object, up to hash_stop or 2000 blocks, whichever comes first.
 //!
 //! @sa HeadersMessage

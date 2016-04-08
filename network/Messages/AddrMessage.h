@@ -8,7 +8,7 @@ namespace Network
 
 class Address;
 
-//! @brief Address message
+//! An address message.
 //!
 //! Provide information on known nodes of the network. Non-advertised nodes should be forgotten after typically 3 hours.
 

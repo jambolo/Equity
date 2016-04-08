@@ -5,7 +5,7 @@
 namespace Network
 {
 
-//! @brief  Ping message
+//! A ping message.
 //!
 //! Sent to confirm that the connection to a node is still valid.
 //!

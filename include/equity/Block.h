@@ -9,7 +9,7 @@
 namespace Equity
 {
 
-    //! @brief  A block in the block chain
+    //! A block in the block chain.
     //!
     //! A Block contains a list of validated transactions and information about its inclusion in the block chain
 

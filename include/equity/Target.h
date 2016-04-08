@@ -5,7 +5,7 @@
 namespace Equity
 {
 
-//! @brief Represents a target value in both 256-bit hash form and compact form
+//! Represents a target value in both 256-bit hash form and compact form.
 //!
 //!                            31                              0
 //! Format of the compact form: eeeeeeeemmmmmmmmmmmmmmmmmmmmmmmm

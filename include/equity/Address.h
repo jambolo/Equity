@@ -10,7 +10,6 @@ namespace Equity
 {
 
 class PublicKey;
-class PrivateKey;
 
 class Address
 {
@@ -22,7 +21,6 @@ public:
     explicit Address(Crypto::Ripemd160Hash const & k);
     explicit Address(uint8_t const * k);
     explicit Address(PublicKey const & publicKey);
-    explicit Address(PrivateKey const & privateKey);
 
     std::array<uint8_t, SIZE> value() const { return value_; }
     bool valid() const { return valid_; }

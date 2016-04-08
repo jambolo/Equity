@@ -6,9 +6,9 @@
 namespace Network
 {
 
-//! @brief Not Found message
+//! A not-found message.
 //!
-//! Sent in response to a GetDataMessage if any requested data items could not be relayed, for example, because the requested
+//! Sent in response to a get-data message if any requested data items could not be relayed, for example, because the requested
 //! transaction was not in the memory pool or relay set.
 //!
 //! @sa     GetDataMessage

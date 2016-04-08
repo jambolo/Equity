@@ -5,7 +5,7 @@
 namespace Network
 {
 
-//! @brief  Get Address message
+//! A get-address message.
 //!
 //! Requests a node for information about known active peers to help with finding potential nodes in the network.
 

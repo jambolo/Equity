@@ -6,7 +6,7 @@
 namespace Network
 {
 
-//! @brief Block message
+//! A block message.
 //!
 //! The block message contains a block and is sent in response to a getdata message which requests information from a block hash.
 

@@ -6,12 +6,12 @@
 namespace Network
 {
 
-//! @brief Get Blocks message
+//! A get-blocks message.
 //!
 //! Requests an inventory message containing the list of blocks starting right after the last known hash in the block locator
 //! object, up to hash_stop or 500 blocks, whichever comes first.
 //!
-//! @sa InvMessage
+//! @sa InventoryMessage
 
 class GetBlocksMessage : public Message
 {

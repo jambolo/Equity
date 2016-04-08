@@ -8,7 +8,7 @@
 namespace Network
 {
 
-//! @brief  Message base class
+//! %Message base class.
 //!
 //! All network message classes are derived from this class.
 

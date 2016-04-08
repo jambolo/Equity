@@ -5,9 +5,9 @@
 namespace Network
 {
 
-//! @brief  Pong message
+//! A pong message.
 //!
-//! Sent in response to a PingMessage
+//! Sent in response to a ping message
 //!
 //! @sa PingMessage
 

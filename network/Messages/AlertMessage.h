@@ -6,7 +6,7 @@
 namespace Network
 {
 
-//! @brief Alert message
+//! An alert message.
 //!
 //! An alert is sent between nodes to send a general notification message throughout the network. If the alert can be confirmed
 //! with the signature as having come from the core development group of the Bitcoin software, the message is suggested to be

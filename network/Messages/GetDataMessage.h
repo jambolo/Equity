@@ -6,10 +6,10 @@
 namespace Network
 {
 
-//! @brief  Get Data message
+//! A get-data message.
 //!
-//! The Get Data message is sent in response to an InventorMessage in order to retrieve the content of a specific object, and is
-//! usually sent after receiving an InventoryMessage, after filtering known elements.
+//! The get-data message is sent in response to an inventory message in order to retrieve the content of a specific object, and is
+//! usually sent after receiving an inventory message, after filtering known elements.
 //!
 //! @sa     InventoryMessage
 
