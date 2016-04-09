@@ -16,14 +16,21 @@ namespace Network
 class GetDataMessage : public Message
 {
 public:
-
+    // Constructor
+    //!
+    //! @param  inventory   requested items
     GetDataMessage(InventoryList const & inventory);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     GetDataMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    //! List of items requested
-    InventoryList inventory_;
+    InventoryList inventory_;    //!< List of items requested
 
     //! Message type
     static char const TYPE[];

@@ -17,9 +17,18 @@ class AlertMessage : public Message
 {
 public:
 
+    // Constructor
+    //!
+    //! @param  message     message to send
     AlertMessage(std::vector<uint8_t> const & message);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     AlertMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! The raw alert message data

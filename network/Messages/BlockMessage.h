@@ -14,9 +14,18 @@ class BlockMessage : public Message
 {
 public:
 
+    // Constructor
+    //!
+    //! @param  block   a block
     BlockMessage(Equity::Block const & block);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     BlockMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
     Equity::Block block_;   //!< A block

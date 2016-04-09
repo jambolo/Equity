@@ -3,6 +3,7 @@
 #include "crypto/Sha256.h"
 #include <cstdint>
 #include <vector>
+#include "p2p/Serialize.h"
 
 namespace Network
 {
@@ -13,7 +14,7 @@ namespace Network
 //!
 //! @sa InventoryMessage
 
-struct InventoryId
+struct InventoryId : public P2p::Serializable
 {
     //! Object type ID
     enum TypeId
@@ -27,7 +28,7 @@ struct InventoryId
     InventoryId(TypeId type, Crypto::Sha256Hash const & hash);
     InventoryId(uint8_t const * & in, size_t & size);
 
-    void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     TypeId type_;               //!< The ID of the type of the object
     Crypto::Sha256Hash hash_;   //!< A hash representing the object

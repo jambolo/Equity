@@ -16,13 +16,21 @@ namespace Network
 class NotFoundMessage : public Message
 {
 public:
-
+    // Constructor
+    //!
+    //! @param  missing     missing items
     NotFoundMessage(InventoryList const & missing);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     NotFoundMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    InventoryList missing_;     //! Missing inventory
+    InventoryList missing_;     //!< Missing inventory
 
     //! Message type
     static char const TYPE[];

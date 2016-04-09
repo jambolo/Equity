@@ -2,14 +2,14 @@
 
 #include <cstdint>
 #include <vector>
-
+#include "p2p/Serialize.h"
 #include "Txid.h"
 #include <crypto/Sha256.h>
 
 namespace Equity
 {
 
-class Transaction
+class Transaction : public P2p::Serializable
 {
 public:
 
@@ -21,7 +21,7 @@ public:
         TYPE_Other
     };
 
-    struct Input
+    struct Input : public P2p::Serializable
     {
         Txid txid;
         uint32_t outputIndex;
@@ -32,14 +32,14 @@ public:
         Input(std::string const & json);
         Input(uint8_t const * & in, size_t & size);
 
-        void serialize(std::vector<uint8_t> & out) const;
+        virtual void serialize(std::vector<uint8_t> & out) const override;
         std::string toHex() const;
         std::string toJson() const;
 
     };
     typedef std::vector<Input> InputList;
 
-    struct Output
+    struct Output : public P2p::Serializable
     {
         uint64_t value;
         std::vector<uint8_t> script;
@@ -48,7 +48,7 @@ public:
         Output(std::string const & json);
         Output(uint8_t const * & in, size_t & size);
 
-        void serialize(std::vector<uint8_t> & out) const;
+        virtual void serialize(std::vector<uint8_t> & out) const override;
         std::string toHex() const;
         std::string toJson() const;
 
@@ -59,7 +59,7 @@ public:
     Transaction(std::string const & json);
     Transaction(uint8_t const * & in, size_t & size);
 
-    void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
     std::string toHex() const;
     std::string toJson() const;
 

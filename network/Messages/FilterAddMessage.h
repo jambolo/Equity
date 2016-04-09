@@ -21,10 +21,18 @@ namespace Network
 class FilterAddMessage : public Message
 {
 public:
-
+    // Constructor
+    //!
+    //! @param  data    data element
     FilterAddMessage(std::vector<uint8_t> const & data);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     FilterAddMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! Data element to add to the current filter.

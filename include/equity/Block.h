@@ -2,6 +2,7 @@
 
 #include "crypto/Sha256.h"
 #include "equity/Transaction.h"
+#include "p2p/Serialize.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -13,11 +14,11 @@ namespace Equity
     //!
     //! A Block contains a list of validated transactions and information about its inclusion in the block chain
 
-class Block
+class Block : public P2p::Serializable
 {
 public:
 
-    class Header
+    class Header : public P2p::Serializable
     {
 public:
         int32_t version_;
@@ -29,14 +30,14 @@ public:
 
         Header() {}
         Header(uint8_t const * & in, size_t & size);
-        void serialize(std::vector<uint8_t> & out) const;
+        virtual void serialize(std::vector<uint8_t> & out) const override;
 
     };
 
     Block() {}
     Block(Header const & header, TransactionList const & transactions);
     Block(uint8_t const * & in, size_t & size);
-    void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     std::string toJson() const;
 

@@ -7,22 +7,19 @@
 namespace P2p
 {
 
-template <>
-void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out)
+void serialize(uint8_t const & a, std::vector<uint8_t> & out)
 {
     out.push_back(a);
 }
 
-template <>
-void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out)
+void serialize(uint16_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 2);
     out.push_back(a & 0xff);
     out.push_back((a >> 8) & 0xff);
 }
 
-template <>
-void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
+void serialize(uint32_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 4);
     out.push_back(a & 0xff);
@@ -31,8 +28,7 @@ void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out)
     out.push_back((a >> 24) & 0xff);
 }
 
-template <>
-void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
+void serialize(uint64_t const & a, std::vector<uint8_t> & out)
 {
     out.reserve(out.size() + 8);
     out.push_back(a & 0xff);
@@ -43,6 +39,19 @@ void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out)
     out.push_back((a >> 40) & 0xff);
     out.push_back((a >> 48) & 0xff);
     out.push_back((a >> 56) & 0xff);
+}
+
+void serialize(std::string const & s, std::vector<uint8_t> & out)
+{
+    out.reserve(out.size() + s.size());
+    std::copy(s.begin(), s.end(), std::back_inserter(out));
+}
+
+void serialize(char const * s, std::vector<uint8_t> & out)
+{
+    size_t length = strlen(s);
+    out.reserve(out.size() + length);
+    std::copy(s, s + length, std::back_inserter(out));
 }
 
 template <>
@@ -113,12 +122,22 @@ std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, 
 {
     if (size < n)
         throw DeserializationError();
-    std::vector<uint8_t> v;
-    v.assign(in, in + n);
+    std::vector<uint8_t> v(in, in + n);
     in += n;
     size -= n;
 
     return v;
+}
+
+std::string deserializeString(size_t n, uint8_t const * & in, size_t & size)
+{
+    if (size < n)
+        throw DeserializationError();
+
+    std::string s((char const *)in, (char const *)in + n);
+    in += n;
+    size -= n;
+    return s;
 }
 
 VASize::VASize(uint8_t const * & in, size_t & size)
@@ -157,6 +176,38 @@ void VASize::serialize(std::vector<uint8_t> & out) const
         out.push_back(0xff);
         P2p::serialize((uint64_t)value_, out);
     }
+}
+
+BitArray::BitArray(uint8_t const * & in, size_t & size)
+{
+    bits_ = P2p::VarArray<uint8_t>(in, size).value();
+}
+
+bool BitArray::get(size_t index) const
+{
+    size_t i = index / 8;
+    if (i >= bits_.size())
+        return false;
+    size_t b = index % 8;
+    bool result = ((bits_[i] & (0x80U >> b)) != 0);
+    return result;
+}
+
+void BitArray::set(size_t index, bool value /*= true*/)
+{
+    size_t i = index / 8;
+    if (i >= bits_.size())
+        return;
+    size_t b = index % 8;
+    if (value)
+        bits_[i] |= 0x80U >> b;
+    else
+        bits_[i] &= ~(0x80U >> b);
+}
+
+void BitArray::serialize(std::vector<uint8_t> & out) const
+{
+    P2p::serialize(P2p::VarArray<uint8_t>(bits_), out);
 }
 
 } // namespace Utility

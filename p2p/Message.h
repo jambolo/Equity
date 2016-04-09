@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "Serialize.h"
 
 namespace P2p
 {
@@ -42,8 +43,10 @@ private:
 };
 
 //! A P2P network message header.
+//!
+//! @sa     https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure
 
-class Message::Header
+class Message::Header : public P2p::Serializable
 {
 public:
 
@@ -58,13 +61,12 @@ public:
     static size_t const LENGTH_SIZE = 4;                //!< Size of the length field
     static size_t const CHECKSUM_SIZE = 4;              //!< Size of the checksum field
 
-    uint32_t magic_;                                    //! Magic number
-    char type_[TYPE_SIZE];                              //! Message type
-    uint32_t length_;                                   //! Length of the payload
-    uint32_t checksum_;                                 //! Payload checksum
+    uint32_t magic_;                                    //!< Magic number
+    char type_[TYPE_SIZE];                              //!< Message type
+    uint32_t length_;                                   //!< Length of the payload
+    uint32_t checksum_;                                 //!< Payload checksum
 
-    void serialize(std::vector<uint8_t> & out) const;   //! Serializes the header
-
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 };
 
 

@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace P2p
@@ -20,8 +21,13 @@ class Serializable
 {
 public:
 
-    //! Serializes the object
+    //! Serializes the object.
+    //!
+    //! @param[out]     out     destination
+    //!
+    //! @note   Must be overriden
     virtual void serialize(std::vector<uint8_t> & out) const = 0;
+
 };
 
 /******************************************************************************************************************/
@@ -32,8 +38,7 @@ public:
 //!
 //! @param  a       object to be serialized
 //! @param  out     destination
-template <typename T>
-void serialize(T const & a, std::vector<uint8_t> & out)
+void serialize(Serializable const & a, std::vector<uint8_t> & out)
 {
     a.serialize(out);
 }
@@ -42,25 +47,37 @@ void serialize(T const & a, std::vector<uint8_t> & out)
 //!
 //! @param  a       value to be serialized
 //! @param  out     destination
-template <> void serialize<uint8_t>(uint8_t const & a, std::vector<uint8_t> & out);
+void serialize(uint8_t const & a, std::vector<uint8_t> & out);
 
 //! Serializes a uint16_t.
 //!
 //! @param  a       value to be serialized
 //! @param  out     destination
-template <> void serialize<uint16_t>(uint16_t const & a, std::vector<uint8_t> & out);
+void serialize(uint16_t const & a, std::vector<uint8_t> & out);
 
 //! Serializes a uint32_t.
 //!
 //! @param  a       value to be serialized
 //! @param  out     destination
-template <> void serialize<uint32_t>(uint32_t const & a, std::vector<uint8_t> & out);
+void serialize(uint32_t const & a, std::vector<uint8_t> & out);
 
 //! Serializes a uint64_t.
 //!
 //! @param  a       value to be serialized
 //! @param  out     destination
-template <> void serialize<uint64_t>(uint64_t const & a, std::vector<uint8_t> & out);
+void serialize(uint64_t const & a, std::vector<uint8_t> & out);
+
+//! Serializes an std::string.
+//!
+//! @param  s       std::string to be serialized
+//! @param  out     destination
+void serialize(std::string const & s, std::vector<uint8_t> & out);
+
+//! Serializes a string.
+//!
+//! @param  s       string to be serialized
+//! @param  out     destination
+void serialize(char const * s, std::vector<uint8_t> & out);
 
 //! Serializes an std::vector.
 //!
@@ -273,28 +290,48 @@ T deserializeArray(uint8_t const * & in, size_t & size)
     return impl(in, size);
 }
 
+//! Deserializes a string.
+//!
+//! @param          n       Number of characters to deserialize
+//! @param[in,out]  in      pointer to the next byte to deserialize
+//! @param[in,out]  size    number of bytes remaining in the serialized stream
+std::string deserializeString(size_t n, uint8_t const * & in, size_t & size);
+
 /******************************************************************************************************************/
-/*                                          V A R I A B L E   A R R A Y                                           */
+/*                                 V A R I A B L E   L E N G T H   I N T E G E R                                  */
 /******************************************************************************************************************/
 
 //! A compressed 64-bit value.
 //!
-//! This value is primarily used in serializaton of arrays. In the reference code, it is known as CompactSize.
+//! This value is primarily used in serializaton of arrays to indicate the number of elements in an array. In the
+//! reference code, it is known as CompactSize.
 //!
 //! @sa     VarArray
 
-class VASize
+class VASize : public Serializable
 {
 public:
-    VASize(uint64_t v) : value_(v) {}
-    VASize(uint8_t const * & in, size_t & size);
-    void serialize(std::vector<uint8_t> & out) const;
+    // Constructor
+    //!
+    //! @param  v       The value
+    explicit VASize(uint64_t v) : value_(v) {}
 
+    // Deserialization constructor
+    VASize(uint8_t const * & in, size_t & size);
+
+    //! Overrides Serializable
+    virtual void serialize(std::vector<uint8_t> & out) const override;
+
+    //! Returns the value
     uint64_t value() const { return value_; }
 
 private:
     uint64_t value_;
 };
+
+/******************************************************************************************************************/
+/*                                          V A R I A B L E   A R R A Y                                           */
+/******************************************************************************************************************/
 
 //! An array of objects.
 //!
@@ -315,7 +352,7 @@ public:
     explicit VarArray(std::vector<T> const & v) : data_(v) {}
 
     // Deserializaton constructor
-    //! 
+    //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     VarArray(uint8_t const * & in, size_t & size)
@@ -323,7 +360,8 @@ public:
         VASize arraySize(in, size);
         data_ = P2p::deserializeVector<T>(arraySize.value(), in, size);
     }
-    
+
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
@@ -356,7 +394,7 @@ public:
     explicit VarArray(std::vector<std::array<T, N> > const & v) : data_(v) {}
 
     // Deserializaton constructor
-    //! 
+    //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     VarArray(uint8_t const * & in, size_t & size)
@@ -365,6 +403,7 @@ public:
         data_ = P2p::deserializeVector<T, N>(arraySize.value(), in, size);
     }
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
@@ -397,7 +436,7 @@ public:
     VarArray(std::vector<uint8_t> const & v) : data_(v) {}
 
     // Deserializaton constructor
-    //! 
+    //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     VarArray(uint8_t const * & in, size_t & size)
@@ -406,6 +445,7 @@ public:
         data_ = P2p::deserializeVector<uint8_t>(arraySize.value(), in, size);
     }
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
@@ -418,5 +458,114 @@ public:
 private:
     std::vector<uint8_t> data_;
 };
+
+/******************************************************************************************************************/
+/*                                      V A R I A B L E   B I T   A R R A Y                                       */
+/******************************************************************************************************************/
+
+//! An array of bits.
+//!
+//! This is primarily used for serialization of an array of bits along with the number of bits in the array.
+//!
+//! @sa VASize, VarArray
+
+class BitArray : public P2p::Serializable
+{
+public:
+
+    // Constructor
+    BitArray() {}
+
+    // Constructor
+    //!
+    //! @param  size    Size of the array in bits
+    BitArray(size_t size)
+        : bits_((size + 7) / 8, 0)
+    {
+    }
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
+    BitArray(uint8_t const * & in, size_t & size);
+
+    //! Returns the value of the bit at the given index
+    bool get(size_t index) const;
+
+    //! Sets the value of the bit at the given index.
+    //!
+    //! @param  index       Which bit to set
+    //! @param  value       Value to set the bit to (defaults to true)
+    void set(size_t index, bool value = true);
+
+    //! Sets the value of the bit at the given index to false.
+    //!
+    //! @param  index       Which bit to reset
+    void reset(size_t index) { set(index, false); }
+
+    //! Flips the value of the bit at the given index.
+    //!
+    //! @param  index       Which bit to flip
+    void flip(size_t index) { set(index, !get(index)); }
+
+    //! Returns the value of the bit at the given index
+    //!
+    //! @param  index       Which bit to get
+    bool operator [](size_t index) const { get(index); }
+
+    //! Overrides Serializable
+    virtual void serialize(std::vector<uint8_t> & out) const override;
+
+private:
+
+    std::vector<uint8_t> bits_;
+};
+
+/******************************************************************************************************************/
+/*                                  V A R I A B L E   L E N G T H   S T R I N G                                   */
+/******************************************************************************************************************/
+
+//! A variable-length string.
+//!
+//! This is primarily used for serialization of a string along with the number of characters in the string.
+//!
+//! @sa VASize
+
+class VarString : public Serializable
+{
+public:
+    // Constructor
+    VarString() {}
+
+    // Constructor
+    //!
+    //! @param  v       The bytes to be contained in the array
+    VarString(std::string const & s) : string_(s) {}
+
+    // Deserializaton constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
+    VarString(uint8_t const * & in, size_t & size)
+    {
+        VASize stringSize(in, size);
+        string_ = P2p::deserializeString(stringSize.value(), in, size);
+    }
+
+    //! Overrides Serializable
+    virtual void serialize(std::vector<uint8_t> & out) const override
+    {
+        P2p::serialize(VASize(string_.size()), out);
+        P2p::serialize(string_, out);
+    }
+
+    //! Returns the bytes contained in the array
+    std::string value() const { return string_; }
+
+private:
+    std::string string_;
+};
+
 
 } // namespace Utility

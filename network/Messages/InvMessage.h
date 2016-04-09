@@ -1,7 +1,10 @@
 #pragma once
 
-#include "network/Message.h"
 #include "network/Inventory.h"
+#include "network/Message.h"
+
+namespace Network
+{
 
 //! An inventory message.
 //!
@@ -9,19 +12,24 @@
 //!
 //! @sa     GetBlocksMessage
 
-namespace Network
-{
-
 class InventoryMessage : public Message
 {
 public:
-
+    // Constructor
+    //!
+    //! @param  inventory       list of hashes
     InventoryMessage(InventoryList const & inventory);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     InventoryMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    InventoryList inventory_;   //! Inventory
+    InventoryList inventory;   //!< List of hashes
 
     //! Message type
     static char const TYPE[];

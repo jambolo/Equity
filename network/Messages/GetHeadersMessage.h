@@ -16,10 +16,20 @@ namespace Network
 class GetHeadersMessage : public Message
 {
 public:
-
+    // Constructor
+    //!
+    //! @param  version     protocol version
+    //! @param  hashes      requested items
+    //! @param  last        last hash to return
     GetHeadersMessage(uint32_t version, Crypto::Sha256HashList const & hashes, Crypto::Sha256Hash const & last);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     GetHeadersMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
     uint32_t version_;              //!< The protocol version

@@ -14,11 +14,11 @@ InventoryMessage::InventoryMessage(InventoryList const & inventory)
 
 InventoryMessage::InventoryMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
-    , inventory_(P2p::VarArray<InventoryId>(in, size).value())
 {
+    inventory_ = P2p::VarArray<InventoryId>(in, size).value();
 }
 
 void InventoryMessage::serialize(std::vector<uint8_t> & out) const
 {
-    P2p::VarArray<InventoryId>(inventory_).serialize(out);
+    P2p::serialize(P2p::VarArray<InventoryId>(inventory_), out);
 }

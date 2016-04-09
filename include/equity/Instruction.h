@@ -1,5 +1,6 @@
 #pragma once
 
+#include "p2p/Serialize.h"
 #include <cstdint>
 #include <vector>
 
@@ -19,7 +20,7 @@ public:
 //! A script instruction contains an opcode and optional data. It also contains additional information used for branching and
 //! validation.
 
-class Instruction
+class Instruction : public P2p::Serializable
 {
 public:
 
@@ -208,7 +209,7 @@ public:
     Instruction(int op, std::vector<uint8_t> const & data = std::vector<uint8_t>(), size_t location = 0);
     Instruction(uint8_t const * & in, size_t & size, size_t location);
 
-    void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! Returns the opcode
     int op() const { return op_; }

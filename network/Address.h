@@ -1,32 +1,57 @@
 #pragma once
 
+#include "p2p/Serialize.h"
+#include <array>
 #include <cstdint>
-#include <vector>
 
 namespace Network
 {
 
-    class Address
-    {
-    public:
+//! A description of a network node.
+//!
+//! @sa     VersionMessage, AddressMessage
 
-        Address(uint32_t time, uint64_t services, std::vector<uint8_t> const & ipv6, uint16_t port);
-        Address(uint8_t const *& in, size_t & size);
+class Address : public P2p::Serializable
+{
+public:
+    // Constructor
+    //!
+    //! @param  time        Timestamp
+    //! @param  services    Services provided by the node
+    //! @param  ipv6        IP address
+    //! @param  port        Port
+    Address(uint32_t time, uint64_t services, std::array<uint8_t, 16> const & ipv6, uint16_t port);
 
-        void serialize(std::vector<uint8_t> & out) const;
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
+    Address(uint8_t const * & in, size_t & size);
 
-        uint32_t time() const           { return time_; }
-        uint64_t services() const       { return services_; }
-        uint8_t const * ipv6() const    { return &ipv6_[0]; }
-        uint8_t const * ipv4() const    { return &ipv6_[12]; }
-        int port() const                { return port_; }
+    //! Overrides Serializable
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    private:
+    //! Returns the timestamp
+    uint32_t time() const { return time_; }
 
-        uint32_t time_;
-        uint64_t services_;
-        std::vector<uint8_t> ipv6_;
-        uint16_t port_;
-    };
+    //! Returns the services
+    uint64_t services() const { return services_; }
+
+    //! Returns the IP address in IPV6 form
+    uint8_t const * ipv6() const { return &ipv6_[0]; }
+
+    //! Returns the IP address in IPV6 form
+    uint8_t const * ipv4() const { return &ipv6_[12]; }
+
+    //! Returns the port
+    int port() const { return port_; }
+
+private:
+
+    uint32_t time_;
+    uint64_t services_;
+    std::array<uint8_t, 16> ipv6_;
+    uint16_t port_;
+};
 
 } // namespace Network

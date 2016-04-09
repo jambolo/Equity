@@ -1,6 +1,7 @@
 #pragma once
 
 #include "equity/Instruction.h"
+#include "p2p/Serialize.h"
 #include <cstdint>
 #include <stack>
 #include <vector>
@@ -8,13 +9,13 @@
 namespace Equity
 {
 
-class Script
+class Script : public P2p::Serializable
 {
 public:
 
     Script(std::vector<uint8_t> const & data);
 
-    void serialize(std::vector<uint8_t> & out) const;
+    virtual void serialize(std::vector<uint8_t> & out) const override;
 
     std::string toJson() const;
     std::string toHex() const;

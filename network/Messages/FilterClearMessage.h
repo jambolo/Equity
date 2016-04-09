@@ -15,10 +15,16 @@ namespace Network
 class FilterClearMessage : public Message
 {
 public:
-
+    // Constructor
     FilterClearMessage();
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     FilterClearMessage(uint8_t const * & in, size_t & size);
 
+    //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
     //! Message type
