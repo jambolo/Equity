@@ -2,6 +2,7 @@
 
 #include "network/Message.h"
 
+//! @todo rename file to transactionMessage
 namespace Network
 {
 
@@ -11,17 +12,18 @@ namespace Network
 //!
 //! @sa GetDataMessage
 //! @todo more to do for this message
-class TxMessage : public Message
+
+class TransactionMessage : public Message
 {
 public:
     // Constructor
-    TxMessage();
+    TransactionMessage();
 
     // Deserialization constructor
     //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
-    TxMessage(uint8_t const * & in, size_t & size);
+    TransactionMessage(uint8_t const * & in, size_t & size);
 
     //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;

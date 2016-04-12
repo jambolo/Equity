@@ -15,6 +15,9 @@ class Address : public P2p::Serializable
 {
 public:
     // Constructor
+    Address();
+
+    // Constructor
     //!
     //! @param  time        Timestamp
     //! @param  services    Services provided by the node

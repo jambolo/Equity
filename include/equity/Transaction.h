@@ -71,7 +71,7 @@ public:
 
 private:
 
-    int version_;
+    uint32_t version_;
     InputList inputs_;
     OutputList outputs_;
     uint32_t lockTime_;

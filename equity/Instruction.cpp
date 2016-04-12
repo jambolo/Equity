@@ -387,7 +387,7 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
 {
     if (valid_)
     {
-        P2p::serialize<uint8_t>(op_, out);
+        P2p::serialize(static_cast<uint8_t>(op_), out);
 
         if (op_ >= 0x1 && op_ <= 0x4b)
         {
@@ -395,23 +395,23 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
         }
         else if (op_ == OP_PUSHDATA1)
         {
-            P2p::serialize((uint8_t)data_.size(), out);
+            P2p::serialize(static_cast<uint8_t>(data_.size()), out);
             P2p::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA2)
         {
-            P2p::serialize((uint16_t)data_.size(), out);
+            P2p::serialize(static_cast<uint8_t>(data_.size()), out);
             P2p::serializeVector(data_, out);
         }
         else if (op_ == OP_PUSHDATA4)
         {
-            P2p::serialize((uint32_t)data_.size(), out);
+            P2p::serialize(static_cast<uint8_t>(data_.size()), out);
             P2p::serializeVector(data_, out);
         }
     }
     else
     {
-        P2p::serialize<uint8_t>(OP_INVALID, out);
+        P2p::serialize(static_cast<uint8_t>(OP_INVALID), out);
     }
 }
 

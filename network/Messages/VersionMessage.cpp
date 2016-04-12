@@ -6,8 +6,25 @@ using namespace Network;
 
 char const VersionMessage::TYPE[] = "version";
 
-VersionMessage::VersionMessage()
+VersionMessage::VersionMessage(uint32_t            version,
+                               uint64_t            services,
+                               uint64_t            timestamp,
+                               Address const &     to,
+                               Address const &     from,
+                               uint64_t            nonce,
+                               std::string const & userAgent,
+                               uint32_t            height,
+                               bool                relay)
     : Message(TYPE)
+    , version_(version)
+    , services_(services)
+    , timestamp_(timestamp)
+    , to_(to)
+    , from_(from)
+    , nonce_(nonce)
+    , userAgent_(userAgent)
+    , height_(height)
+    , relay_(relay)
 {
 }
 
@@ -25,7 +42,7 @@ VersionMessage::VersionMessage(uint8_t const * & in, size_t & size)
         from_ = P2p::deserialize<Address>(in, size);
         uint64_t nonce_ = P2p::deserialize<uint32_t>(in, size);
 
-        userAgent_ = P2p::VarString(in, size);
+        userAgent_ = P2p::VarString(in, size).value();
         height_ = P2p::deserialize<uint32_t>(in, size);
 
         // Fields below require version >= 70001

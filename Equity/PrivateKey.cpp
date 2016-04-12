@@ -21,11 +21,6 @@ static uint8_t const MAX_PRIVATE_KEY[] =
 // A private key in mini-key format has exactly 30 characters including the S prefix
 static size_t const MINI_KEY_FORMAT_SIZE = 30;
 
-//! The input can be in either the WIF format or the mini-key format. If the format is invalid or the value of the
-//! key is invalid, the contructed object is marked as invalid.
-//!
-//! @param  s   string form of the private key
-
 PrivateKey::PrivateKey(std::string const & s)
     : valid_(true)
     , compressed_(false)
@@ -71,39 +66,24 @@ PrivateKey::PrivateKey(std::string const & s)
     valid_ = isValid();
 }
 
-//! The object is constructed from the bytes in the given vector. If the size of the vector is not SIZE or the
-//! value is not valid, the constructed object is marked as invalid.
-//!
-//! @param  k   vector of bytes
-
 PrivateKey::PrivateKey(std::vector<uint8_t> const & k)
-    : PrivateKey(k.data(), k.data() + k.size())
+    : PrivateKey(k.data(), k.size())
 {
 }
 
-//! The object is constructed from the bytes in the range [begin, end). If the size of the range is not 
-//! SIZE bytes or the value is not valid, the constructed object is marked as invalid.
-//!
-//! @param  begin   pointer to start of the range
-//! @param  end     pointer to the end of the range
-
-PrivateKey::PrivateKey(uint8_t const * begin, uint8_t const * end)
+PrivateKey::PrivateKey(uint8_t const * data, size_t size)
     : valid_(true)
     , compressed_(false)
 {
-    if (end != begin + SIZE)
+    if (size != SIZE)
     {
         valid_ = false;
         return;
     }
 
-    std::copy(begin, end, value_.begin());
+    std::copy(data, data + size, value_.begin());
     valid_ = isValid();
 }
-
-//! @param  version     version byte to be prepended (typically 0x80)
-//!
-//! @return     a string containing the private key in WIF format, or empty if the object is invalid
 
 std::string PrivateKey::toWif(unsigned version) const
 {
@@ -122,8 +102,6 @@ std::string PrivateKey::toWif(unsigned version) const
     }
 }
 
-//!
-//! @return     a string containing the private key in hex format, or empty if the object is invalid
 std::string PrivateKey::toHex() const
 {
     if (!valid_)

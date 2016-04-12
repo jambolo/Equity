@@ -4,18 +4,18 @@
 
 using namespace Network;
 
-char const TxMessage::TYPE[] = "tx";
+char const TransactionMessage::TYPE[] = "tx";
 
-TxMessage::TxMessage()
+TransactionMessage::TransactionMessage()
     : Message(TYPE)
 {
 }
 
-TxMessage::TxMessage(uint8_t const * & in, size_t & size)
+TransactionMessage::TransactionMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
 }
 
-void TxMessage::serialize(std::vector<uint8_t> & out) const
+void TransactionMessage::serialize(std::vector<uint8_t> & out) const
 {
 }

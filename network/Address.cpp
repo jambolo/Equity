@@ -6,6 +6,10 @@
 using namespace Network;
 using namespace Utility;
 
+Network::Address::Address()
+{
+}
+
 Address::Address(uint32_t time, uint64_t services, std::array<uint8_t, 16> const & ipv6, uint16_t port)
     : time_(time)
     , services_(services)

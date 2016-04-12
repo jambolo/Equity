@@ -12,17 +12,22 @@
 using namespace Equity;
 
 PublicKey::PublicKey(std::vector<uint8_t> const & k)
-    : valid_(k.size() == SIZE && k[0] == 4)
+    : PublicKey(k.data(), k.size())
 {
-    if (valid_)
-        std::copy(k.begin(), k.end(), value_.begin());
 }
 
-PublicKey::PublicKey(uint8_t const * k)
-    : valid_(k[0] == 4)
+PublicKey::PublicKey(uint8_t const * data, size_t size)
+    : valid_(true)
 {
-    if (valid_)
-        std::copy(k, k + SIZE, value_.begin());
+    if (!(size == UNCOMPRESSED_SIZE && data[0] == 4) &&
+        !(size == COMPRESSED_SIZE && (data[0] == 2 || data[0] == 3)))
+    {
+        valid_ = false;
+        return;
+    }
+
+    value_.assign(data, data + size);
+    compressed_ = (data[0] != 4);
 }
 
 PublicKey::PublicKey(PrivateKey const & k)
@@ -38,15 +43,17 @@ PublicKey::PublicKey(PrivateKey const & k)
     if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), NULL, NULL, ctx.get()))
         return;
 
+    value_.resize(UNCOMPRESSED_SIZE);
     size_t length = EC_POINT_point2oct(group.get(),
                                        pubKey.get(),
                                        POINT_CONVERSION_UNCOMPRESSED,
                                        value_.data(),
                                        value_.size(),
                                        ctx.get());
-    assert(length == SIZE);
+    assert(length == UNCOMPRESSED_SIZE);
     assert(value_[0] == 4);
-    valid_ = (length == SIZE) && (value_[0] == 4);
+    valid_ = (length == UNCOMPRESSED_SIZE) && (value_[0] == 4);
+    compressed_ = false;
 }
 
 std::string PublicKey::toHex() const

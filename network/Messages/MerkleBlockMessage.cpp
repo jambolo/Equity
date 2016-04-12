@@ -11,7 +11,7 @@ char const MerkleBlockMessage::TYPE[] = "merkleblock";
 MerkleBlockMessage::MerkleBlockMessage(Equity::Block::Header const &  header,
                                        uint32_t                       count,
                                        Crypto::Sha256HashList const & hashes,
-                                       BitArray const &               flags)
+                                       P2p::BitArray const &               flags)
     : Message(TYPE)
     , header_(header)
     , count_(count)
@@ -26,7 +26,7 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
     header_ = Equity::Block::Header(in, size);
     count_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
     hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
-    flags_ = BitArray(in, size);
+    flags_ = P2p::BitArray(in, size);
 }
 
 void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const

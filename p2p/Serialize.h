@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+//! @todo Move to Serializer class in Network namespace
+
 namespace P2p
 {
 
@@ -38,7 +40,7 @@ public:
 //!
 //! @param  a       object to be serialized
 //! @param  out     destination
-void serialize(Serializable const & a, std::vector<uint8_t> & out)
+inline void serialize(Serializable const & a, std::vector<uint8_t> & out)
 {
     a.serialize(out);
 }
@@ -540,7 +542,7 @@ public:
 
     // Constructor
     //!
-    //! @param  v       The bytes to be contained in the array
+    //! @param  s       The bytes to be contained in the array
     VarString(std::string const & s) : string_(s) {}
 
     // Deserializaton constructor

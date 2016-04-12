@@ -3,6 +3,8 @@
 #include "network/Inventory.h"
 #include "network/Message.h"
 
+//! @todo rename file to inventorymessage
+
 namespace Network
 {
 
@@ -29,7 +31,7 @@ public:
     //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    InventoryList inventory;   //!< List of hashes
+    InventoryList inventory_;   //!< List of hashes
 
     //! Message type
     static char const TYPE[];

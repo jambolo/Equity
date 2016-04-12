@@ -30,3 +30,4 @@ add_subdirectory(utility)           # Utility functions
 add_subdirectory(bits)              # Converts difficulty and target values
 add_subdirectory(list-prefixes)     # Lists address ranges for all prefix values
 add_subdirectory(view-transaction)  # Display a transaction in human-readable form
+add_subdirectory(unit-test)         # VS unit test library

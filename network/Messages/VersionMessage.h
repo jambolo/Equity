@@ -18,7 +18,15 @@ class VersionMessage : public Message
 {
 public:
     // Constructor
-    VersionMessage();
+    VersionMessage::VersionMessage(uint32_t            version,
+                                   uint64_t            services,
+                                   uint64_t            timestamp,
+                                   Address const &     to,
+                                   Address const &     from,
+                                   uint64_t            nonce,
+                                   std::string const & userAgent,
+                                   uint32_t            height,
+                                   bool                relay);
 
     // Deserialization constructor
     //!

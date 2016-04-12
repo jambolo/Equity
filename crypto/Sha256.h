@@ -19,8 +19,8 @@ typedef std::array<uint8_t, CHECKSUM_SIZE> Checksum;        //!< A 4-byte checks
 //! Computes the SHA-256 hash of the input
 Sha256Hash sha256(std::vector<uint8_t> const & input);
 
-//! Computes the SHA-256 hash a SHA-256 hash
-Sha256Hash sha256(Sha256Hash const & input);
+// //! Computes the SHA-256 hash a SHA-256 hash
+// Sha256Hash sha256(Sha256Hash const & input);
 
 //! Computes the SHA-256 hash of the input
 Sha256Hash sha256(uint8_t const * input, size_t length);

@@ -3,6 +3,8 @@
 #include "network/Message.h"
 #include <network/Address.h>
 
+//! @todo rename file to addressmessage
+
 namespace Network
 {
 

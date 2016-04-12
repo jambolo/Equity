@@ -17,7 +17,7 @@ namespace TestEquity
 
 struct PublicKeyInput
 {
-    uint8_t data[PublicKey::SIZE];
+    uint8_t data[PublicKey::UNCOMPRESSED_SIZE];
 };
 
 static PublicKeyInput PUBLIC_KEY_CASES[] =
@@ -45,7 +45,7 @@ static PublicKeyInput PUBLIC_KEY_CASES[] =
 struct PrivateKeyInput
 {
     uint8_t privateKey[PrivateKey::SIZE];
-    uint8_t expected[PublicKey::SIZE];
+    uint8_t expected[PublicKey::UNCOMPRESSED_SIZE];
 };
 
 static PrivateKeyInput PRIVATE_KEY_CASES[] =
@@ -96,13 +96,10 @@ public:
     {
         for (auto const & c : PUBLIC_KEY_CASES)
         {
-            PublicKey result(c.data);
-            std::array<uint8_t, PublicKey::SIZE> value = result.value();
-
-            Assert::IsTrue(result.valid(),
-                           validMessage(&c.data[0], sizeof(c.data), result.valid()).c_str());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data),
-                           resultMessage(c.data, sizeof(c.data), c.data, result.value()).c_str());
+            PublicKey result(c.data, sizeof(c.data));
+            std::vector<uint8_t> value = result.value();
+            Assert::IsTrue(result.valid());
+            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
         }
     }
 
@@ -110,15 +107,12 @@ public:
     {
         for (auto const & c : PUBLIC_KEY_CASES)
         {
-            std::vector<uint8_t> input(&c.data[0], &c.data[sizeof(c.data)]);
+            std::vector<uint8_t> input(c.data, c.data + sizeof(c.data));
 
             PublicKey result(input);
-            std::array<uint8_t, PublicKey::SIZE> value = result.value();
-
-            Assert::IsTrue(result.valid(),
-                           validMessage(input.data(), input.size(), result.valid()).c_str());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data),
-                           resultMessage(input.data(), input.size(), input.data(), result.value()).c_str());
+            std::vector<uint8_t> value = result.value();
+            Assert::IsTrue(result.valid());
+            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
         }
     }
 
@@ -126,47 +120,15 @@ public:
     {
         for (auto const & c : PRIVATE_KEY_CASES)
         {
-            PrivateKey privateKey(c.privateKey);
+            PrivateKey privateKey(c.privateKey, sizeof(c.privateKey));
 
             PublicKey result(privateKey);
-            std::array<uint8_t, PublicKey::SIZE> value = result.value();
+            std::vector<uint8_t> value = result.value();
 
-            Assert::IsTrue(result.valid(),
-                           validMessage(c.privateKey, sizeof(c.privateKey), result.valid()).c_str());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.expected),
-                           resultMessage(c.privateKey, sizeof(c.privateKey), c.expected, result.value()).c_str());
+            Assert::IsTrue(result.valid());
+            Assert::IsTrue(std::equal(value.begin(), value.end(), c.expected));
         }
     }
-
-    static std::wstring validMessage(uint8_t const * input, size_t inputSize, bool valid)
-    {
-        std::wostringstream message;
-        message
-            << L"Expected the private key "
-            << ToString(Utility::shorten(Utility::toHex(input, PrivateKey::SIZE)))
-            << L" to be considered "
-            << ((!valid) ? L"valid" : L"invalid")
-            << L" but it was not";
-        return message.str();
-    }
-
-    static std::wstring resultMessage(uint8_t const * input,
-                                      size_t inputSize,
-                                      uint8_t const * expected,
-                                      std::array<uint8_t, PublicKey::SIZE> const & actual)
-    {
-        std::wostringstream message;
-        message
-            << L"Private key: "
-            << ToString(Utility::shorten(Utility::toHex(input, inputSize)))
-            << L" expected public key = "
-            << ToString(Utility::shorten(Utility::toHex(expected, PrivateKey::SIZE)))
-            << L", got "
-            << ToString(Utility::shorten(Utility::toHex(actual.data(), actual.size())))
-        ;
-        return message.str();
-    }
-
 };
 
 } // namespace TestEquity
