@@ -56,7 +56,7 @@ public:
     //! @param  version     version byte to be prepended (typically 0x80)
     //!
     //! @return     a string containing the private key in WIF format, or empty if the object is invalid
-    std::string toWif(unsigned v) const;
+    std::string toWif(unsigned version) const;
 
     //! Returns a hex format string.
     //!

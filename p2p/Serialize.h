@@ -22,7 +22,7 @@ public:
 class Serializable
 {
 public:
-
+    virtual ~Serializable() {}
     //! Serializes the object.
     //!
     //! @param[out]     out     destination
@@ -151,7 +151,7 @@ struct SerializeArrayImpl<uint8_t, N>
 template <typename T>
 void serializeArray(T const & a, std::vector<uint8_t> & out)
 {
-    SerializeArrayImpl<T::value_type, std::tuple_size<T>::value> impl;
+    SerializeArrayImpl<typename T::value_type, std::tuple_size<T>::value> impl;
     impl(a, out);
 }
 
@@ -214,27 +214,6 @@ std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
     return v;
 }
 
-//! Deserializes a vector of std::array.
-//!
-//! @param          n       Number of std::array to deserialize
-//! @param[in,out]  in      pointer to the next byte to deserialize
-//! @param[in,out]  size    number of bytes remaining in the serialized stream
-//!
-//! @note   The elements of the array must support deserialization
-template <typename T, size_t N>
-std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size)
-{
-    typedef std::array<T, N> A;
-
-    std::vector<A> v;
-    v.reserve(n);
-    for (size_t i = 0; i < n; ++i)
-    {
-        v.push_back(deserializeArray<A>(in, size));
-    }
-    return v;
-}
-
 //! Deserializes a vector of uint8_t.
 //!
 //! @param          n       Number of uint8_t to deserialize
@@ -290,6 +269,27 @@ T deserializeArray(uint8_t const * & in, size_t & size)
 {
     DeserializeArrayImpl<T> impl;
     return impl(in, size);
+}
+
+//! Deserializes a vector of std::array.
+//!
+//! @param          n       Number of std::array to deserialize
+//! @param[in,out]  in      pointer to the next byte to deserialize
+//! @param[in,out]  size    number of bytes remaining in the serialized stream
+//!
+//! @note   The elements of the array must support deserialization
+template <typename T, size_t N>
+std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size)
+{
+    typedef std::array<T, N> A;
+
+    std::vector<A> v;
+    v.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        v.push_back(deserializeArray<A>(in, size));
+    }
+    return v;
 }
 
 //! Deserializes a string.
@@ -568,6 +568,5 @@ public:
 private:
     std::string string_;
 };
-
 
 } // namespace Utility

@@ -1,4 +1,4 @@
-#include "AddrMessage.h"
+#include "AddressMessage.h"
 
 #include "p2p/Serialize.h"
 

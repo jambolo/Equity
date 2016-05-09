@@ -14,7 +14,6 @@ public:
     ScriptParsingError() : std::runtime_error("script parsing error") {}
 };
 
-
 //! A script instruction.
 //!
 //! A script instruction contains an opcode and optional data. It also contains additional information used for branching and
@@ -173,7 +172,7 @@ public:
                                         //!< checked again if they fail any signature comparison, signatures must be placed in the
                                         //!< scriptSig using the same order as their corresponding public keys were placed in the
                                         //!< scriptPubKey or redeemScript.If all signatures are valid, 1 is returned, 0
-                                        //!< otherwise.Due to a bug, one extra unused value is removed from the stack.
+                                        //!< otherwise. Due to a bug, one extra unused value is removed from the stack.
         OP_CHECKMULTISIGVERIFY  = 0xaf, //!< Same as OP_CHECKMULTISIG, but OP_VERIFY is executed afterward.
         OP_NOP1                 = 0xb0, //!< The word is ignored. Does not mark transaction as invalid.
         OP_CHECKLOCKTIMEVERIFY  = 0xb1, //!< Marks transaction as invalid if the top stack item is greater than the transaction's

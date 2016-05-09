@@ -1,6 +1,6 @@
 set(MESSAGE_SOURCES
-    Messages/AddrMessage.cpp
-    Messages/AddrMessage.h
+    Messages/AddressMessage.cpp
+    Messages/AddressMessage.h
     Messages/AlertMessage.cpp
     Messages/AlertMessage.h
     Messages/BlockMessage.cpp
@@ -23,10 +23,8 @@ set(MESSAGE_SOURCES
     Messages/GetHeadersMessage.h
     Messages/HeadersMessage.cpp
     Messages/HeadersMessage.h
-    Messages/InvMessage.cpp
-    Messages/InvMessage.h
-    Messages/MempoolMessage.cpp
-    Messages/MempoolMessage.h
+    Messages/InventoryMessage.cpp
+    Messages/InventoryMessage.h
     Messages/MerkleBlockMessage.cpp
     Messages/MerkleBlockMessage.h
     Messages/NotFoundMessage.cpp
@@ -37,12 +35,16 @@ set(MESSAGE_SOURCES
     Messages/PongMessage.h
     Messages/RejectMessage.cpp
     Messages/RejectMessage.h
+    Messages/RequestTransactionsMessage.cpp
+    Messages/RequestTransactionsMessage.h
     Messages/ReplyMessage.cpp
     Messages/ReplyMessage.h
+    Messages/SendHeadersMessage.cpp
+    Messages/SendHeadersMessage.h
     Messages/SubmitOrderMessage.cpp
     Messages/SubmitOrderMessage.h
-    Messages/TxMessage.cpp
-    Messages/TxMessage.h
+    Messages/TransactionMessage.cpp
+    Messages/TransactionMessage.h
     Messages/VerackMessage.cpp
     Messages/VerackMessage.h
     Messages/VersionMessage.cpp

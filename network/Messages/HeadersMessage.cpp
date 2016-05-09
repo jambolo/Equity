@@ -10,7 +10,7 @@ char const HeadersMessage::TYPE[] = "headers";
 HeadersMessage::HeadersMessage(Equity::BlockList const & blocks)
     : Message(TYPE)
 {
-    // The message sends entire blocks with the transactions omitted.
+    // The message sends entire blocks, but with the transactions removed.
     blocks_.reserve(blocks.size());
     for (auto const & block : blocks)
     {

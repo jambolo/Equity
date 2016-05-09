@@ -3,7 +3,6 @@
 #include "crypto/Sha256.h"
 #include "equity/Block.h"
 #include "network/Message.h"
-#include "network/Utility.h"
 #include "p2p/Serialize.h"
 
 namespace Network
@@ -15,12 +14,17 @@ namespace Network
 //!
 //! @note   This message is related to bloom filtering of connections and is defined in BIP 0037.
 //! @sa     FilterAddMessage, FilterClearMessage, FilterLoadMessage
-//! @todo   Finish these docs
 
 class MerkleBlockMessage : public Message
 {
 public:
-    //Constructor
+    // Constructor
+    //!
+    //! @param      header      block header
+    //! @param      count       number of transactions in the block (including unmatched ones)
+    //! @param      hashes      hashes in depth-first order
+    //! @param      flags       flag bits
+
     MerkleBlockMessage(Equity::Block::Header const &  header,
                        uint32_t                       count,
                        Crypto::Sha256HashList const & hashes,
@@ -35,10 +39,10 @@ public:
     //! Overrides Serializable
     virtual void serialize(std::vector<uint8_t> & out) const override;
 
-    Equity::Block::Header header_;
-    uint32_t count_;
-    Crypto::Sha256HashList hashes_;
-    P2p::BitArray flags_;
+    Equity::Block::Header header_;      //!< Block header
+    uint32_t count_;                    //!< Number of transactions in the block (including unmatched ones)
+    Crypto::Sha256HashList hashes_;     //!< Hashes in depth-first order
+    P2p::BitArray flags_;               //!< Flag bits
 
     //! Message type
     static char const TYPE[];

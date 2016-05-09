@@ -1,7 +1,7 @@
 #pragma once
 
-#include "network/Message.h"
 #include "equity/Block.h"
+#include "network/Message.h"
 
 namespace Network
 {
@@ -9,8 +9,11 @@ namespace Network
 //! A headers message.
 //!
 //! Contains block headers in response to a get-headers message.
-//! 
-//! @note   The format of the data is a list of blocks that have had the transactions removed.
+//!
+//! @note   The header used in this message is effectively a Block::Header plus an empty list of transactions. The
+//!         block headers in this packet include a transaction count (a VarInt, so there can be more than 81 bytes
+//!         per header) as opposed to the block headers that are hashed by miners. I don't know why a standard
+//!         block header isn't used in this message.
 //! @sa     GetHeadersMessage
 
 class HeadersMessage : public Message

@@ -1,4 +1,4 @@
-#include "InvMessage.h"
+#include "InventoryMessage.h"
 
 #include "p2p/Serialize.h"
 

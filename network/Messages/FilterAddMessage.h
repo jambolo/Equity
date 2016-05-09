@@ -10,13 +10,12 @@ namespace Network
 //! This message adds the given data element to the connections current filter without requiring a completely new one to be set.
 //!
 //! The given data element will be added to the bloom filter. A filter must have been previously provided using a load-filter
-//! message. This command is useful if a new key or script is added to a clients wallet whilst it has connections to the network
+//! message. This message is useful if a new key or script is added to a clients wallet whilst it has connections to the network
 //! open, it avoids the need to re-calculate and send an entirely new filter to every peer (though doing so is usually advisable
 //! to maintain anonymity).
 //!
 //! @note   This message is related to bloom filtering of connections and is defined in BIP 0037.
 //! @sa     FilterClearMessage, FilterLoadMessage, MerkleBlockMessage
-
 
 class FilterAddMessage : public Message
 {

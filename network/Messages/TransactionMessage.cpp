@@ -1,6 +1,4 @@
-#include "TxMessage.h"
-
-#include "p2p/Serialize.h"
+#include "TransactionMessage.h"
 
 using namespace Network;
 
