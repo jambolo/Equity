@@ -24,5 +24,5 @@ FilterAddMessage::FilterAddMessage(uint8_t const * & in, size_t & size)
 
 void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 {
-    P2p::serializeVector(data_, out);
+    P2p::serialize(data_, out);
 }

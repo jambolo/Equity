@@ -18,8 +18,8 @@ class PublicKey
 {
 public:
 
-    static size_t const COMPRESSED_SIZE = 33;
-    static size_t const UNCOMPRESSED_SIZE = 65;
+    static size_t const COMPRESSED_SIZE = 33;   //!< Size of a compressed public key
+    static size_t const UNCOMPRESSED_SIZE = 65; //!< Size of an uncompressed public key
 
     // Constructor
     //!

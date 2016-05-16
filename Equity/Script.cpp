@@ -22,11 +22,9 @@ void Script::serialize(std::vector<uint8_t> & out) const
     out.insert(out.end(), data_.begin(), data_.end());
 }
 
-static std::string DOUBLE_QUOTE("\"");
-
 static std::string toString(Instruction const i)
 {
-    
+
     if (i.op() >= 0x01 && i.op() <= Instruction::OP_1NEGATE)
     {
         return Utility::toHex(i.data());
@@ -37,16 +35,9 @@ static std::string toString(Instruction const i)
     }
 }
 
-std::string Script::toJson() const
+P2p::Serializable::cJSON_ptr Script::toJson() const
 {
-    std::string out = DOUBLE_QUOTE + Utility::toHex(data_) + DOUBLE_QUOTE;
-
-    return out;
-}
-
-std::string Script::toHex() const
-{
-    return Utility::toHex(data_);
+    return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(data_).c_str()));
 }
 
 std::string Script::toSource() const

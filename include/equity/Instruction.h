@@ -197,6 +197,7 @@ public:
         OP_INVALID              = 0xff  //!< Denotes an invalid instruction
     };
 
+    //! Information about an opcode
     struct Description
     {
         int value;          // Opcode value
@@ -205,10 +206,21 @@ public:
         bool valid;         // If false, the appearance of this opcode in a script will invalidate the script
     };
 
+    // Constructor
     Instruction(int op, std::vector<uint8_t> const & data = std::vector<uint8_t>(), size_t location = 0);
+
+    // Deserialization constructor
+    //!
+    //! @param[in,out]  in      pointer to the next byte to deserialize
+    //! @param[in,out]  size    number of bytes remaining in the serialized stream
     Instruction(uint8_t const * & in, size_t & size, size_t location);
 
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     //! Returns the opcode
     int op() const { return op_; }

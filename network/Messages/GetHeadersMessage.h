@@ -29,8 +29,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     GetHeadersMessage(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     uint32_t version_;              //!< The protocol version
     Crypto::Sha256HashList hashes_; //!< List of block hashes to look for

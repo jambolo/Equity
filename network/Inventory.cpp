@@ -24,6 +24,5 @@ InventoryId::InventoryId(uint8_t const * & in, size_t & size)
 void InventoryId::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(littleEndian((uint32_t)type_), out);
-    P2p::serializeArray(hash_, out);
+    P2p::serialize(hash_, out);
 }
-

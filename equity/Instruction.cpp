@@ -391,28 +391,46 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
 
         if (op_ >= 0x1 && op_ <= 0x4b)
         {
-            P2p::serializeVector(data_, out);
+            P2p::serialize(data_, out);
         }
         else if (op_ == OP_PUSHDATA1)
         {
             P2p::serialize(static_cast<uint8_t>(data_.size()), out);
-            P2p::serializeVector(data_, out);
+            P2p::serialize(data_, out);
         }
         else if (op_ == OP_PUSHDATA2)
         {
             P2p::serialize(static_cast<uint8_t>(data_.size()), out);
-            P2p::serializeVector(data_, out);
+            P2p::serialize(data_, out);
         }
         else if (op_ == OP_PUSHDATA4)
         {
             P2p::serialize(static_cast<uint8_t>(data_.size()), out);
-            P2p::serializeVector(data_, out);
+            P2p::serialize(data_, out);
         }
     }
     else
     {
         P2p::serialize(static_cast<uint8_t>(OP_INVALID), out);
     }
+}
+
+P2p::Serializable::cJSON_ptr Equity::Instruction::toJson() const
+{
+    cJSON * s;
+    if (valid_)
+    {
+        if ((op_ >= 0x1 && op_ <= 0x4b) || (op_ == OP_PUSHDATA1) || (op_ == OP_PUSHDATA2) || (op_ == OP_PUSHDATA4))
+            s = cJSON_CreateString(Utility::toHex(data_).c_str());
+        else
+            s = cJSON_CreateString(getDescription(op_).name);
+    }
+    else
+    {
+        s = cJSON_CreateString(getDescription(OP_INVALID).name);
+    }
+
+    return std::make_unique<cppJSON>(s);
 }
 
 Instruction::Description const & Instruction::getDescription(int opcode)

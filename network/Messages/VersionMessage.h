@@ -34,8 +34,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     VersionMessage(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     uint32_t version_;          //!< Identifies protocol version being used by the node
     uint64_t services_;         //!< bitfield of features to be enabled for this connection

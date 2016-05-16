@@ -15,12 +15,15 @@ public:
 
     Script(std::vector<uint8_t> const & data);
 
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
 
-    std::string toJson() const;
-    std::string toHex() const;
+    //!@}
+
+    //!
     std::string toSource() const;
-
 
     bool valid() const { return valid_; }
     std::vector<uint8_t> data() const { return data_; }

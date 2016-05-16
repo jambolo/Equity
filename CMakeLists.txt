@@ -24,6 +24,7 @@ add_subdirectory(equity)            # Bitcoin
 add_subdirectory(network)           # Bitcoin network
 add_subdirectory(p2p)               # P2P network
 add_subdirectory(utility)           # Utility functions
+add_subdirectory(cJSON)				# JSON library
 
 # Applications and tests
 

@@ -7,16 +7,6 @@
 
 using namespace Equity;
 
-static char const TXID_LABEL[]      = "\"txid\":";
-static char const INDEX_LABEL[]     = "\"index\":";
-static char const SCRIPT_LABEL[]    = "\"script\":";
-static char const SEQUENCE_LABEL[]  = "\"sequence\":";
-static char const VALUE_LABEL[]     = "\"value\":";
-static char const VERSION_LABEL[]   = "\"version\":";
-static char const INPUTS_LABEL[]    = "\"inputs\":";
-static char const OUTPUTS_LABEL[]   = "\"outputs\":";
-static char const LOCKTIME_LABEL[]  = "\"locktime\":";
-
 Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {
     txid = Txid(in, size);
@@ -33,18 +23,14 @@ void Transaction::Input::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(sequence, out);
 }
 
-std::string Transaction::Input::toJson() const
+P2p::Serializable::cJSON_ptr Transaction::Input::toJson() const
 {
-    std::string json;
-
-    json += '{';
-    json += TXID_LABEL + txid.toJson() + ',';
-    json += INDEX_LABEL + std::to_string(outputIndex) + ',';
-    json += SCRIPT_LABEL + Script(script).toJson() + ',';
-    json += SEQUENCE_LABEL + std::to_string(sequence);
-    json += '}';
-
-    return json;
+    cJSON * object = cJSON_CreateObject();
+    cJSON_AddItemToObject(object, "txid", txid.toJson()->release());
+    cJSON_AddNumberToObject(object, "index", outputIndex);
+    cJSON_AddItemToObject(object, "script", Script(script).toJson()->release());
+    cJSON_AddNumberToObject(object, "sequence", sequence);
+    return std::make_unique<cppJSON>(object);
 }
 
 Transaction::Output::Output(uint8_t const * & in, size_t & size)
@@ -59,16 +45,12 @@ void Transaction::Output::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarArray<uint8_t>(script), out);
 }
 
-std::string Transaction::Output::toJson() const
+P2p::Serializable::cJSON_ptr Transaction::Output::toJson() const
 {
-    std::string json;
-
-    json += '{';
-    json += VALUE_LABEL + std::to_string(value) + ',';
-    json += SCRIPT_LABEL + Script(script).toJson();
-    json += '}';
-
-    return json;
+    cJSON * object = cJSON_CreateObject();
+    cJSON_AddNumberToObject(object, "value", (double)value);
+    cJSON_AddItemToObject(object, "script", Script(script).toJson()->release());
+    return std::make_unique<cppJSON>(object);
 }
 
 Transaction::Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime)
@@ -109,23 +91,12 @@ void Transaction::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(Utility::littleEndian(lockTime_), out);
 }
 
-std::string Transaction::toHex() const
+P2p::Serializable::cJSON_ptr Transaction::toJson() const
 {
-    std::vector<uint8_t> raw;
-    serialize(raw);
-    return Utility::toHex(raw);
-}
-
-std::string Transaction::toJson() const
-{
-    std::string json;
-
-    json += '{';
-    json += VERSION_LABEL + std::to_string(version_) + ',';
-    json += INPUTS_LABEL + Utility::toJson(inputs_) + ',';
-    json += OUTPUTS_LABEL + Utility::toJson(outputs_) + ',';
-    json += LOCKTIME_LABEL + std::to_string(lockTime_);
-    json += '}';
-
-    return json;
+    cJSON * object = cJSON_CreateObject();
+    cJSON_AddNumberToObject(object, "version", version_);
+    cJSON_AddItemToObject(object, "inputs", P2p::toJson(inputs_)->release());
+    cJSON_AddItemToObject(object, "outputs", P2p::toJson(outputs_)->release());
+    cJSON_AddNumberToObject(object, "locktime", lockTime_);
+    return std::make_unique<cppJSON>(object);
 }

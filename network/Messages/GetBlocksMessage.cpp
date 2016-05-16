@@ -1,7 +1,7 @@
 #include "GetBlocksMessage.h"
 
-#include "utility/Endian.h"
 #include "p2p/Serialize.h"
+#include "utility/Endian.h"
 
 using namespace Network;
 using namespace Utility;
@@ -28,5 +28,10 @@ void GetBlocksMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(littleEndian(version_), out);
     P2p::serialize(P2p::VarArray<Crypto::Sha256Hash>(hashes_), out);
-    P2p::serializeArray(last_, out);
+    P2p::serialize(last_, out);
+}
+
+P2p::Serializable::cJSON_ptr GetBlocksMessage::toJson() const
+{
+    return std::make_unique<cppJSON>(cJSON_CreateString("..."));
 }

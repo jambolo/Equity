@@ -1,9 +1,9 @@
 #pragma once
 
 #include "crypto/Sha256.h"
+#include "p2p/Serialize.h"
 #include <cstdint>
 #include <vector>
-#include "p2p/Serialize.h"
 
 namespace Network
 {
@@ -28,7 +28,12 @@ struct InventoryId : public P2p::Serializable
     InventoryId(TypeId type, Crypto::Sha256Hash const & hash);
     InventoryId(uint8_t const * & in, size_t & size);
 
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     TypeId type_;               //!< The ID of the type of the object
     Crypto::Sha256Hash hash_;   //!< A hash representing the object

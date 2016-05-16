@@ -30,5 +30,5 @@ void RejectMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarString(message_), out);
     P2p::serialize(Utility::littleEndian(code_), out);
     P2p::serialize(P2p::VarString(reason_), out);
-    P2p::serializeVector(data_, out);
+    P2p::serialize(data_, out);
 }

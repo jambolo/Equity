@@ -3,17 +3,9 @@
 #include "crypto/Sha256.h"
 #include "p2p/Serialize.h"
 #include "utility/Utility.h"
+#include <cJSON/cJSON.h>
 
 using namespace Equity;
-
-static char const HEADER_LABEL[]        = "\"header\":";
-static char const VERSION_LABEL[]       = "\"version\":";
-static char const PREVIOUS_LABEL[]      = "\"previous\":";
-static char const ROOT_LABEL[]          = "\"root\":";
-static char const TIME_LABEL[]          = "\"time\":";
-static char const TARGET_LABEL[]        = "\"target\":";
-static char const NONCE_LABEL[]         = "\"nonce\":";
-static char const TRANSACTIONS_LABEL[]  = "\"transactions\":";
 
 Block::Header::Header(uint8_t const * & in, size_t & size)
 {
@@ -28,26 +20,23 @@ Block::Header::Header(uint8_t const * & in, size_t & size)
 void Block::Header::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize((uint32_t)version, out);
-    P2p::serializeArray(previousBlock, out);
-    P2p::serializeArray(merkleRoot, out);
+    P2p::serialize(previousBlock, out);
+    P2p::serialize(merkleRoot, out);
     P2p::serialize(timestamp, out);
     P2p::serialize(target, out);
     P2p::serialize(nonce, out);
 }
 
-std::string Block::Header::toJson() const
+P2p::Serializable::cJSON_ptr Block::Header::toJson() const
 {
-    std::string json;
-    json += "{";
-    json += VERSION_LABEL + std::to_string(version) + ',';
-    json += PREVIOUS_LABEL + Utility::toJson(previousBlock) + ',';
-    json += ROOT_LABEL + Utility::toJson(merkleRoot) + ',';
-    json += TIME_LABEL + std::to_string(timestamp) + ',';
-    json += TARGET_LABEL + std::to_string(target) + ',';
-    json += NONCE_LABEL + std::to_string(nonce) + ',';
-    json += "}";
-
-    return json;
+    cJSON * object = cJSON_CreateObject();
+    cJSON_AddNumberToObject(object, "version", version);
+    cJSON_AddStringToObject(object, "previous", Utility::toHex(previousBlock).c_str());
+    cJSON_AddStringToObject(object, "root", Utility::toHex(merkleRoot).c_str());
+    cJSON_AddNumberToObject(object, "time", timestamp);
+    cJSON_AddNumberToObject(object, "target", target);
+    cJSON_AddNumberToObject(object, "nonce", nonce);
+    return std::make_unique<cppJSON>(object);
 }
 
 Block::Block(Header const & header, TransactionList const & transactions)
@@ -68,18 +57,10 @@ void Block::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarArray<Transaction>(transactions_), out);
 }
 
-std::string Block::toJson() const
+P2p::Serializable::cJSON_ptr Block::toJson() const
 {
-    std::string json;
-    json += "{";
-    json += VERSION_LABEL + std::to_string(header_.version) + ',';
-    json += PREVIOUS_LABEL + Utility::toJson(header_.previousBlock) + ',';
-    json += ROOT_LABEL + Utility::toJson(header_.merkleRoot) + ',';
-    json += TIME_LABEL + std::to_string(header_.timestamp) + ',';
-    json += TARGET_LABEL + std::to_string(header_.target) + ',';
-    json += NONCE_LABEL + std::to_string(header_.nonce) + ',';
-    json += TRANSACTIONS_LABEL + Utility::toJson(transactions_);
-    json += "}";
-
-    return json;
+    cJSON * object = cJSON_CreateObject();
+    cJSON_AddItemToObject(object, "header", header_.toJson()->release());
+    cJSON_AddItemToObject(object, "transactions", P2p::toJson(transactions_)->release());
+    return std::make_unique<cppJSON>(object);
 }

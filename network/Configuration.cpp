@@ -6,10 +6,10 @@
 namespace Network
 {
 
-    Configuration instance_ =
-    {
-        P2p::Message::Header::MAGIC_MAIN,
-        8333
-    };
+Configuration instance_ =
+{
+    P2p::Message::Header::MAGIC_MAIN,
+    8333
+};
 
 }

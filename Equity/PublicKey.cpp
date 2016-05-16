@@ -11,6 +11,23 @@
 
 using namespace Equity;
 
+namespace
+{
+
+// TODO: This function should call the crypto library rather than using openssl directly here
+bool isValidUncompressedPublicKey(uint8_t const * data, size_t size)
+{
+    return size == PublicKey::UNCOMPRESSED_SIZE && data[0] == 4;
+}
+
+// TODO: This function should call the crypto library rather than using openssl directly here
+bool isValidCompressedPublicKey(uint8_t const * data, size_t size)
+{
+    return size == PublicKey::COMPRESSED_SIZE && (data[0] == 2 || data[0] == 3);
+}
+
+}
+
 PublicKey::PublicKey(std::vector<uint8_t> const & k)
     : PublicKey(k.data(), k.size())
 {
@@ -19,8 +36,7 @@ PublicKey::PublicKey(std::vector<uint8_t> const & k)
 PublicKey::PublicKey(uint8_t const * data, size_t size)
     : valid_(true)
 {
-    if (!(size == UNCOMPRESSED_SIZE && data[0] == 4) &&
-        !(size == COMPRESSED_SIZE && (data[0] == 2 || data[0] == 3)))
+    if (!isValidUncompressedPublicKey(data, size) && !isValidCompressedPublicKey(data, size))
     {
         valid_ = false;
         return;
@@ -33,6 +49,8 @@ PublicKey::PublicKey(uint8_t const * data, size_t size)
 PublicKey::PublicKey(PrivateKey const & k)
     : valid_(false)
 {
+    // TODO: This function should call the crypto library rather than using openssl directly here
+
     std::shared_ptr<BIGNUM> prvKey(BN_new(), BN_free);
     BN_bin2bn(k.value().data(), (int)PrivateKey::SIZE, prvKey.get());
 
@@ -40,7 +58,7 @@ PublicKey::PublicKey(PrivateKey const & k)
     std::shared_ptr<EC_POINT> pubKey(EC_POINT_new(group.get()), EC_POINT_free);
     std::shared_ptr<BN_CTX>   ctx(BN_CTX_new(), BN_CTX_free);
 
-    if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), NULL, NULL, ctx.get()))
+    if (!EC_POINT_mul(group.get(), pubKey.get(), prvKey.get(), nullptr, nullptr, ctx.get()))
         return;
 
     value_.resize(UNCOMPRESSED_SIZE);

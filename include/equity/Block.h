@@ -42,11 +42,12 @@ public:
         //! @param[in,out]  size    number of bytes remaining in the serialized stream
         Header(uint8_t const * & in, size_t & size);
 
-        //! Overrides Serializable
+        //! @name Overrides Serializable
+        //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
+        virtual cJSON_ptr toJson() const override;
 
-        //! Returns the header in JSON form
-        std::string toJson() const;
+        //!@}
     };
 
     // Constructor
@@ -61,11 +62,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     Block(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
 
-    //! Returns the block in JSON form
-    std::string toJson() const;
+    //!@}
 
     //! Returns the header
     Header header() const { return header_; }

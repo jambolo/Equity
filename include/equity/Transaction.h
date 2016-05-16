@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Txid.h"
-#include "p2p/Serialize.h"
 #include "crypto/Sha256.h"
+#include "p2p/Serialize.h"
 #include <cstdint>
 #include <vector>
+
+struct cJSON;
 
 namespace Equity
 {
@@ -42,15 +44,12 @@ public:
         //! @param[in,out]  size    number of bytes remaining in the serialized stream
         Input(uint8_t const * & in, size_t & size);
 
-        //! Overrides Serializable
+        //! @name Overrides Serializable
+        //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
+        virtual cJSON_ptr toJson() const override;
 
-        //! Returns the serialized input as a hex string
-        std::string toHex() const;
-
-        //! Returns the input in JSON form
-        std::string toJson() const;
-
+        //!@}
     };
 
     // A list of transactions inputs
@@ -74,15 +73,12 @@ public:
         //! @param[in,out]  size    number of bytes remaining in the serialized stream
         Output(uint8_t const * & in, size_t & size);
 
-        //! Overrides Serializable
+        //! @name Overrides Serializable
+        //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
+        virtual cJSON_ptr toJson() const override;
 
-        //! Returns the serialized output as a hex string
-        std::string toHex() const;
-
-        //! Returns the output in JSON form
-        std::string toJson() const;
-
+        //!@}
     };
 
     //! A list of outputs
@@ -100,14 +96,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     Transaction(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
 
-    //! Returns the serialized transaction as a hex string
-    std::string toHex() const;
-
-    //! Returns the transaction in JSON form
-    std::string toJson() const;
+    //!@}
 
     uint32_t version() const { return version_; }
     InputList inputs() const { return inputs_; }

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <array>
+#include <cJSON/cJSON.h>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility/Utility.h>
 #include <vector>
 
 //! @todo Move to Serializer class in Network namespace
@@ -22,6 +25,18 @@ public:
 class Serializable
 {
 public:
+    class cppJSON
+    {
+public:
+        cppJSON(cJSON * p) : p_(p) {}
+        ~cppJSON() { cJSON_Delete(p_); }
+        cJSON * release() { auto q = p_; p_ = nullptr;  return p_; }
+private:
+        cJSON * p_;
+    };
+
+    using cJSON_ptr = std::unique_ptr<cppJSON>;
+
     virtual ~Serializable() {}
     //! Serializes the object.
     //!
@@ -29,6 +44,11 @@ public:
     //!
     //! @note   Must be overriden
     virtual void serialize(std::vector<uint8_t> & out) const = 0;
+
+    //! Converts the object to a JSON string.
+    //!
+    //! @note   Must be overriden
+    virtual cJSON_ptr toJson() const = 0;
 
 };
 
@@ -86,7 +106,7 @@ void serialize(char const * s, std::vector<uint8_t> & out);
 //! @param  v       std::vector to be serialized
 //! @param  out     destination
 template <typename T>
-void serializeVector(std::vector<T> const & v, std::vector<uint8_t> & out)
+void serialize(std::vector<T> const & v, std::vector<uint8_t> & out)
 {
     for (auto const & element : v)
     {
@@ -99,11 +119,11 @@ void serializeVector(std::vector<T> const & v, std::vector<uint8_t> & out)
 //! @param  v       std::vector to be serialized
 //! @param  out     destination
 template <typename T, size_t N>
-void serializeVector(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out)
+void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out)
 {
     for (auto const & element : v)
     {
-        serializeArray(element, out);
+        serialize(element, out);
     }
 }
 
@@ -111,7 +131,7 @@ void serializeVector(std::vector<std::array<T, N> > const & v, std::vector<uint8
 //!
 //! @param  a       std::vector to be serialized
 //! @param  out     destination
-template <> void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
+template <> void serialize<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
 
 //! A helper class for serialization of an std::array.
 //!
@@ -148,15 +168,98 @@ struct SerializeArrayImpl<uint8_t, N>
 //! @param  out     destination
 //!
 //! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
-template <typename T>
-void serializeArray(T const & a, std::vector<uint8_t> & out)
+template <typename T, size_t N>
+void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out)
 {
-    SerializeArrayImpl<typename T::value_type, std::tuple_size<T>::value> impl;
+    SerializeArrayImpl<T, N> impl;
     impl(a, out);
 }
 
 /******************************************************************************************************************/
-/*                                         D E S E R I A L I Z A T I O N                                          */
+/*                                          J S O N   C O N V E R S I O N                                         */
+/******************************************************************************************************************/
+
+inline Serializable::cJSON_ptr toJson(Serializable const & x)
+{
+    return x.toJson();
+}
+
+//! Converts a generic array to a JSON array value
+template <typename T>
+Serializable::cJSON_ptr toJson(T const * v, size_t size)
+{
+    cJSON * a = cJSON_CreateArray();
+    if (size > 0)
+    {
+        a->child = P2p::toJson(v[0])->release();
+        cJSON * prev = a->child;
+        for (size_t i = 1; i < size; ++i)
+        {
+            cJSON * element = P2p::toJson(v[i])->release();
+            prev->next = element;
+            element->prev = prev;
+            prev = element;
+        }
+    }
+    return std::make_unique<Serializable::cppJSON>(a);
+}
+
+//! Converts a generic vector to a JSON array value
+template <typename T>
+Serializable::cJSON_ptr toJson(std::vector<T> const & v)
+{
+    return toJson(v.data(), v.size());
+}
+
+//! Converts a std::vector<uint8_t> to a JSON hex string
+template <>
+Serializable::cJSON_ptr toJson(std::vector<uint8_t> const & v);
+
+//! A helper class for converting an std::array to JSON.
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T, size_t N>
+struct ToJsonArrayImpl
+{
+    Serializable::cJSON_ptr operator ()(std::array<T, N> const & a)
+    {
+        return toJson(a.data(), a.size());
+    }
+
+};
+
+//! A helper class for converting an std::array<uint8_t, N> to JSON.
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <size_t N>
+struct ToJsonArrayImpl<uint8_t, N>
+{
+    Serializable::cJSON_ptr operator ()(std::array<uint8_t, N> const & a)
+    {
+        return std::make_unique<Serializable::cppJSON>(cJSON_CreateString(Utility::toHex(a.data(), a.size()).c_str()));
+    }
+
+};
+
+//! Converts a generic std::array to a JSON array value
+//!
+//! @param  a       std::array to be serialized
+//! @param  out     destination
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T, size_t N>
+Serializable::cJSON_ptr toJson(std::array<T, N> const & a)
+{
+    ToJsonArrayImpl<T, N> impl;
+    return impl(a);
+}
+
+/******************************************************************************************************************/
+/*                                           H E X   C O N V E R S I O N                                          */
+/******************************************************************************************************************/
+
+/******************************************************************************************************************/
+/*                                          D E S E R I A L I Z A T I O N                                         */
 /******************************************************************************************************************/
 
 //! Deserializes an object with a deserialization constructor.
@@ -321,8 +424,12 @@ public:
     // Deserialization constructor
     VASize(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     //! Returns the value
     uint64_t value() const { return value_; }
@@ -363,12 +470,20 @@ public:
         data_ = P2p::deserializeVector<T>(arraySize.value(), in, size);
     }
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
-        P2p::serializeVector(data_, out);
+        P2p::serialize(data_, out);
     }
+
+    virtual cJSON_ptr toJson() const override
+    {
+        return P2p::toJson(data_);
+    }
+
+    //!@}
 
     //! Returns the elements contained in the array
     std::vector<T> value() const { return data_; }
@@ -405,12 +520,20 @@ public:
         data_ = P2p::deserializeVector<T, N>(arraySize.value(), in, size);
     }
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
-        P2p::serializeVector(data_, out);
+        P2p::serialize(data_, out);
     }
+
+    cJSON_ptr toJson() const override
+    {
+        return P2p::toJson(data_);
+    }
+
+    //!@}
 
     //! Returns the elements contained in the array
     std::vector<std::array<T, N> > value() const { return data_; }
@@ -447,12 +570,20 @@ public:
         data_ = P2p::deserializeVector<uint8_t>(arraySize.value(), in, size);
     }
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(data_.size()), out);
-        P2p::serializeVector(data_, out);
+        P2p::serialize(data_, out);
     }
+
+    cJSON_ptr toJson() const override
+    {
+        return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(data_).c_str()));
+    }
+
+    //!@}
 
     //! Returns the bytes contained in the array
     std::vector<uint8_t> value() const { return data_; }
@@ -514,10 +645,14 @@ public:
     //! Returns the value of the bit at the given index
     //!
     //! @param  index       Which bit to get
-    bool operator [](size_t index) const { get(index); }
+    bool operator [](size_t index) const { return get(index); }
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
 private:
 
@@ -555,13 +690,20 @@ public:
         string_ = P2p::deserializeString(stringSize.value(), in, size);
     }
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override
     {
         P2p::serialize(VASize(string_.size()), out);
         P2p::serialize(string_, out);
     }
 
+    virtual cJSON_ptr toJson() const override
+    {
+        return std::make_unique<cppJSON>(cJSON_CreateString(string_.c_str()));
+    }
+
+    //!@}
     //! Returns the bytes contained in the array
     std::string value() const { return string_; }
 

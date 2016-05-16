@@ -31,8 +31,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     Address(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     //! Returns the timestamp
     uint32_t time() const { return time_; }

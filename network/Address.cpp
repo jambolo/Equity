@@ -31,6 +31,6 @@ void Address::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(littleEndian(time_), out);
     P2p::serialize(littleEndian(services_), out);
-    P2p::serializeArray(ipv6_, out);
+    P2p::serialize(ipv6_, out);
     P2p::serialize(littleEndian(port_), out);
 }

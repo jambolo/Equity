@@ -9,9 +9,6 @@ using namespace Equity;
 
 Txid::Txid(std::string const & json)
 {
-    std::vector<uint8_t> h = Utility::fromJson(json);
-    if (h.size() == hash_.size())
-        std::copy(h.begin(), h.end(), hash_.begin());
 }
 
 Txid::Txid(uint8_t const * & in, size_t & size)
@@ -30,12 +27,7 @@ void Txid::serialize(std::vector<uint8_t> & out) const
                                                             // little-endian.
 }
 
-std::string Txid::toHex() const
+P2p::Serializable::cJSON_ptr Txid::toJson() const
 {
-    return Utility::toHex(hash_);
-}
-
-std::string Txid::toJson() const
-{
-    return Utility::toJson(hash_);
+    return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(hash_).c_str()));
 }

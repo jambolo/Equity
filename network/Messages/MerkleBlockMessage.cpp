@@ -1,7 +1,7 @@
 #include "MerkleBlockMessage.h"
 
-#include "utility/Endian.h"
 #include "p2p/Serialize.h"
+#include "utility/Endian.h"
 
 using namespace Network;
 using namespace Utility;
@@ -11,7 +11,7 @@ char const MerkleBlockMessage::TYPE[] = "merkleblock";
 MerkleBlockMessage::MerkleBlockMessage(Equity::Block::Header const &  header,
                                        uint32_t                       count,
                                        Crypto::Sha256HashList const & hashes,
-                                       P2p::BitArray const &               flags)
+                                       P2p::BitArray const &          flags)
     : Message(TYPE)
     , header_(header)
     , count_(count)
@@ -35,4 +35,9 @@ void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(littleEndian(count_), out);
     P2p::serialize(P2p::VarArray<Crypto::Sha256Hash>(hashes_), out);
     P2p::serialize(flags_, out);
+}
+
+P2p::Serializable::cJSON_ptr MerkleBlockMessage::toJson() const
+{
+    return std::make_unique<cppJSON>(cJSON_CreateString("..."));
 }

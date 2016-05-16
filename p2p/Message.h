@@ -1,10 +1,10 @@
 #pragma once
 
+#include "Serialize.h"
 #include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "Serialize.h"
 
 namespace P2p
 {
@@ -66,9 +66,13 @@ public:
     uint32_t length_;                                   //!< Length of the payload
     uint32_t checksum_;                                 //!< Payload checksum
 
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
-};
+    virtual cJSON_ptr toJson() const override;
 
+    //!@}
+};
 
 //! Thrown by a message constructor if the data in the message is invalid.
 struct InvalidMessageError : public std::runtime_error

@@ -1,5 +1,7 @@
 #include "Utility.h"
 
+#include "p2p/Serialize.h"
+
 #include <algorithm>
 
 static char itox(int i)
@@ -21,7 +23,7 @@ static int xtoi(char x)
     else
     {
         return x - '0';
-    }
+}
 }
 
 namespace Utility
@@ -31,11 +33,18 @@ namespace Utility
 /*                                           H E X   C O N V E R S I O N                                            */
 /********************************************************************************************************************/
 
+std::string toHex(P2p::Serializable const & s)
+{
+    std::vector<uint8_t> out;
+    s.serialize(out);
+    return toHex(out);
+}
+
 std::string toHex(std::vector<uint8_t> const & v)
 {
     if (v.empty())
     {
-        return toHex(NULL, 0);
+        return toHex(nullptr, 0);
     }
     else
     {
@@ -45,7 +54,7 @@ std::string toHex(std::vector<uint8_t> const & v)
 
 std::string toHex(uint8_t const * v, size_t length)
 {
-    if (length == 0)
+    if (!v || length == 0)
     {
         return std::string();
     }
@@ -75,7 +84,7 @@ std::vector<uint8_t> fromHex(std::string const & x)
 
 std::vector<uint8_t> fromHex(char const * x, size_t length)
 {
-    if (length == 0)
+    if (!x || length == 0)
     {
         return std::vector<uint8_t>();
     }
@@ -105,7 +114,7 @@ std::string toHexR(std::vector<uint8_t> const & v)
 
 std::string toHexR(uint8_t const * v, size_t length)
 {
-    if (length == 0)
+    if (!v || length == 0)
     {
         return std::string();
     }
@@ -136,7 +145,7 @@ std::vector<uint8_t> fromHexR(std::string const & x)
 
 std::vector<uint8_t> fromHexR(char const * x, size_t length)
 {
-    if (length == 0)
+    if (!x || length == 0)
     {
         return std::vector<uint8_t>();
     }
@@ -150,51 +159,6 @@ std::vector<uint8_t> fromHexR(char const * x, size_t length)
     }
 
     return v;
-}
-
-/********************************************************************************************************************/
-/*                                          J S O N   C O N V E R S I O N                                           */
-/********************************************************************************************************************/
-
-static std::string const DOUBLE_QUOTE("\"");
-static std::string const EMPTY_JSON_STRING("\"\"");
-
-template <>
-std::string toJson<uint8_t>(std::vector<uint8_t> const & v)
-{
-    if (v.empty())
-    {
-        return EMPTY_JSON_STRING;
-    }
-    else
-    {
-        return DOUBLE_QUOTE + toHex(v) + DOUBLE_QUOTE;
-    }
-}
-
-template <>
-std::string toJson<uint8_t>(uint8_t const * a, size_t size)
-{
-    if (size > 0)
-    {
-        return DOUBLE_QUOTE + toHex(a, size) + DOUBLE_QUOTE;
-    }
-    else
-    {
-        return EMPTY_JSON_STRING;
-    }
-}
-
-std::vector<uint8_t> fromJson(std::string const & j)
-{
-    if (j.length() < 3 || j.front() != '\"' || j.back() != '\"')
-    {
-        return std::vector<uint8_t>();
-    }
-    else
-    {
-        return fromHex(j.data() + 1, j.length() - 2);
-    }
 }
 
 /********************************************************************************************************************/

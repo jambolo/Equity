@@ -1,7 +1,7 @@
 #pragma once
 
-#include "network/Message.h"
 #include "equity/Transaction.h"
+#include "network/Message.h"
 
 namespace Network
 {
@@ -25,12 +25,15 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     TransactionMessage(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
 
+    //!@}
 
     int32_t version;                            //!< Transaction data format version(note, this is signed)
-    Equity::Transaction::InputList  inputs;     //!<  A list of 1 or more transaction inputs or sources for coins
+    Equity::Transaction::InputList inputs;      //!<  A list of 1 or more transaction inputs or sources for coins
     Equity::Transaction::OutputList outputs;    //!< A list of 1 or more transaction outputs or destinations for coins
     uint32_t lockTime;                          //!< The block number or timestamp at which this transaction is locked :
                                                 //!<    Value       Description

@@ -28,8 +28,12 @@ public:
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
     AlertMessage(uint8_t const * & in, size_t & size);
 
-    //! Overrides Serializable
+    //! @name Overrides Serializable
+    //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
+    virtual cJSON_ptr toJson() const override;
+
+    //!@}
 
     //! The raw alert message data
     std::vector<uint8_t> message_;

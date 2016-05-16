@@ -55,7 +55,7 @@ void serialize(char const * s, std::vector<uint8_t> & out)
 }
 
 template <>
-void serializeVector<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
+void serialize<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out)
 {
     out.insert(out.end(), a.begin(), a.end());
 }
@@ -140,6 +140,12 @@ std::string deserializeString(size_t n, uint8_t const * & in, size_t & size)
     return s;
 }
 
+template <>
+Serializable::cJSON_ptr toJson(std::vector<uint8_t> const & v)
+{
+    return std::make_unique<Serializable::cppJSON>(cJSON_CreateString(Utility::toHex(v).c_str()));
+}
+
 VASize::VASize(uint8_t const * & in, size_t & size)
 {
     uint8_t e = P2p::deserialize<uint8_t>(in, size);
@@ -178,6 +184,11 @@ void VASize::serialize(std::vector<uint8_t> & out) const
     }
 }
 
+Serializable::cJSON_ptr VASize::toJson() const
+{
+    return std::make_unique<cppJSON>(cJSON_CreateNumber((double)value_));
+}
+
 BitArray::BitArray(uint8_t const * & in, size_t & size)
 {
     bits_ = P2p::VarArray<uint8_t>(in, size).value();
@@ -210,4 +221,9 @@ void BitArray::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarArray<uint8_t>(bits_), out);
 }
 
-} // namespace Utility
+P2p::Serializable::cJSON_ptr BitArray::toJson() const
+{
+    return P2p::toJson(bits_);
+}
+
+} // namespace P2p
