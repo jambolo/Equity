@@ -160,17 +160,17 @@ VASize::VASize(uint8_t const * & in, size_t & size)
 
 void VASize::serialize(std::vector<uint8_t> & out) const
 {
-    if (value_ < 0xfdUi64)
+    if (value_ < 0xfdULL)
     {
         out.push_back((uint8_t)value_);
     }
-    else if (value_ < 0x10000Ui64)
+    else if (value_ < 0x10000ULL)
     {
         out.reserve(out.size() + 3);
         out.push_back(0xfd);
         P2p::serialize((uint16_t)value_, out);
     }
-    else if (value_ < 0x100000000Ui64)
+    else if (value_ < 0x100000000ULL)
     {
         out.reserve(out.size() + 5);
         out.push_back(0xfe);

@@ -11,15 +11,15 @@ namespace Utility
 //! Converts a vector to a hex string
 std::string toHex(std::vector<uint8_t> const & v);
 
+//! Converts a vector to a hex string
+std::string toHex(uint8_t const * v, size_t length);
+
 //! Converts an std::array to a hex string
 template <size_t N>
 std::string toHex(std::array<uint8_t, N> const & a)
 {
     return toHex(a.data(), a.size());
 }
-
-//! Converts a vector to a hex string
-std::string toHex(uint8_t const * v, size_t length);
 
 //! Converts a hex string to a vector
 std::vector<uint8_t> fromHex(std::string const & x);

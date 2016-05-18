@@ -30,7 +30,7 @@ public:
 public:
         cppJSON(cJSON * p) : p_(p) {}
         ~cppJSON() { cJSON_Delete(p_); }
-        cJSON * release() { auto q = p_; p_ = nullptr;  return p_; }
+        cJSON * release() { auto q = p_; p_ = nullptr;  return q; }
 private:
         cJSON * p_;
     };
@@ -201,6 +201,7 @@ Serializable::cJSON_ptr toJson(T const * v, size_t size)
             prev = element;
         }
     }
+    auto i = std::make_unique<int>(0);
     return std::make_unique<Serializable::cppJSON>(a);
 }
 
