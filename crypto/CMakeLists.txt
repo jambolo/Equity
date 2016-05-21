@@ -1,6 +1,7 @@
 set(SOURCES
-    Ecdsa.cpp
-    Ecdsa.h
+    CppUtility.h
+    Ecc.cpp
+    Ecc.h
     Ripemd.cpp
     Ripemd.h
     Sha1.cpp
@@ -9,11 +10,11 @@ set(SOURCES
     Sha256.h
 )
 
+find_package(OpenSSL)
+
 set(INCLUDE_PATHS
     ${OPENSSL_INCLUDE_DIR}
 )
-
-find_package(OpenSSL)
 
 set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR})
 

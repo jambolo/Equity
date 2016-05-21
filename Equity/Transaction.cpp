@@ -26,11 +26,11 @@ void Transaction::Input::serialize(std::vector<uint8_t> & out) const
 P2p::Serializable::cJSON_ptr Transaction::Input::toJson() const
 {
     cJSON * object = cJSON_CreateObject();
-    cJSON_AddItemToObject(object, "txid", txid.toJson()->release());
+    cJSON_AddItemToObject(object, "txid", txid.toJson().release());
     cJSON_AddNumberToObject(object, "index", outputIndex);
-    cJSON_AddItemToObject(object, "script", Script(script).toJson()->release());
+    cJSON_AddItemToObject(object, "script", Script(script).toJson().release());
     cJSON_AddNumberToObject(object, "sequence", sequence);
-    return std::make_unique<cppJSON>(object);
+    return cJSON_ptr(object);
 }
 
 Transaction::Output::Output(uint8_t const * & in, size_t & size)
@@ -49,8 +49,8 @@ P2p::Serializable::cJSON_ptr Transaction::Output::toJson() const
 {
     cJSON * object = cJSON_CreateObject();
     cJSON_AddNumberToObject(object, "value", (double)value);
-    cJSON_AddItemToObject(object, "script", Script(script).toJson()->release());
-    return std::make_unique<cppJSON>(object);
+    cJSON_AddItemToObject(object, "script", Script(script).toJson().release());
+    return cJSON_ptr(object);
 }
 
 Transaction::Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime)
@@ -95,8 +95,8 @@ P2p::Serializable::cJSON_ptr Transaction::toJson() const
 {
     cJSON * object = cJSON_CreateObject();
     cJSON_AddNumberToObject(object, "version", version_);
-    cJSON_AddItemToObject(object, "inputs", P2p::toJson(inputs_)->release());
-    cJSON_AddItemToObject(object, "outputs", P2p::toJson(outputs_)->release());
+    cJSON_AddItemToObject(object, "inputs", P2p::toJson(inputs_).release());
+    cJSON_AddItemToObject(object, "outputs", P2p::toJson(outputs_).release());
     cJSON_AddNumberToObject(object, "locktime", lockTime_);
-    return std::make_unique<cppJSON>(object);
+    return cJSON_ptr(object);
 }

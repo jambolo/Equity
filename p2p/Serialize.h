@@ -9,7 +9,12 @@
 #include <utility/Utility.h>
 #include <vector>
 
-//! @todo Move to Serializer class in Network namespace
+struct CJSON_deleter
+{
+    void operator ()(cJSON * j) { cJSON_Delete(j); }
+};
+
+//! @todo Move serialization to Serializer class in Network namespace
 
 namespace P2p
 {
@@ -25,17 +30,8 @@ public:
 class Serializable
 {
 public:
-    class cppJSON
-    {
-public:
-        cppJSON(cJSON * p) : p_(p) {}
-        ~cppJSON() { cJSON_Delete(p_); }
-        cJSON * release() { auto q = p_; p_ = nullptr;  return q; }
-private:
-        cJSON * p_;
-    };
 
-    using cJSON_ptr = std::unique_ptr<cppJSON>;
+    using cJSON_ptr = std::unique_ptr<cJSON, CJSON_deleter>;
 
     virtual ~Serializable() {}
     //! Serializes the object.
@@ -179,6 +175,11 @@ void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out)
 /*                                          J S O N   C O N V E R S I O N                                         */
 /******************************************************************************************************************/
 
+inline Serializable::cJSON_ptr toJson(std::string const & s)
+{
+    return Serializable::cJSON_ptr(cJSON_CreateString(s.c_str()));
+}
+    
 inline Serializable::cJSON_ptr toJson(Serializable const & x)
 {
     return x.toJson();
@@ -188,24 +189,28 @@ inline Serializable::cJSON_ptr toJson(Serializable const & x)
 template <typename T>
 Serializable::cJSON_ptr toJson(T const * v, size_t size)
 {
+    if (!v)
+    {
+        return Serializable::cJSON_ptr(cJSON_CreateNull());
+    }
+    
     cJSON * a = cJSON_CreateArray();
     if (size > 0)
     {
-        a->child = P2p::toJson(v[0])->release();
+        a->child = P2p::toJson(v[0]).release();
         cJSON * prev = a->child;
         for (size_t i = 1; i < size; ++i)
         {
-            cJSON * element = P2p::toJson(v[i])->release();
+            cJSON * element = P2p::toJson(v[i]).release();
             prev->next = element;
             element->prev = prev;
             prev = element;
         }
     }
-    auto i = std::make_unique<int>(0);
-    return std::make_unique<Serializable::cppJSON>(a);
+    return Serializable::cJSON_ptr(a);
 }
 
-//! Converts a generic vector to a JSON array value
+//! Converts a std::vector to a JSON array value
 template <typename T>
 Serializable::cJSON_ptr toJson(std::vector<T> const & v)
 {
@@ -218,7 +223,7 @@ Serializable::cJSON_ptr toJson(std::vector<uint8_t> const & v);
 
 //! A helper class for converting an std::array to JSON.
 //!
-//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T, size_t N>
 struct ToJsonArrayImpl
 {
@@ -231,13 +236,13 @@ struct ToJsonArrayImpl
 
 //! A helper class for converting an std::array<uint8_t, N> to JSON.
 //!
-//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <size_t N>
 struct ToJsonArrayImpl<uint8_t, N>
 {
     Serializable::cJSON_ptr operator ()(std::array<uint8_t, N> const & a)
     {
-        return std::make_unique<Serializable::cppJSON>(cJSON_CreateString(Utility::toHex(a.data(), a.size()).c_str()));
+        return toJson(Utility::toHex(a.data(), a.size()));
     }
 
 };
@@ -247,7 +252,7 @@ struct ToJsonArrayImpl<uint8_t, N>
 //! @param  a       std::array to be serialized
 //! @param  out     destination
 //!
-//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T, size_t N>
 Serializable::cJSON_ptr toJson(std::array<T, N> const & a)
 {
@@ -581,9 +586,8 @@ public:
 
     cJSON_ptr toJson() const override
     {
-        return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(data_).c_str()));
+        return P2p::toJson(data_);
     }
-
     //!@}
 
     //! Returns the bytes contained in the array
@@ -701,7 +705,7 @@ public:
 
     virtual cJSON_ptr toJson() const override
     {
-        return std::make_unique<cppJSON>(cJSON_CreateString(string_.c_str()));
+        return P2p::toJson(string_);
     }
 
     //!@}

@@ -126,7 +126,7 @@ std::string toHexR(uint8_t const * v, size_t length)
     for (int i = 0; i < length; ++i)
     {
         --v;
-        x.push_back(itox(*v >> 4));
+        x.push_back(itox((*v >> 4) & 0x0f));
         x.push_back(itox(*v & 0x0f));
     }
 

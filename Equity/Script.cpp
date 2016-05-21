@@ -37,7 +37,7 @@ static std::string toString(Instruction const i)
 
 P2p::Serializable::cJSON_ptr Script::toJson() const
 {
-    return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(data_).c_str()));
+    return P2p::toJson(data_);
 }
 
 std::string Script::toSource() const

@@ -29,5 +29,5 @@ void Txid::serialize(std::vector<uint8_t> & out) const
 
 P2p::Serializable::cJSON_ptr Txid::toJson() const
 {
-    return std::make_unique<cppJSON>(cJSON_CreateString(Utility::toHex(hash_).c_str()));
+    return P2p::toJson(hash_);
 }

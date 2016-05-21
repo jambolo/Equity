@@ -430,7 +430,7 @@ P2p::Serializable::cJSON_ptr Equity::Instruction::toJson() const
         s = cJSON_CreateString(getDescription(OP_INVALID).name);
     }
 
-    return std::make_unique<cppJSON>(s);
+    return cJSON_ptr(s);
 }
 
 Instruction::Description const & Instruction::getDescription(int opcode)

@@ -7,6 +7,12 @@
 
 using namespace Equity;
 
+struct BIGNUM_deleter
+{
+    void operator ()(BIGNUM * a) { BN_free(a); }
+};
+typedef std::unique_ptr<BIGNUM, BIGNUM_deleter> auto_BIGNUM;
+
 static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 static int const DECODE_MAP[] =
 {
@@ -49,7 +55,7 @@ std::string Base58::encode(std::vector<uint8_t> const & input)
 
 std::string Base58::encode(uint8_t const * input, size_t length)
 {
-    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
+    auto_BIGNUM i(BN_new());
     if (!i)
     {
         return "";
@@ -82,7 +88,7 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
         return false;
     }
 
-    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
+    auto_BIGNUM i(BN_new());
     if (!i)
     {
         return false;

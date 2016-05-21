@@ -9,6 +9,8 @@ namespace Equity
 {
 
 //! A transaction ID.
+//!
+//! This object is used to reference a transaction in the block chain.
 
 struct Txid : public P2p::Serializable
 {
@@ -28,7 +30,6 @@ struct Txid : public P2p::Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual cJSON_ptr toJson() const override;
-
     //!@}
 
     Crypto::Sha256Hash hash_;   //!< The transaction ID in binary form

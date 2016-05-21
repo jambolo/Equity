@@ -1,22 +1,14 @@
 #include "PrivateKey.h"
 
 #include "Base58Check.h"
+#include "crypto/Ecc.h"
 #include "crypto/Sha256.h"
 #include "utility/Utility.h"
 
-#include <openssl/bn.h>
-
 #include <memory>
 
+using namespace Crypto;
 using namespace Equity;
-
-static uint8_t const MAX_PRIVATE_KEY[] =
-{
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-    0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
-    0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x40
-};
 
 // A private key in mini-key format has exactly 30 characters including the S prefix
 static size_t const MINI_KEY_FORMAT_SIZE = 30;
@@ -33,14 +25,14 @@ PrivateKey::PrivateKey(std::string const & s)
             return;
         }
         std::string appended = s + '?';
-        Crypto::Sha256Hash check = Crypto::sha256(reinterpret_cast<uint8_t const *>(appended.c_str()), appended.length());
+        Sha256Hash check = sha256(reinterpret_cast<uint8_t const *>(appended.data()), appended.length());
         if (check[0] != 0)
         {
             valid_ = false;
             return;
         }
 
-        value_ = Crypto::sha256(reinterpret_cast<uint8_t const *>(s.c_str()), s.length());
+        value_ = sha256(reinterpret_cast<uint8_t const *>(s.data()), s.length());
     }
     else
     {
@@ -111,20 +103,5 @@ std::string PrivateKey::toHex() const
 
 bool PrivateKey::isValid()
 {
-    if (!valid_)
-        return false;
-
-    std::shared_ptr<BIGNUM> i(BN_new(), BN_free);
-    BN_bin2bn(value_.data(), (int)value_.size(), i.get());
-
-    if (BN_is_zero(i.get()))
-        return false;
-
-    std::shared_ptr<BIGNUM> maxPrivateKey(BN_new(), BN_free);
-    BN_bin2bn(MAX_PRIVATE_KEY, (int)sizeof(MAX_PRIVATE_KEY), maxPrivateKey.get());
-
-    if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
-        return false;
-
-    return true;
+    return (valid_ && Ecc::privateKeyIsValid(value_));
 }
