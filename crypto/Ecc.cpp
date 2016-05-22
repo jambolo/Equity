@@ -62,3 +62,47 @@ bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey,
     return true;
 }
 
+bool signMessage(uint8_t const * m, size_t size, PrivateKey const & k, std::vector<uint8_t> & signature)
+{
+    signature.clear();
+    
+    auto_EVP_MD_CTX mdctx(EVP_MD_CTX_create());
+    if (!EVP_DigestSignInit(mdctx.get(), NULL, EVP_sha256(), NULL, key))
+        return false;
+
+    if (!EVP_DigestSignUpdate(mdctx.get(), m, size))
+        return false;
+
+    // First call EVP_DigestSignFinal with a NULL sig parameter to obtain the maximum length of the signature.
+    size_t signatureSize;
+    if (!EVP_DigestSignFinal(mdctx.get(), NULL, &signatureSize))
+        return false;
+
+    /* Obtain the signature */
+    signature.resize(signatureSize);
+    if (!EVP_DigestSignFinal(mdctx.get(), signature.data(), &signatureSize))
+        return false;
+    
+    signature.resize(signatureSize);
+    return true;
+}
+
+//! Verifies a signed message.
+//!
+//! @param      m           signed message
+//! @param      size        size of the message
+//! @param      k           public key
+//! @return true if the message's signature is vaid and it matches the message
+bool messageIsVerified(uint8_t const * m, size_t size, PublicKey const & k, std::vector<uint8_t> & signature)
+{
+    auto_EVP_MD_CTX mdctx(EVP_MD_CTX_create());
+    if (!EVP_DigestVerifyInit(mdctx.get(), NULL, EVP_sha256(), NULL, k))
+        return false;
+    
+    if (!EVP_DigestVerifyUpdate(mdctx.get(), m, size))
+        return false;
+    
+    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size()))
+}
+
+

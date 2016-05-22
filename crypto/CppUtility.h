@@ -7,34 +7,23 @@
 #include <array>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
+#include <openssl/evp.h>
+
+#define DECLARE_AUTO_POINTER(TYPE, FREE)                    \
+struct TYPE##_deleter                                       \
+{                                                           \
+    void operator ()(TYPE * p) { FREE(p); }                 \
+};                                                          \
+typedef std::unique_ptr<TYPE, TYPE##_deleter> auto_##TYPE
 
 namespace Crypto
 {
-    struct BIGNUM_deleter
-    {
-        void operator ()(BIGNUM * p) { BN_free(p); }
-    };
-    typedef std::unique_ptr<BIGNUM, BIGNUM_deleter> auto_BIGNUM;
-    
-    struct EC_GROUP_deleter
-    {
-        void operator ()(EC_GROUP * p) { EC_GROUP_free(p); }
-    };
-    typedef std::unique_ptr<EC_GROUP, EC_GROUP_deleter> auto_EC_GROUP;
-    
-    struct EC_POINT_deleter
-    {
-        void operator ()(EC_POINT * p) { EC_POINT_free(p); }
-    };
-    typedef std::unique_ptr<EC_POINT, EC_POINT_deleter> auto_EC_POINT;
-    
-    struct BN_CTX_deleter
-    {
-        void operator ()(BN_CTX * p) { BN_CTX_free(p); }
-    };
-    typedef std::unique_ptr<BN_CTX, BN_CTX_deleter> auto_BN_CTX;
-
-    
+    DECLARE_AUTO_POINTER(BIGNUM, BN_free);
+    DECLARE_AUTO_POINTER(BN_CTX, BN_CTX_free);
+    DECLARE_AUTO_POINTER(EC_GROUP, EC_GROUP_free);
+    DECLARE_AUTO_POINTER(EC_KEY, EC_KEY_free);
+    DECLARE_AUTO_POINTER(EC_POINT, EC_POINT_free);
+    DECLARE_AUTO_POINTER(EVP_MD_CTX, EVP_MD_CTX_destroy);
 } // namespace Crypto
 
 

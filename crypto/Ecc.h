@@ -21,6 +21,7 @@ namespace Ecc
     
     typedef std::vector<uint8_t> PublicKey;                     //!< An ECC public key
     typedef std::array<uint8_t, PRIVATE_KEY_SIZE> PrivateKey;   //!< An ECC private key
+    typedef std::vector<uint8_t> Signature;                     //!< An ECC signature
     
     //! Returns true if the public key is valid.
     //!
@@ -63,7 +64,7 @@ namespace Ecc
     //! @param      k           private key
     //! @param[out] signature   signature
     //! @return true if the returned signature is valid
-    bool sign(uint8_t const * m, size_t size, PrivateKey const & k, std::vector<uint8_t> & signature);
+    bool signMessage(uint8_t const * m, size_t size, PrivateKey const & k, Signature & signature);
     
     //! Verifies a signed message.
     //!
@@ -71,7 +72,7 @@ namespace Ecc
     //! @param      size        size of the message
     //! @param      k           public key
     //! @return true if the message's signature is vaid and it matches the message
-    bool messageIsVerified(uint8_t const * m, size_t size, PublicKey const & k);
+    bool messageIsVerified(uint8_t const * m, size_t size, PublicKey const & k, Signature const & signature);
 
     inline bool publicKeyIsValid(uint8_t const * k, size_t size)
     {
