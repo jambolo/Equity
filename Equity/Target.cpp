@@ -20,7 +20,7 @@ namespace
 
     int extractExponent(uint32_t x)
     {
-        return ((x >> EXPONENT_OFFSET) & 0xff) - 3;
+        return ((x >> EXPONENT_OFFSET) & 0xff);
     }
 }
 
@@ -56,22 +56,27 @@ Crypto::Sha256Hash Target::convertToHash(uint32_t compact)
     uint32_t mantissa = extractMantissa(compact);
     int exponent = extractExponent(compact);
 
-    assert(exponent >= -3 && exponent <= 0x1d);
+    if ((mantissa & 0x00ff0000) == 0)
+    {
+        mantissa <<= 8;
+        exponent -= 1;
+    }
+    assert(exponent >= 0 && exponent <= 32);
 
     Crypto::Sha256Hash out;
     out.fill(0);
-    if (exponent >= 0)
+    if (exponent >= 3)
     {
-        out[Crypto::SHA256_HASH_SIZE - 3 - exponent] = (mantissa >> 16) & 0xff;
-        out[Crypto::SHA256_HASH_SIZE - 2 - exponent] = (mantissa >>  8) & 0xff;
-        out[Crypto::SHA256_HASH_SIZE - 1 - exponent] =         mantissa & 0xff;
+        out[Crypto::SHA256_HASH_SIZE + 0 - exponent] = (mantissa >> 16) & 0xff;
+        out[Crypto::SHA256_HASH_SIZE + 1 - exponent] = (mantissa >>  8) & 0xff;
+        out[Crypto::SHA256_HASH_SIZE + 2 - exponent] =         mantissa & 0xff;
     }
     else
     {
-        if (exponent >= -2)
-            out[Crypto::SHA256_HASH_SIZE - 3 - exponent] = (mantissa >> 16) & 0xff;
-        if (exponent >= -1)
-            out[Crypto::SHA256_HASH_SIZE - 2 - exponent] = (mantissa >> 8) & 0xff;
+        if (exponent >= 1)
+            out[Crypto::SHA256_HASH_SIZE + 0 - exponent] = (mantissa >> 16) & 0xff;
+        if (exponent >= 2)
+            out[Crypto::SHA256_HASH_SIZE + 1 - exponent] = (mantissa >> 8) & 0xff;
     }
 
     return out;
@@ -83,31 +88,18 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
     Crypto::Sha256Hash::const_iterator i = std::find_if_not(hash.begin(), hash.end(), [](uint8_t x) {
         return x == 0;
     });
-    int zeros = (int)std::distance(hash.begin(), i);
+    size_t zeros = std::distance(hash.begin(), i);
 
     if (zeros == Crypto::SHA256_HASH_SIZE)
         return TARGET_0_COMPACT;
 
-    // Get the exponent
-    int exponent = (int)Crypto::SHA256_HASH_SIZE - 3 - zeros;
-
     // Get the mantissa
-    uint32_t m0;
-    uint32_t m1;
-    uint32_t m2;
-    if (exponent >= 0)
-    {
-        m0 = hash[Crypto::SHA256_HASH_SIZE - 1 - exponent];
-        m1 = hash[Crypto::SHA256_HASH_SIZE - 2 - exponent];
-        m2 = hash[Crypto::SHA256_HASH_SIZE - 3 - exponent];
-    }
-    else
-    {
-        m0 = 0;
-        m1 = (exponent >= -1) ? hash[Crypto::SHA256_HASH_SIZE - 2 - exponent] : 0;
-        m2 = (exponent >= -2) ? hash[Crypto::SHA256_HASH_SIZE - 3 - exponent] : 0;
-    }
-    uint32_t mantissa = (m2 << 16) | (m1 << 8) | m0;
+    uint32_t m0 = (zeros <= Crypto::SHA256_HASH_SIZE - 1) ? hash[zeros + 0] : 0;
+    uint32_t m1 = (zeros <= Crypto::SHA256_HASH_SIZE - 2) ? hash[zeros + 1] : 0;
+    uint32_t m2 = (zeros <= Crypto::SHA256_HASH_SIZE - 3) ? hash[zeros + 2] : 0;
+    uint32_t mantissa = (m0 << 16) | (m1 << 8) | m2;
+    
+    int exponent = (int)Crypto::SHA256_HASH_SIZE - zeros;
 
     // Mantissa is signed, so adjust if mantissa >= 0x800000
     if (mantissa >= 0x800000)
@@ -115,8 +107,8 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
         mantissa >>= 8;
         exponent += 1;
     }
-    uint32_t compact = (exponent + 3) << EXPONENT_OFFSET | mantissa;
-
+    
+    uint32_t compact = (exponent << EXPONENT_OFFSET) | mantissa;
     return compact;
 }
 
@@ -124,5 +116,5 @@ double Target::toDouble(uint32_t compact)
 {
     int mantissa = extractMantissa(compact);
     int exponent = extractExponent(compact);
-    return double(mantissa) * pow(256.0, exponent);
+    return double(mantissa) * pow(256.0, exponent - 3);
 }

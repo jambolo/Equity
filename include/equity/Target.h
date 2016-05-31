@@ -8,10 +8,11 @@ namespace Equity
 //! Represents a target value in both 256-bit hash form and compact form.
 //!
 //!                            31                              0
-//! Format of the compact form: eeeeeeeemmmmmmmmmmmmmmmmmmmmmmmm
+//! Format of the compact form: eeeeeeeesmmmmmmmmmmmmmmmmmmmmmmm
 //!
-//! e is an 8-bit exponent (0 <= e <= 0x1d) and m is a 24-bit signed mantissa (0 <= m <= 0x7fffff).
-//! The value represented by the compact form is m * 256^(e-3).
+//! e is an 8-bit exponent (0 <= e <= 0x1d), s is a sign bit and m is a 23-bit unsigned mantissa (0 <= m <= 0x7fffff).
+//! The value represented by the compact form is m * 256^(e-3). Note that since the target value is always positive, s
+//! is always 0.
 
 class Target
 {
@@ -27,8 +28,13 @@ public:
     static uint32_t const TARGET_0_COMPACT = 0x0100ffff;
 
     // Constructor
+    //!
+    //! @param  hash     target in hash form
     explicit Target(Crypto::Sha256Hash const & hash);
+    
     // Constructor
+    //!
+    //! @param compact  target in compact form
     explicit Target(uint32_t compact);
 
     //! Returns the hash form

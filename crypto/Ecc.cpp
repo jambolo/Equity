@@ -62,15 +62,25 @@ bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey,
     return true;
 }
 
-bool signMessage(uint8_t const * m, size_t size, PrivateKey const & k, std::vector<uint8_t> & signature)
+bool signMessage(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, std::vector<uint8_t> & signature)
 {
     signature.clear();
     
+    auto_BIGNUM prvKey_bn(BN_new());
+    BN_bin2bn(prvKey.data(), (int)prvKey.size(), prvKey_bn.get());
+
+    auto_EC_KEY ecKey(EC_KEY_new());
+    if (!EC_KEY_set_private_key(ecKey.get(), prvKey_bn.get()))
+        return false;
+    
+    auto_EVP_PKEY pkey(EVP_PKEY_new());
+    EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
+    
     auto_EVP_MD_CTX mdctx(EVP_MD_CTX_create());
-    if (!EVP_DigestSignInit(mdctx.get(), NULL, EVP_sha256(), NULL, key))
+    if (!EVP_DigestSignInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
         return false;
 
-    if (!EVP_DigestSignUpdate(mdctx.get(), m, size))
+    if (!EVP_DigestSignUpdate(mdctx.get(), message, size))
         return false;
 
     // First call EVP_DigestSignFinal with a NULL sig parameter to obtain the maximum length of the signature.
@@ -83,26 +93,39 @@ bool signMessage(uint8_t const * m, size_t size, PrivateKey const & k, std::vect
     if (!EVP_DigestSignFinal(mdctx.get(), signature.data(), &signatureSize))
         return false;
     
+    // Resize to the actual size
     signature.resize(signatureSize);
     return true;
 }
 
 //! Verifies a signed message.
 //!
-//! @param      m           signed message
+//! @param      message     signed message
 //! @param      size        size of the message
-//! @param      k           public key
+//! @param      key         public key
 //! @return true if the message's signature is vaid and it matches the message
-bool messageIsVerified(uint8_t const * m, size_t size, PublicKey const & k, std::vector<uint8_t> & signature)
+bool verifyMessage(uint8_t const * message, size_t size, PublicKey const & pubKey, std::vector<uint8_t> & signature)
 {
+    auto_EC_GROUP group(EC_GROUP_new_by_curve_name(NID_secp256k1));
+    auto_EC_POINT point(EC_POINT_new(group.get()));
+    if (!EC_POINT_oct2point(group.get(), point.get(), pubKey.data(), pubKey.size(), NULL))
+        return false;
+    
+    auto_EC_KEY ecKey(EC_KEY_new());
+    if (!EC_KEY_set_public_key(ecKey.get(), point.get()))
+        return false;
+    
+    auto_EVP_PKEY pkey(EVP_PKEY_new());
+    EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
+    
     auto_EVP_MD_CTX mdctx(EVP_MD_CTX_create());
-    if (!EVP_DigestVerifyInit(mdctx.get(), NULL, EVP_sha256(), NULL, k))
+    if (!EVP_DigestVerifyInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
         return false;
     
-    if (!EVP_DigestVerifyUpdate(mdctx.get(), m, size))
+    if (!EVP_DigestVerifyUpdate(mdctx.get(), message, size))
         return false;
     
-    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size()))
+    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size());
 }
 
 

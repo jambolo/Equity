@@ -9,21 +9,24 @@
 #include <openssl/ec.h>
 #include <openssl/evp.h>
 
-#define DECLARE_AUTO_POINTER(TYPE, FREE)                    \
+namespace Crypto
+{
+    
+#define DECLARE_UNIQUE_POINTER_TYPE(TYPE, FREE)             \
 struct TYPE##_deleter                                       \
 {                                                           \
     void operator ()(TYPE * p) { FREE(p); }                 \
 };                                                          \
 typedef std::unique_ptr<TYPE, TYPE##_deleter> auto_##TYPE
-
-namespace Crypto
-{
-    DECLARE_AUTO_POINTER(BIGNUM, BN_free);
-    DECLARE_AUTO_POINTER(BN_CTX, BN_CTX_free);
-    DECLARE_AUTO_POINTER(EC_GROUP, EC_GROUP_free);
-    DECLARE_AUTO_POINTER(EC_KEY, EC_KEY_free);
-    DECLARE_AUTO_POINTER(EC_POINT, EC_POINT_free);
-    DECLARE_AUTO_POINTER(EVP_MD_CTX, EVP_MD_CTX_destroy);
+    
+    DECLARE_UNIQUE_POINTER_TYPE(BIGNUM, BN_free);
+    DECLARE_UNIQUE_POINTER_TYPE(BN_CTX, BN_CTX_free);
+    DECLARE_UNIQUE_POINTER_TYPE(EC_GROUP, EC_GROUP_free);
+    DECLARE_UNIQUE_POINTER_TYPE(EC_KEY, EC_KEY_free);
+    DECLARE_UNIQUE_POINTER_TYPE(EVP_PKEY, EVP_PKEY_free);
+    DECLARE_UNIQUE_POINTER_TYPE(EC_POINT, EC_POINT_free);
+    DECLARE_UNIQUE_POINTER_TYPE(EVP_MD_CTX, EVP_MD_CTX_destroy);
+    
 } // namespace Crypto
 
 

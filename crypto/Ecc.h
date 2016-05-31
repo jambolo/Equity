@@ -10,7 +10,6 @@ namespace Crypto
 //! ECC library.
 //!
 //! @note   Key values are assumed to be big-endian.
-//! @todo   Move all ECC operations to here
 
 namespace Ecc
 {
@@ -64,7 +63,7 @@ namespace Ecc
     //! @param      k           private key
     //! @param[out] signature   signature
     //! @return true if the returned signature is valid
-    bool signMessage(uint8_t const * m, size_t size, PrivateKey const & k, Signature & signature);
+    bool signMessage(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, Signature & signature);
     
     //! Verifies a signed message.
     //!
@@ -72,7 +71,7 @@ namespace Ecc
     //! @param      size        size of the message
     //! @param      k           public key
     //! @return true if the message's signature is vaid and it matches the message
-    bool messageIsVerified(uint8_t const * m, size_t size, PublicKey const & k, Signature const & signature);
+    bool verifyMessage(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature);
 
     inline bool publicKeyIsValid(uint8_t const * k, size_t size)
     {
