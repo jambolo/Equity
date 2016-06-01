@@ -17,6 +17,10 @@ add_definitions(
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 
+# JSON library include
+
+include_directories($(PROJECT_SOURCE_DIR)/json/src)
+
 # Libraries
 
 add_subdirectory(crypto)            # Crypto support
@@ -24,7 +28,6 @@ add_subdirectory(equity)            # Bitcoin
 add_subdirectory(network)           # Bitcoin network
 add_subdirectory(p2p)               # P2P network
 add_subdirectory(utility)           # Utility functions
-add_subdirectory(cJSON)				# JSON library
 
 # Applications and tests
 

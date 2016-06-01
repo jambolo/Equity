@@ -3,7 +3,6 @@
 #include "crypto/Sha256.h"
 #include "p2p/Serialize.h"
 #include "utility/Utility.h"
-#include <cJSON/cJSON.h>
 
 using namespace Equity;
 
@@ -27,16 +26,17 @@ void Block::Header::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(nonce, out);
 }
 
-P2p::Serializable::cJSON_ptr Block::Header::toJson() const
+json Block::Header::toJson() const
 {
-    cJSON * object = cJSON_CreateObject();
-    cJSON_AddNumberToObject(object, "version", version);
-    cJSON_AddStringToObject(object, "previous", Utility::toHexR(previousBlock).c_str()); // Hashes are stored as big-endian but displayed as little-endian
-    cJSON_AddStringToObject(object, "root", Utility::toHexR(merkleRoot).c_str()); // Hashes are stored as big-endian but displayed as little-endian
-    cJSON_AddNumberToObject(object, "time", timestamp);
-    cJSON_AddNumberToObject(object, "target", target);
-    cJSON_AddNumberToObject(object, "nonce", nonce);
-    return cJSON_ptr(object);
+    return json::object(
+    {
+        { "version", version },
+        { "previous", Utility::toHexR(previousBlock).c_str()}, // Hashes are stored as big-endian but displayed as little-endian
+        { "root", Utility::toHexR(merkleRoot).c_str()}, // Hashes are stored as big-endian but displayed as little-endian
+        { "time", timestamp},
+        { "target", target},
+        { "nonce", nonce}
+    });
 }
 
 Block::Block(Header const & header, TransactionList const & transactions)
@@ -57,10 +57,11 @@ void Block::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarArray<Transaction>(transactions_), out);
 }
 
-P2p::Serializable::cJSON_ptr Block::toJson() const
+json Block::toJson() const
 {
-    cJSON * object = cJSON_CreateObject();
-    cJSON_AddItemToObject(object, "header", header_.toJson().release());
-    cJSON_AddItemToObject(object, "transactions", P2p::toJson(transactions_).release());
-    return cJSON_ptr(object);
+    return json::object(
+    {
+        { "header", header_.toJson() },
+        { "transactions", P2p::toJson(transactions_) }
+    });
 }

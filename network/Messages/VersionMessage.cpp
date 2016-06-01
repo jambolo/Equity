@@ -40,7 +40,7 @@ VersionMessage::VersionMessage(uint8_t const * & in, size_t & size)
     if (version_ >= 106)
     {
         from_ = P2p::deserialize<Address>(in, size);
-        uint64_t nonce_ = P2p::deserialize<uint32_t>(in, size);
+        nonce_ = P2p::deserialize<uint32_t>(in, size);
 
         userAgent_ = P2p::VarString(in, size).value();
         height_ = P2p::deserialize<uint32_t>(in, size);
@@ -62,4 +62,20 @@ void VersionMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(userAgent_, out);
     P2p::serialize(height_, out);
     P2p::serialize(static_cast<uint8_t>(relay_), out);
+}
+
+json VersionMessage::toJson() const
+{
+    return json::object(
+    {
+        { "version", version_ },
+        { "services", services_ },
+        { "timestamp", timestamp_ },
+        { "to", to_.toJson() },
+        { "from", from_.toJson() },
+        { "nonce", nonce_ },
+        { "userAgent", userAgent_ },
+        { "height", height_ },
+        { "relay", relay_ }
+    });
 }

@@ -125,7 +125,7 @@ bool verifyMessage(uint8_t const * message, size_t size, PublicKey const & pubKe
     if (!EVP_DigestVerifyUpdate(mdctx.get(), message, size))
         return false;
     
-    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size());
+    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size()) != 0;
 }
 
 

@@ -3,8 +3,6 @@
 #include "crypto/Sha256.h"
 #include "p2p/Serialize.h"
 
-struct cJSON;
-
 namespace Equity
 {
 
@@ -18,7 +16,7 @@ struct Txid : public P2p::Serializable
     Txid() {}
 
     // Constructor
-    Txid(std::string const & json);
+    explicit Txid(json const & json);
 
     // Deserialization constructor
     //!
@@ -29,7 +27,7 @@ struct Txid : public P2p::Serializable
     //! @name Overrides Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual cJSON_ptr toJson() const override;
+    virtual json toJson() const override;
     //!@}
 
     Crypto::Sha256Hash hash_;   //!< The transaction ID in binary form

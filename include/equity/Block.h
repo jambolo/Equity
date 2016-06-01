@@ -45,8 +45,7 @@ public:
         //! @name Overrides Serializable
         //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual cJSON_ptr toJson() const override;
-
+        virtual json toJson() const override;
         //!@}
     };
 
@@ -65,7 +64,7 @@ public:
     //! @name Overrides Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual cJSON_ptr toJson() const override;
+    virtual json toJson() const override;
 
     //!@}
 

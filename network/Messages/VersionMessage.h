@@ -18,6 +18,16 @@ class VersionMessage : public Message
 {
 public:
     // Constructor
+    //!
+    //! @param  version         version  
+    //! @param  services        services
+    //! @param  timestamp       timestamp
+    //! @param  to              to
+    //! @param  from            from
+    //! @param  nonce           nonce
+    //! @param  userAgent       userAgent
+    //! @param  height          height
+    //! @param  relay           relay
     VersionMessage::VersionMessage(uint32_t            version,
                                    uint64_t            services,
                                    uint64_t            timestamp,
@@ -37,8 +47,7 @@ public:
     //! @name Overrides Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual cJSON_ptr toJson() const override;
-
+    virtual json toJson() const override;
     //!@}
 
     uint32_t version_;          //!< Identifies protocol version being used by the node

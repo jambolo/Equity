@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <vector>
 
-struct cJSON;
-
 namespace Equity
 {
 
@@ -33,10 +31,14 @@ public:
         uint32_t sequence;              //!< Sequence number
 
         // Constructor
-        Input();
+        Input()
+        {
+        }
 
         // Constructor
-        Input(std::string const & json);
+        //!
+        //! @param  json    A json representation of the input
+        explicit Input(json const & j);
 
         // Deserialization constructor
         //!
@@ -47,12 +49,12 @@ public:
         //! @name Overrides Serializable
         //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual cJSON_ptr toJson() const override;
+        virtual json toJson() const override;
 
         //!@}
     };
 
-    // A list of transactions inputs
+    //! A list of transactions inputs
     typedef std::vector<Input> InputList;
 
     //! A transaction output
@@ -76,7 +78,7 @@ public:
         //! @name Overrides Serializable
         //!@{
         virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual cJSON_ptr toJson() const override;
+        virtual json toJson() const override;
 
         //!@}
     };
@@ -99,7 +101,7 @@ public:
     //! @name Overrides Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual cJSON_ptr toJson() const override;
+    virtual json toJson() const override;
 
     //!@}
 

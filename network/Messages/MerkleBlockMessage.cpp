@@ -37,7 +37,7 @@ void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(flags_, out);
 }
 
-P2p::Serializable::cJSON_ptr MerkleBlockMessage::toJson() const
+json MerkleBlockMessage::toJson() const
 {
-    return std::make_unique<cppJSON>(cJSON_CreateString("..."));
+    return std::string("...");
 }

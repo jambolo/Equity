@@ -8,8 +8,6 @@
 namespace Network
 {
 
-//! %Message base class.
-//!
 //! All network message classes are derived from this class.
 
 class Message : public P2p::Serializable
@@ -17,7 +15,8 @@ class Message : public P2p::Serializable
 public:
 
     // Constructor
-    Message(char const * type);
+    //! @param  type    string used to identify the message type during deserialization
+    explicit Message(char const * type);
 
     //! Returns the type
     std::string type() const { return type_; }

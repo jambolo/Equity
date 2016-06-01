@@ -39,32 +39,33 @@ int main(int argc, char ** argv)
     try
     {
         Transaction transaction(in, size);
-        printf("valid: %s\n", transaction.valid() ? "true" : "false");
-        printf("version: %u\n", transaction.version());
-
-        Transaction::InputList inputs = transaction.inputs();
-        printf("inputs:\n");
-        for (size_t i = 0; i < inputs.size(); ++i)
-        {
-            Transaction::Input const & input = inputs[i];
-            Script script(input.script);
-            printf("    %2zu:     txid : %s\n", i, Utility::toHex(input.txid.hash_).c_str());
-            printf("           index : %u\n", input.outputIndex);
-            printf("          script : %s\n", script.toSource().c_str());
-            printf("        sequence : %u\n", input.sequence);
-        }
-
-        Transaction::OutputList outputs = transaction.outputs();
-        printf("outputs:\n");
-        for (size_t i = 0; i < outputs.size(); ++i)
-        {
-            Transaction::Output const & output = outputs[i];
-            Script script(output.script);
-            printf("    %2zu:   value : %llu (%lf BTC)\n", i, output.value, (double)output.value / 100000000.0);
-            printf("         script : %s\n", script.toSource().c_str());
-        }
-
-        printf("lockTime: %u\n", transaction.lockTime());
+//        printf("valid: %s\n", transaction.valid() ? "true" : "false");
+//        printf("version: %u\n", transaction.version());
+//
+//        Transaction::InputList inputs = transaction.inputs();
+//        printf("inputs:\n");
+//        for (size_t i = 0; i < inputs.size(); ++i)
+//        {
+//            Transaction::Input const & input = inputs[i];
+//            Script script(input.script);
+//            printf("    %2zu:     txid : %s\n", i, Utility::toHex(input.txid.hash_).c_str());
+//            printf("           index : %u\n", input.outputIndex);
+//            printf("          script : %s\n", script.toSource().c_str());
+//            printf("        sequence : %u\n", input.sequence);
+//        }
+//
+//        Transaction::OutputList outputs = transaction.outputs();
+//        printf("outputs:\n");
+//        for (size_t i = 0; i < outputs.size(); ++i)
+//        {
+//            Transaction::Output const & output = outputs[i];
+//            Script script(output.script);
+//            printf("    %2zu:   value : %llu (%lf BTC)\n", i, output.value, (double)output.value / 100000000.0);
+//            printf("         script : %s\n", script.toSource().c_str());
+//        }
+//
+//        printf("lockTime: %u\n", transaction.lockTime());
+        printf("%s\n", transaction.toJson().dump(4).c_str());
     }
     catch (P2p::DeserializationError)
     {

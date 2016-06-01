@@ -415,22 +415,22 @@ void Instruction::serialize(std::vector<uint8_t> & out) const
     }
 }
 
-P2p::Serializable::cJSON_ptr Equity::Instruction::toJson() const
+json Equity::Instruction::toJson() const
 {
-    cJSON * s;
+    std::string s;
     if (valid_)
     {
         if ((op_ >= 0x1 && op_ <= 0x4b) || (op_ == OP_PUSHDATA1) || (op_ == OP_PUSHDATA2) || (op_ == OP_PUSHDATA4))
-            s = cJSON_CreateString(Utility::toHex(data_).c_str());
+            s = Utility::toHex(data_);
         else
-            s = cJSON_CreateString(getDescription(op_).name);
+            s = getDescription(op_).name;
     }
     else
     {
-        s = cJSON_CreateString(getDescription(OP_INVALID).name);
+        s = getDescription(OP_INVALID).name;
     }
 
-    return cJSON_ptr(s);
+    return s;
 }
 
 Instruction::Description const & Instruction::getDescription(int opcode)

@@ -12,18 +12,28 @@ class MerkleTree
 public:
 
     // Constructor
+    //! @param  hashes  ordered list of hashes
     MerkleTree(Crypto::Sha256HashList const & hashes);
 
     //! Returns the root
     Crypto::Sha256Hash root() const;
 
-    //! Returns the hash at the given index
+    //! Returns the hash at the given index.
+    //!
+    //! @param  i       index
     Crypto::Sha256Hash hashAt(size_t i) const;
 
-    //! Returns a proof for the hash at the given index
+    //! Returns a proof for the hash at the given index.
+    //!
+    //! @param  i       index
     Crypto::Sha256HashList proof(size_t i) const;
 
-    //! Verifies that the given hash is the hash at the given index, given a proof and a root
+    //! Verifies that the given hash is the hash at the given index, given a proof and a root.
+    //!
+    //! @param  hash    hash to verify
+    //! @param  i       location of the hash
+    //! @param  proof   list of hashes in depth-first order used to verify the hash
+    //! @param  root    root value that should be the result of the proof
     static bool verify(Crypto::Sha256Hash const &     hash,
                        size_t                         i,
                        Crypto::Sha256HashList const & proof,

@@ -7,6 +7,14 @@
 
 using namespace Equity;
 
+Equity::Transaction::Input::Input(json const & json)
+    : txid(json["txid"])
+    , outputIndex(json["outputIndex"])
+    , script(Utility::fromHex(json["script"].get<std::string>()))
+    , sequence(json["sequence"])
+{
+}
+
 Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {
     txid = Txid(in, size);
@@ -23,14 +31,15 @@ void Transaction::Input::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(sequence, out);
 }
 
-P2p::Serializable::cJSON_ptr Transaction::Input::toJson() const
+json Transaction::Input::toJson() const
 {
-    cJSON * object = cJSON_CreateObject();
-    cJSON_AddItemToObject(object, "txid", txid.toJson().release());
-    cJSON_AddNumberToObject(object, "index", outputIndex);
-    cJSON_AddItemToObject(object, "script", Script(script).toJson().release());
-    cJSON_AddNumberToObject(object, "sequence", sequence);
-    return cJSON_ptr(object);
+    return json::object(
+    {
+        { "txid", txid.toJson() },
+        { "outputIndex", outputIndex },
+        { "script", Script(script).toJson() },
+        { "sequence", sequence }
+    });
 }
 
 Transaction::Output::Output(uint8_t const * & in, size_t & size)
@@ -45,12 +54,13 @@ void Transaction::Output::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(P2p::VarArray<uint8_t>(script), out);
 }
 
-P2p::Serializable::cJSON_ptr Transaction::Output::toJson() const
+json Transaction::Output::toJson() const
 {
-    cJSON * object = cJSON_CreateObject();
-    cJSON_AddNumberToObject(object, "value", (double)value);
-    cJSON_AddItemToObject(object, "script", Script(script).toJson().release());
-    return cJSON_ptr(object);
+    return json::object(
+    {
+        { "value", (double)value },
+        { "script", Script(script).toJson() }
+    });
 }
 
 Transaction::Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime)
@@ -80,7 +90,6 @@ Transaction::Transaction(uint8_t const * & in, size_t & size)
 Transaction::Transaction(std::string const & json)
     : valid_(false)
 {
-
 }
 
 void Transaction::serialize(std::vector<uint8_t> & out) const
@@ -91,12 +100,13 @@ void Transaction::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(Utility::littleEndian(lockTime_), out);
 }
 
-P2p::Serializable::cJSON_ptr Transaction::toJson() const
+json Transaction::toJson() const
 {
-    cJSON * object = cJSON_CreateObject();
-    cJSON_AddNumberToObject(object, "version", version_);
-    cJSON_AddItemToObject(object, "inputs", P2p::toJson(inputs_).release());
-    cJSON_AddItemToObject(object, "outputs", P2p::toJson(outputs_).release());
-    cJSON_AddNumberToObject(object, "locktime", lockTime_);
-    return cJSON_ptr(object);
+    return json::object(
+    {
+        { "version", version_ },
+        { "inputs", P2p::toJson(inputs_) },
+        { "outputs", P2p::toJson(outputs_) },
+        { "locktime", lockTime_ }
+    });
 }

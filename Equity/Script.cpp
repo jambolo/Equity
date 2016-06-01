@@ -35,7 +35,7 @@ static std::string toString(Instruction const i)
     }
 }
 
-P2p::Serializable::cJSON_ptr Script::toJson() const
+json Script::toJson() const
 {
     return P2p::toJson(data_);
 }

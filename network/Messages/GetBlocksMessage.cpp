@@ -31,7 +31,7 @@ void GetBlocksMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(last_, out);
 }
 
-P2p::Serializable::cJSON_ptr GetBlocksMessage::toJson() const
+json GetBlocksMessage::toJson() const
 {
-    return std::make_unique<cppJSON>(cJSON_CreateString("..."));
+    return std::string("...");
 }
