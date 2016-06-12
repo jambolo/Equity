@@ -2,6 +2,8 @@ set(SOURCES
     CppUtility.h
     Ecc.cpp
     Ecc.h
+    Random.cpp
+    Random.h
     Ripemd.cpp
     Ripemd.h
     Sha1.cpp
