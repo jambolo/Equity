@@ -11,7 +11,7 @@
 
 #include <vector>
 #include <string>
-#include <stdint>
+#include <cstdint>
 
 //! Mnemonic Generator.
 //!
@@ -52,7 +52,7 @@ public:
     bool isValid() const { return valid_; };
     
     //! Returns a list of the possible words given a partial word
-    static WordList hint(std::string const & word);
+    static WordList hint(std::string const & word, size_t max = 0);
     
 private:
     

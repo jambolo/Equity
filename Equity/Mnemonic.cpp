@@ -2062,7 +2062,7 @@ Mnemonic::Mnemonic(WordList const & words)
     valid_ = verify();
 }
 
-Mnemonic::Mnemonic(uint8_t const * data, size_t size);
+Mnemonic::Mnemonic(uint8_t const * data, size_t size)
 {
     if ((size % 4) != 0 || (size / 4) > Crypto::SHA256_HASH_SIZE * 8)
     {
@@ -2070,7 +2070,7 @@ Mnemonic::Mnemonic(uint8_t const * data, size_t size);
     }
 
     std::vector<uint8_t> bits(data, data+size);
-    Crypto::Sha256Hash hash = Crypto::sha256Hash(bits, size);
+    Crypto::Sha256Hash hash = Crypto::sha256(bits);
     size_t checksumSize =(size / 4 + 7) / 8;
     bits.reserve(size + checksumSize);
     std::copy(hash.data(), hash.data()+checksumSize, std::back_inserter(bits));
@@ -2094,12 +2094,12 @@ Mnemonic::Mnemonic(uint8_t const * data, size_t size);
 Mnemonic::WordList Mnemonic::hint(std::string const & partial, size_t max/* = 0*/)
 {
     WordList matches;
-    for (w : DICTIONARY)
+    for (auto w : DICTIONARY)
     {
-        if (strlen(w) >= word.length() && strncmp(word.c_str(), w, word.length()) == 0)
+        if (strlen(w) >= partial.length() && strncmp(partial.c_str(), w, partial.length()) == 0)
         {
             matches.push_back(w);
-            if (max > 0 && matches.size >= max)
+            if (max > 0 && matches.size() >= max)
                 break;
         }
     }
@@ -2108,7 +2108,7 @@ Mnemonic::WordList Mnemonic::hint(std::string const & partial, size_t max/* = 0*
 
 bool Mnemonic::verify() const
 {
-    if ((words.size() % 3) != 0)
+    if ((words_.size() % 3) != 0)
     {
         return false;
     }

@@ -2,6 +2,8 @@ set(SOURCES
     CppUtility.h
     Ecc.cpp
     Ecc.h
+    Hmac.cpp
+    Hmac.h
     Random.cpp
     Random.h
     Ripemd.cpp
@@ -10,6 +12,9 @@ set(SOURCES
     Sha1.h
     Sha256.cpp
     Sha256.h
+    Sha512.cpp
+    Sha512.h
+
 )
 
 find_package(OpenSSL)
