@@ -5,7 +5,7 @@
 namespace Crypto
 {
 
-Sha512Hash HmacSha512();
+Sha512Hash hmacSha512(uint8_t const * key, size_t keySize, uint8_t const * message, size_t messageSize);
 
 }
 

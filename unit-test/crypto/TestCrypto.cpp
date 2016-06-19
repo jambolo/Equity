@@ -1,9 +1,11 @@
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
+#include "crypto/Hmac.h"
 #include "crypto/Ripemd.h"
 #include "crypto/Sha1.h"
 #include "crypto/Sha256.h"
+#include "crypto/Sha512.h"
 #include "utility/Utility.h"
 #include <cstdio>
 
@@ -174,6 +176,130 @@ static Sha1TestCase const SHA1_CASES[] =
     }
 };
 
+    struct Sha512TestCase
+    {
+        char const * input;
+        uint8_t expected[SHA512_HASH_SIZE];
+    };
+    
+    static Sha512TestCase const SHA512_CASES[] =
+    {
+        {
+            "",
+            {
+                0xcf, 0x83, 0xe1, 0x35, 0x7e, 0xef, 0xb8, 0xbd, 0xf1, 0x54, 0x28, 0x50, 0xd6, 0x6d, 0x80, 0x07,
+                0xd6, 0x20, 0xe4, 0x05, 0x0b, 0x57, 0x15, 0xdc, 0x83, 0xf4, 0xa9, 0x21, 0xd3, 0x6c, 0xe9, 0xce,
+                0x47, 0xd0, 0xd1, 0x3c, 0x5d, 0x85, 0xf2, 0xb0, 0xff, 0x83, 0x18, 0xd2, 0x87, 0x7e, 0xec, 0x2f,
+                0x63, 0xb9, 0x31, 0xbd, 0x47, 0x41, 0x7a, 0x81, 0xa5, 0x38, 0x32, 0x7a, 0xf9, 0x27, 0xda, 0x3e
+            }
+        },
+        {
+            "abc",
+            {
+                0xdd, 0xaf, 0x35, 0xa1, 0x93, 0x61, 0x7a, 0xba, 0xcc, 0x41, 0x73, 0x49, 0xae, 0x20, 0x41, 0x31,
+                0x12, 0xe6, 0xfa, 0x4e, 0x89, 0xa9, 0x7e, 0xa2, 0x0a, 0x9e, 0xee, 0xe6, 0x4b, 0x55, 0xd3, 0x9a,
+                0x21, 0x92, 0x99, 0x2a, 0x27, 0x4f, 0xc1, 0xa8, 0x36, 0xba, 0x3c, 0x23, 0xa3, 0xfe, 0xeb, 0xbd,
+                0x45, 0x4d, 0x44, 0x23, 0x64, 0x3c, 0xe8, 0x0e, 0x2a, 0x9a, 0xc9, 0x4f, 0xa5, 0x4c, 0xa4, 0x9f
+            }
+        },
+        {
+            "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+            {
+                0x20, 0x4a, 0x8f, 0xc6, 0xdd, 0xa8, 0x2f, 0x0a, 0x0c, 0xed, 0x7b, 0xeb, 0x8e, 0x08, 0xa4, 0x16,
+                0x57, 0xc1, 0x6e, 0xf4, 0x68, 0xb2, 0x28, 0xa8, 0x27, 0x9b, 0xe3, 0x31, 0xa7, 0x03, 0xc3, 0x35,
+                0x96, 0xfd, 0x15, 0xc1, 0x3b, 0x1b, 0x07, 0xf9, 0xaa, 0x1d, 0x3b, 0xea, 0x57, 0x78, 0x9c, 0xa0,
+                0x31, 0xad, 0x85, 0xc7, 0xa7, 0x1d, 0xd7, 0x03, 0x54, 0xec, 0x63, 0x12, 0x38, 0xca, 0x34, 0x45
+            }
+        },
+        {
+            "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+            {
+                0x8e, 0x95, 0x9b, 0x75, 0xda, 0xe3, 0x13, 0xda, 0x8c, 0xf4, 0xf7, 0x28, 0x14, 0xfc, 0x14, 0x3f,
+                0x8f, 0x77, 0x79, 0xc6, 0xeb, 0x9f, 0x7f, 0xa1, 0x72, 0x99, 0xae, 0xad, 0xb6, 0x88, 0x90, 0x18,
+                0x50, 0x1d, 0x28, 0x9e, 0x49, 0x00, 0xf7, 0xe4, 0x33, 0x1b, 0x99, 0xde, 0xc4, 0xb5, 0x43, 0x3a,
+                0xc7, 0xd3, 0x29, 0xee, 0xb6, 0xdd, 0x26, 0x54, 0x5e, 0x96, 0xe5, 0x5b, 0x87, 0x4b, 0xe9, 0x09
+            }
+        }
+    };
+    
+    struct HmacSha512TestCase
+    {
+        char const * key;       // note: in hex
+        char const * message;   // note: in hex
+        uint8_t expected[SHA512_HASH_SIZE];
+    };
+
+    static HmacSha512TestCase const HMACSHA512_CASES[] =
+    {
+        {
+            "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+            "4869205468657265",
+            {
+                0x87, 0xaa, 0x7c, 0xde, 0xa5, 0xef, 0x61, 0x9d, 0x4f, 0xf0, 0xb4, 0x24, 0x1a, 0x1d, 0x6c, 0xb0,
+                0x23, 0x79, 0xf4, 0xe2, 0xce, 0x4e, 0xc2, 0x78, 0x7a, 0xd0, 0xb3, 0x05, 0x45, 0xe1, 0x7c, 0xde,
+                0xda, 0xa8, 0x33, 0xb7, 0xd6, 0xb8, 0xa7, 0x02, 0x03, 0x8b, 0x27, 0x4e, 0xae, 0xa3, 0xf4, 0xe4,
+                0xbe, 0x9d, 0x91, 0x4e, 0xeb, 0x61, 0xf1, 0x70, 0x2e, 0x69, 0x6c, 0x20, 0x3a, 0x12, 0x68, 0x54
+            }
+        },
+        {
+            "4a656665",
+            "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
+            {
+                0x16, 0x4b, 0x7a, 0x7b, 0xfc, 0xf8, 0x19, 0xe2, 0xe3, 0x95, 0xfb, 0xe7, 0x3b, 0x56, 0xe0, 0xa3,
+                0x87, 0xbd, 0x64, 0x22, 0x2e, 0x83, 0x1f, 0xd6, 0x10, 0x27, 0x0c, 0xd7, 0xea, 0x25, 0x05, 0x54,
+                0x97, 0x58, 0xbf, 0x75, 0xc0, 0x5a, 0x99, 0x4a, 0x6d, 0x03, 0x4f, 0x65, 0xf8, 0xf0, 0xe6, 0xfd,
+                0xca, 0xea, 0xb1, 0xa3, 0x4d, 0x4a, 0x6b, 0x4b, 0x63, 0x6e, 0x07, 0x0a, 0x38, 0xbc, 0xe7, 0x37
+            }
+        },
+        {
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            {
+                0xfa, 0x73, 0xb0, 0x08, 0x9d, 0x56, 0xa2, 0x84, 0xef, 0xb0, 0xf0, 0x75, 0x6c, 0x89, 0x0b, 0xe9,
+                0xb1, 0xb5, 0xdb, 0xdd, 0x8e, 0xe8, 0x1a, 0x36, 0x55, 0xf8, 0x3e, 0x33, 0xb2, 0x27, 0x9d, 0x39,
+                0xbf, 0x3e, 0x84, 0x82, 0x79, 0xa7, 0x22, 0xc8, 0x06, 0xb4, 0x85, 0xa4, 0x7e, 0x67, 0xc8, 0x07,
+                0xb9, 0x46, 0xa3, 0x37, 0xbe, 0xe8, 0x94, 0x26, 0x74, 0x27, 0x88, 0x59, 0xe1, 0x32, 0x92, 0xfb
+            }
+        },
+        {
+            "0102030405060708090a0b0c0d0e0f10111213141516171819",
+            "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            {
+                0xb0, 0xba, 0x46, 0x56, 0x37, 0x45, 0x8c, 0x69, 0x90, 0xe5, 0xa8, 0xc5, 0xf6, 0x1d, 0x4a, 0xf7,
+                0xe5, 0x76, 0xd9, 0x7f, 0xf9, 0x4b, 0x87, 0x2d, 0xe7, 0x6f, 0x80, 0x50, 0x36, 0x1e, 0xe3, 0xdb,
+                0xa9, 0x1c, 0xa5, 0xc1, 0x1a, 0xa2, 0x5e, 0xb4, 0xd6, 0x79, 0x27, 0x5c, 0xc5, 0x78, 0x80, 0x63,
+                0xa5, 0xf1, 0x97, 0x41, 0x12, 0x0c, 0x4f, 0x2d, 0xe2, 0xad, 0xeb, 0xeb, 0x10, 0xa2, 0x98, 0xdd
+            }
+        },
+        {
+            "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+            "546573742057697468205472756e636174696f6e",
+            {
+                0x41, 0x5f, 0xad, 0x62, 0x71, 0x58, 0x0a, 0x53, 0x1d, 0x41, 0x79, 0xbc, 0x89, 0x1d, 0x87, 0xa6
+            }
+        },
+        {
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374",
+            {
+                0x80, 0xb2, 0x42, 0x63, 0xc7, 0xc1, 0xa3, 0xeb, 0xb7, 0x14, 0x93, 0xc1, 0xdd, 0x7b, 0xe8, 0xb4,
+                0x9b, 0x46, 0xd1, 0xf4, 0x1b, 0x4a, 0xee, 0xc1, 0x12, 0x1b, 0x01, 0x37, 0x83, 0xf8, 0xf3, 0x52,
+                0x6b, 0x56, 0xd0, 0x37, 0xe0, 0x5f, 0x25, 0x98, 0xbd, 0x0f, 0xd2, 0x21, 0x5d, 0x6a, 0x1e, 0x52,
+                0x95, 0xe6, 0x4f, 0x73, 0xf6, 0x3f, 0x0a, 0xec, 0x8b, 0x91, 0x5a, 0x98, 0x5d, 0x78, 0x65, 0x98
+            }
+        },
+        {
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e",
+            {
+                0xe3, 0x7b, 0x6a, 0x77, 0x5d, 0xc8, 0x7d, 0xba, 0xa4, 0xdf, 0xa9, 0xf9, 0x6e, 0x5e, 0x3f, 0xfd,
+                0xde, 0xbd, 0x71, 0xf8, 0x86, 0x72, 0x89, 0x86, 0x5d, 0xf5, 0xa3, 0x2d, 0x20, 0xcd, 0xc9, 0x44,
+                0xb6, 0x02, 0x2c, 0xac, 0x3c, 0x49, 0x82, 0xb1, 0x0d, 0x5e, 0xeb, 0x55, 0xc3, 0xe4, 0xde, 0x15,
+                0x13, 0x46, 0x76, 0xfb, 0x6d, 0xe0, 0x44, 0x60, 0x65, 0xc9, 0x74, 0x40, 0xfa, 0x8c, 0x6a, 0x58
+            }
+        }
+    };
+    
 TEST_CLASS(CryptoTest)
 {
 public:
@@ -183,7 +309,7 @@ public:
         {
             Ripemd160Hash result = Crypto::ripemd160((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           errorMessage(L"ripemd160", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"ripemd160", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
         }
     }
 
@@ -193,7 +319,7 @@ public:
         {
             Sha256Hash result = Crypto::sha256((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           errorMessage(L"sha256", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha256", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
         }
     }
 
@@ -203,7 +329,7 @@ public:
         {
             Sha256Hash result = Crypto::doubleSha256((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           errorMessage(L"doubleSha256", c.input, c.expected, sizeof(c.expected), &result[0],
+                           hashErrorMessage(L"doubleSha256", c.input, c.expected, sizeof(c.expected), &result[0],
                                         result.size()).c_str());
         }
     }
@@ -214,39 +340,83 @@ public:
         {
             Sha1Hash result = Crypto::sha1((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           errorMessage(L"sha1", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha1", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
         }
     }
-
+    
     TEST_METHOD(Crypto_checksum)
     {
         for (auto const & c : DOUBLE_SHA256_CASES)
         {
             Checksum result = Crypto::checksum((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           errorMessage(L"checksum", c.input, c.expected, CHECKSUM_SIZE, &result[0], result.size()).c_str());
+                           hashErrorMessage(L"checksum", c.input, c.expected, CHECKSUM_SIZE, &result[0], result.size()).c_str());
+        }
+    }
+    
+    TEST_METHOD(Crypto_sha512)
+    {
+        for (auto const & c : SHA512_CASES)
+        {
+            Sha512Hash result = Crypto::sha512((uint8_t const *)c.input, strlen(c.input));
+            Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
+                           hashErrorMessage(L"sha512", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+        }
+    }
+    
+    TEST_METHOD(Crypto_hmacsha512)
+    {
+        for (auto const & c : HMACSHA512_CASES)
+        {
+            std::vector<uint8_t> key = fromHex(c.key, strlen(c.key))
+            std::vector<uint8_t> message = fromHex(c.message, strlen(c.message))
+            Sha512Hash result = Crypto::hmacSha512(key.data(), key.size(), message.data(), message.size());
+            Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
+                           hmacErrorMessage(L"hmacSha512", c.key, c.message, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
         }
     }
 
-    static std::wstring errorMessage(wchar_t const * test,
-                                     char const *    input,
-                                     uint8_t const * expected,
-                                     size_t          expectedSize,
-                                     uint8_t const * actual,
-                                     size_t          actualSize)
+    static std::wstring hashErrorMessage(wchar_t const * test,
+                                         char const *    input,
+                                         uint8_t const * expected,
+                                         size_t          expectedSize,
+                                         uint8_t const * actual,
+                                         size_t          actualSize)
     {
         std::wostringstream message;
         message
-            << test
-            << L"(\""
-            << ToString(shorten(input))
-            << L"\"): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
+        << test
+        << L"(\""
+        << ToString(shorten(input))
+        << L"\"): expected "
+        << ToString(toHex(expected, expectedSize))
+        << ", got "
+        << ToString(toHex(actual, actualSize));
         return message.str();
     }
-
+    
+    static std::wstring hmacErrorMessage(wchar_t const * test,
+                                         char const *    key,
+                                         char const *    data,
+                                         uint8_t const * expected,
+                                         size_t          expectedSize,
+                                         uint8_t const * actual,
+                                         size_t          actualSize)
+    {
+        std::wostringstream message;
+        message
+        << test
+        << L"(\""
+        << ToString(shorten(key))
+        << L"\", \""
+        << ToString(shorten(data))
+        << L"\"): expected "
+        << ToString(toHex(expected, expectedSize))
+        << ", got "
+        << ToString(toHex(actual, actualSize));
+        return message.str();
+    }
+    
 };
 
 } // namespace TestCrypto
