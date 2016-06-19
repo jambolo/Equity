@@ -272,13 +272,6 @@ static Sha1TestCase const SHA1_CASES[] =
             }
         },
         {
-            "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
-            "546573742057697468205472756e636174696f6e",
-            {
-                0x41, 0x5f, 0xad, 0x62, 0x71, 0x58, 0x0a, 0x53, 0x1d, 0x41, 0x79, 0xbc, 0x89, 0x1d, 0x87, 0xa6
-            }
-        },
-        {
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374",
             {
@@ -368,11 +361,15 @@ public:
     {
         for (auto const & c : HMACSHA512_CASES)
         {
-            std::vector<uint8_t> key = fromHex(c.key, strlen(c.key))
-            std::vector<uint8_t> message = fromHex(c.message, strlen(c.message))
+            std::vector<uint8_t> key = fromHex(c.key, strlen(c.key));
+                std::vector<uint8_t> message = fromHex(c.message, strlen(c.message));
             Sha512Hash result = Crypto::hmacSha512(key.data(), key.size(), message.data(), message.size());
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hmacErrorMessage(L"hmacSha512", c.key, c.message, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hmacErrorMessage(L"hmacSha512",
+                               c.key,
+                               c.message,
+                               c.expected, sizeof(c.expected),
+                               &result[0], result.size()).c_str());
         }
     }
 

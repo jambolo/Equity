@@ -51,10 +51,10 @@ bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey,
     if (!EC_POINT_mul(group.get(), point.get(), prvKey_bn.get(), NULL, NULL, ctx.get()))
         return false;
 
-    std::fill(pubKey.begin(), pubKey.end(), 0);
+    pubKey.resize(uncompressed ? UNCOMPRESSED_PUBLIC_KEY_SIZE : COMPRESSED_PUBLIC_KEY_SIZE, 0);
     size_t length = EC_POINT_point2oct(group.get(),
                                        point.get(),
-                                       POINT_CONVERSION_UNCOMPRESSED,
+                                       uncompressed ? POINT_CONVERSION_UNCOMPRESSED : POINT_CONVERSION_COMPRESSED,
                                        pubKey.data(),
                                        pubKey.size(),
                                        ctx.get());
