@@ -58,20 +58,22 @@ namespace Ecc
     
     //! Signs a message.
     //!
-    //! @param      m           message to sign
+    //! @param      message     message to sign
     //! @param      size        size of the message
-    //! @param      k           private key
+    //! @param      prvKey      private key
+    //! @param      pubKey      public key
     //! @param[out] signature   signature
     //! @return true if the returned signature is valid
-    bool signMessage(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, Signature & signature);
+    bool sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, Signature & signature);
     
     //! Verifies a signed message.
     //!
-    //! @param      m           signed message
+    //! @param      message     message to sign
     //! @param      size        size of the message
-    //! @param      k           public key
-    //! @return true if the message's signature is vaid and it matches the message
-    bool verifyMessage(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature);
+    //! @param      pubKey      public key
+    //! @param      signature   signature
+    //! @return true if the message's signature is valid and it matches the message
+    bool verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature);
 
     inline bool publicKeyIsValid(uint8_t const * k, size_t size)
     {

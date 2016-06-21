@@ -19,9 +19,12 @@ public:
 
     class Header;
 
+    //! Contains a message's payload
     typedef std::vector<uint8_t> Payload;
 
     // Constructor
+    //! @param  type        message type
+    //! @param  payload     message payload
     Message(char const * type, std::vector<uint8_t> const & payload);
 
     //! Returns the message type
@@ -70,7 +73,6 @@ public:
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
-
     //!@}
 };
 

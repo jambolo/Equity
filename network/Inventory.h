@@ -25,7 +25,18 @@ struct InventoryId : public P2p::Serializable
         TYPE_FILTERED_BLOCK = 3 //!< Hash of a block header, but indicates that the reply should be a merkleblock message
     };
 
+    // Constructor
+    //!
+    //! @param  type    type of inventory
+    //! @param  hash    hash id of the inventory
     InventoryId(TypeId type, Crypto::Sha256Hash const & hash);
+
+    // Deserializing Constructor
+    //!
+    //! @param[in,out]     in
+    //! @param[in,out]     size
+    //!
+    //! @return 
     InventoryId(uint8_t const * & in, size_t & size);
 
     //! @name Overrides Serializable
@@ -39,6 +50,7 @@ struct InventoryId : public P2p::Serializable
     Crypto::Sha256Hash hash_;   //!< A hash representing the object
 };
 
+//! A list of inventory IDs
 typedef std::vector<InventoryId> InventoryList;
 
 } // namespace Network

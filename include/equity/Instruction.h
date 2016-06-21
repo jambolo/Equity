@@ -23,6 +23,11 @@ class Instruction : public P2p::Serializable
 {
 public:
 
+    //! All named opcodes.
+    //!
+    //! Valid opcodes are in the range of 0x00 - 0xff. Not all values in this range represent valid opcodes. In
+    //! addition, many named opcodes are considered disabled or invalid.
+
     enum OpCode
     {
         // Constants
@@ -74,8 +79,8 @@ public:
         OP_VERIFY               = 0x69, //!< Marks transaction as invalid if top stack value is not true.
         OP_RETURN               = 0x6a, //!< Marks transaction as invalid. A standard way of attaching extra data to transactions
                                         //!< is to add a zero-value output with a scriptPubKey consisting of OP_RETURN followed by
-                                        //!< exactly one pushdata op.Such outputs are provably unspendable, reducing their cost to
-                                        //!< the network.Currently it is usually considered non-standard(though valid) for a
+                                        //!< exactly one pushdata op. Such outputs are provably unspendable, reducing their cost to
+                                        //!< the network. Currently it is usually considered non-standard (though valid) for a
                                         //!< transaction to have more than one OP_RETURN output or an OP_RETURN output with more
                                         //!< than one pushdata op.
 
@@ -100,7 +105,7 @@ public:
         OP_ROT                  = 0x7b, //!< The top three items on the stack are rotated to the left.
         OP_SWAP                 = 0x7c, //!< The top two items on the stack are swapped.
         OP_TUCK                 = 0x7d, //!< The item at the top of the stack is copied and inserted before the second-to-top
-                                        // item.
+                                        //!< item.
 
         // Splice
 
@@ -165,13 +170,15 @@ public:
                                         //!< valid signature for this hash and public key. If it is, 1 is returned, 0 otherwise.
         OP_CHECKSIGVERIFY       = 0xad, //!< Same as OP_CHECKSIG, but OP_VERIFY is executed afterward.
         OP_CHECKMULTISIG        = 0xae, //!< Compares the first signature against each public key until it finds an ECDSA
-                                        //!< match.Starting with the subsequent public key, it compares the second signature against
-                                        //!< each remaining public key until it finds an ECDSA match.The process is repeated until
+                                        //!< match. Starting with the subsequent public key, it compares the second signature
+                                        // against
+                                        //!< each remaining public key until it finds an ECDSA match. The process is repeated until
                                         //!< all signatures have been checked or not enough public keys remain to produce a
-                                        //!< successful result.All signatures need to match a public key.Because public keys are not
+                                        //!< successful result. All signatures need to match a public key. Because public keys are
+                                        // not
                                         //!< checked again if they fail any signature comparison, signatures must be placed in the
                                         //!< scriptSig using the same order as their corresponding public keys were placed in the
-                                        //!< scriptPubKey or redeemScript.If all signatures are valid, 1 is returned, 0
+                                        //!< scriptPubKey or redeemScript. If all signatures are valid, 1 is returned, 0
                                         //!< otherwise. Due to a bug, one extra unused value is removed from the stack.
         OP_CHECKMULTISIGVERIFY  = 0xaf, //!< Same as OP_CHECKMULTISIG, but OP_VERIFY is executed afterward.
         OP_NOP1                 = 0xb0, //!< The word is ignored. Does not mark transaction as invalid.
@@ -200,19 +207,24 @@ public:
     //! Information about an opcode
     struct Description
     {
-        int value;          // Opcode value
-        char const * name;  // Name to display
-        int minArgs;        // Minimum number of arguments
-        bool valid;         // If false, the appearance of this opcode in a script will invalidate the script
+        int value;          //!< Opcode value
+        char const * name;  //!< Name to display
+        int minArgs;        //!< Minimum number of arguments
+        bool valid;         //!< If false, the appearance of this opcode in a script will invalidate the script
     };
 
     // Constructor
+    //!
+    //! @param  op          opcode
+    //! @param  data        optional data
+    //! @param  location    location (default: 0)
     Instruction(int op, std::vector<uint8_t> const & data = std::vector<uint8_t>(), size_t location = 0);
 
     // Deserialization constructor
     //!
-    //! @param[in,out]  in      pointer to the next byte to deserialize
-    //! @param[in,out]  size    number of bytes remaining in the serialized stream
+    //! @param[in,out]  in          pointer to the next byte to deserialize
+    //! @param[in,out]  size        number of bytes remaining in the serialized stream
+    //! @param          location    location of the instruction
     Instruction(uint8_t const * & in, size_t & size, size_t location);
 
     //! @name Overrides Serializable

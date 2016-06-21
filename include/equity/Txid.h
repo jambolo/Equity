@@ -16,6 +16,7 @@ struct Txid : public P2p::Serializable
     Txid() {}
 
     // Constructor
+    //! @param  json    A json representation of the txid
     explicit Txid(json const & json);
 
     // Deserialization constructor

@@ -62,7 +62,7 @@ bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey,
     return true;
 }
 
-bool signMessage(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, std::vector<uint8_t> & signature)
+bool Crypto::Ecc::sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, Signature & signature)
 {
     signature.clear();
     
@@ -102,9 +102,10 @@ bool signMessage(uint8_t const * message, size_t size, PrivateKey const & prvKey
 //!
 //! @param      message     signed message
 //! @param      size        size of the message
-//! @param      key         public key
+//! @param      pubKey      public key
+//! @param      signature   signature to verify
 //! @return true if the message's signature is vaid and it matches the message
-bool verifyMessage(uint8_t const * message, size_t size, PublicKey const & pubKey, std::vector<uint8_t> & signature)
+bool Crypto::Ecc::verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature)
 {
     auto_EC_GROUP group(EC_GROUP_new_by_curve_name(NID_secp256k1));
     auto_EC_POINT point(EC_POINT_new(group.get()));

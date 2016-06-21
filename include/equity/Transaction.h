@@ -9,6 +9,9 @@
 namespace Equity
 {
 
+//! A Bitcoin transaction.
+//!
+//! A Bitcoin transaction moves bitcoins from outputs of other transactions to new outputs.
 class Transaction : public P2p::Serializable
 {
 public:
@@ -38,7 +41,7 @@ public:
         // Constructor
         //!
         //! @param  json    A json representation of the input
-        explicit Input(json const & j);
+        explicit Input(json const & json);
 
         // Deserialization constructor
         //!
@@ -67,6 +70,7 @@ public:
         Output() {}
 
         // Constructor
+        //! @param  json    A json representation of the output
         Output(std::string const & json);
 
         // Deserialization constructor
@@ -87,9 +91,14 @@ public:
     typedef std::vector<Output> OutputList;
 
     // Constructor
+    //! @param  version     version
+    //! @param  inputs      list of inputs
+    //! @param  outputs     list of outputs
+    //! @param  lockTime    locktime value
     Transaction(int version, InputList const & inputs, OutputList const & outputs, uint32_t lockTime);
 
     // Constructor
+    //! @param  json    transaction in JSON form
     Transaction(std::string const & json);
 
     // Deserialization constructor
@@ -105,9 +114,16 @@ public:
 
     //!@}
 
+    //! Returns the version.
     uint32_t version() const { return version_; }
+
+    //! Returns the transaction's inputs
     InputList inputs() const { return inputs_; }
+
+    //! Returns the transaction's outputs
     OutputList outputs() const { return outputs_; }
+
+    //! Returns the locktime value
     uint32_t lockTime() const { return lockTime_; }
 
     //! Returns true if the transaction is well-formed

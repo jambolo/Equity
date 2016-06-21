@@ -26,6 +26,7 @@ namespace Equity
     {
     public:
 
+        //! A list of words.
         using WordList = std::vector<std::string>;
 
         // Constructor

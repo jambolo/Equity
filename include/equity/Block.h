@@ -53,6 +53,9 @@ public:
     Block() {}
 
     // Constructor
+    //!
+    //! @param  header          block header
+    //! @param  transactions    transactions included in the block
     Block(Header const & header, TransactionList const & transactions);
 
     // Deserialization constructor
@@ -65,7 +68,6 @@ public:
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
-
     //!@}
 
     //! Returns the header

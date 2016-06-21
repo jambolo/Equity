@@ -8,6 +8,9 @@
 namespace Equity
 {
 
+//! A Bitcoin private key
+//!
+//! A Bitcoin PrivateKey is basically an ECC private key, though it can take many forms and encodings.
 class PrivateKey
 {
 public:
@@ -34,7 +37,7 @@ public:
     // Constructor
     //!
     //! The input can be in either the WIF format or the mini-key format. If the format is invalid or the value of the
-    //! key is invalid, the contructed object is marked as invalid.
+    //! key is invalid, the constructed object is marked as invalid.
     //!
     //! @param  s   string form of the private key
     explicit PrivateKey(std::string const & s);

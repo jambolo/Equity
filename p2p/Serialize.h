@@ -1,8 +1,8 @@
 #pragma once
 
 #include <array>
-#include <json.hpp>
 #include <cstdint>
+#include <json.hpp>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -33,12 +33,12 @@ public:
     //!
     //! @param[out]     out     destination
     //!
-    //! @note   Must be overriden
+    //! @note   Must be overridden
     virtual void serialize(std::vector<uint8_t> & out) const = 0;
 
     //! Converts the object to a JSON string.
     //!
-    //! @note   Must be overriden
+    //! @note   Must be overridden
     virtual json toJson() const = 0;
 
 };
@@ -51,10 +51,7 @@ public:
 //!
 //! @param  a       object to be serialized
 //! @param  out     destination
-inline void serialize(Serializable const & a, std::vector<uint8_t> & out)
-{
-    a.serialize(out);
-}
+void serialize(Serializable const & a, std::vector<uint8_t> & out);
 
 //! Serializes a uint8_t.
 //!
@@ -96,6 +93,33 @@ void serialize(char const * s, std::vector<uint8_t> & out);
 //!
 //! @param  v       std::vector to be serialized
 //! @param  out     destination
+template <typename T> void serialize(std::vector<T> const & v, std::vector<uint8_t> & out);
+
+//! Serializes a vector of std::array.
+//!
+//! @param  v       std::vector to be serialized
+//! @param  out     destination
+template <typename T, size_t N> void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out);
+
+//! Serializes a vector of uint8_t.
+//!
+//! @param  a       std::vector to be serialized
+//! @param  out     destination
+template <> void serialize<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
+
+//! Serializes an std::array.
+//!
+//! @param  a       std::array to be serialized
+//! @param  out     destination
+//!
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T, size_t N> void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out);
+
+inline void serialize(Serializable const & a, std::vector<uint8_t> & out)
+{
+    a.serialize(out);
+}
+
 template <typename T>
 void serialize(std::vector<T> const & v, std::vector<uint8_t> & out)
 {
@@ -105,10 +129,6 @@ void serialize(std::vector<T> const & v, std::vector<uint8_t> & out)
     }
 }
 
-//! Serializes a vector of std::array.
-//!
-//! @param  v       std::vector to be serialized
-//! @param  out     destination
 template <typename T, size_t N>
 void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out)
 {
@@ -118,18 +138,13 @@ void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & 
     }
 }
 
-//! Serializes a vector of uint8_t.
-//!
-//! @param  a       std::vector to be serialized
-//! @param  out     destination
-template <> void serialize<uint8_t>(std::vector<uint8_t> const & a, std::vector<uint8_t> & out);
-
 //! A helper class for serialization of an std::array.
 //!
 //! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T, size_t N>
 struct SerializeArrayImpl
 {
+    //! Serialization functor.
     void operator ()(std::array<T, N> const & a, std::vector<uint8_t> & out)
     {
         for (auto const & element : a)
@@ -140,12 +155,13 @@ struct SerializeArrayImpl
 
 };
 
-//! A helper class for serialization of an std::array of uint8_t
+//! A helper class for serialization of an std::array of uint8_t.
 //!
 //! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <size_t N>
 struct SerializeArrayImpl<uint8_t, N>
 {
+    //! Serialization functor.
     void operator ()(std::array<uint8_t, N> const & a, std::vector<uint8_t> & out)
     {
         out.insert(out.end(), a.begin(), a.end());
@@ -153,12 +169,6 @@ struct SerializeArrayImpl<uint8_t, N>
 
 };
 
-//! Serializes an std::array.
-//!
-//! @param  a       std::array to be serialized
-//! @param  out     destination
-//!
-//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T, size_t N>
 void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out)
 {
@@ -170,25 +180,62 @@ void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out)
 /*                                          J S O N   C O N V E R S I O N                                         */
 /******************************************************************************************************************/
 
-inline json toJson(Serializable const & x)
-{
-    return x.toJson();
-}
+//! Converts a Serializable to JSON object.
+//!
+//! @param  x       object to be serialized
+json toJson(Serializable const & x);
 
-//! Converts a generic array to a JSON array value
+//! Converts a generic array to a JSON array value toJson.
+//!
+//! @param  v       pointer to array
+//! @param  size    number of elements in the array
 template <typename T> json toJson(T const * v, size_t size);
 
-//! Converts a std::vector to a JSON array value
+//! Converts a std::vector to a JSON array value toJson.
+//!
+//! @param  v       std::vector to be serialized
 template <typename T> json toJson(std::vector<T> const & v);
 
-//! Converts a std::vector<uint8_t> to a JSON hex string
+//! Converts a std::vector<uint8_t> to a JSON hex string toJson.
+//!
+//! @param  v
 template <> json toJson(std::vector<uint8_t> const & v);
 
 //! Converts a generic std::array to a JSON array value
 //!
 //! @param  a       std::array to be serialized
-//! @param  out     destination
 template <typename T, size_t N> json toJson(std::array<T, N> const & a);
+
+//! A helper class for converting an std::array to JSON.
+//!
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T, size_t N>
+struct ToJsonArrayImpl
+{
+    //! Json functor.
+    json operator ()(std::array<T, N> const & a)
+    {
+        return toJson(a.data(), a.size());
+    }
+};
+
+//! A helper class for converting an std::array<uint8_t, N> to JSON.
+//!
+//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <size_t N>
+struct ToJsonArrayImpl<uint8_t, N>
+{
+    //! Json functor.
+    json operator ()(std::array<uint8_t, N> const & a)
+    {
+        return Utility::toHex(a.data(), a.size());
+    }
+};
+
+inline json toJson(Serializable const & x)
+{
+    return x.toJson();
+}
 
 template <typename T>
 json toJson(T const * v, size_t size)
@@ -210,31 +257,6 @@ json toJson(std::vector<T> const & v)
     return toJson(v.data(), v.size());
 }
 
-//! A helper class for converting an std::array to JSON.
-//!
-//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
-template <typename T, size_t N>
-struct ToJsonArrayImpl
-{
-    json operator ()(std::array<T, N> const & a)
-    {
-        return toJson(a.data(), a.size());
-    }
-};
-
-//! A helper class for converting an std::array<uint8_t, N> to JSON.
-//!
-//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
-template <size_t N>
-struct ToJsonArrayImpl<uint8_t, N>
-{
-    json operator ()(std::array<uint8_t, N> const & a)
-    {
-        return Utility::toHex(a.data(), a.size());
-    }
-};
-
-//! @internal   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T, size_t N>
 json toJson(std::array<T, N> const & a)
 {
@@ -252,11 +274,7 @@ json toJson(std::array<T, N> const & a)
 //! @param[in,out]  size    number of bytes remaining in the serialized stream
 //!
 //! @note   The object being deserialized must have a constructor of the form T(uint8_t const * & in, size_t & size)
-template <typename T>
-T deserialize(uint8_t const * & in, size_t & size)
-{
-    return T(in, size);
-}
+template <typename T> T deserialize(uint8_t const * & in, size_t & size);
 
 //! Deserializes a uint8_t.
 //!
@@ -289,17 +307,7 @@ template <> uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size);
 //! @param[in,out]  size    number of bytes remaining in the serialized stream
 //!
 //! @note   The elements of the vector must support deserialization
-template <typename T>
-std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
-{
-    std::vector<T> v;
-    v.reserve(n);
-    for (size_t i = 0; i < n; ++i)
-    {
-        v.push_back(deserialize<T>(in, size));
-    }
-    return v;
-}
+template <typename T> std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size);
 
 //! Deserializes a vector of uint8_t.
 //!
@@ -308,12 +316,37 @@ std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
 //! @param[in,out]  size    number of bytes remaining in the serialized stream
 template <> std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, size_t & size);
 
+//! Deserializes an std::array.
+//!
+//! @param[in,out]  in      pointer to the next byte to deserialize
+//! @param[in,out]  size    number of bytes remaining in the serialized stream
+//!
+//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T> T deserializeArray(uint8_t const * & in, size_t & size);
+
+//! Deserializes a vector of std::array.
+//!
+//! @param          n       Number of std::array to deserialize
+//! @param[in,out]  in      pointer to the next byte to deserialize
+//! @param[in,out]  size    number of bytes remaining in the serialized stream
+//!
+//! @note   The elements of the array must support deserialization
+template <typename T, size_t N> std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size);
+
+//! Deserializes a string.
+//!
+//! @param          n       Number of characters to deserialize
+//! @param[in,out]  in      pointer to the next byte to deserialize
+//! @param[in,out]  size    number of bytes remaining in the serialized stream
+std::string deserializeString(size_t n, uint8_t const * & in, size_t & size);
+
 //! A helper class for deserialization of an std::array.
 //!
 //! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <typename T>
 struct DeserializeArrayImpl
 {
+    //! Deserialization functor.
     T operator ()(uint8_t const * & in, size_t & size)
     {
         T a;
@@ -331,6 +364,7 @@ struct DeserializeArrayImpl
 template <size_t N>
 struct DeserializeArrayImpl<std::array<uint8_t, N> >
 {
+    //! Deserialization functor.
     std::array<uint8_t, N> operator ()(uint8_t const * & in, size_t & size)
     {
         if (size < N)
@@ -343,12 +377,24 @@ struct DeserializeArrayImpl<std::array<uint8_t, N> >
     }
 };
 
-//! Deserializes an std::array.
-//!
-//! @param[in,out]  in      pointer to the next byte to deserialize
-//! @param[in,out]  size    number of bytes remaining in the serialized stream
-//!
-//! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
+template <typename T>
+T deserialize(uint8_t const * & in, size_t & size)
+{
+    return T(in, size);
+}
+
+template <typename T>
+std::vector<T> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
+{
+    std::vector<T> v;
+    v.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        v.push_back(deserialize<T>(in, size));
+    }
+    return v;
+}
+
 template <typename T>
 T deserializeArray(uint8_t const * & in, size_t & size)
 {
@@ -356,13 +402,6 @@ T deserializeArray(uint8_t const * & in, size_t & size)
     return impl(in, size);
 }
 
-//! Deserializes a vector of std::array.
-//!
-//! @param          n       Number of std::array to deserialize
-//! @param[in,out]  in      pointer to the next byte to deserialize
-//! @param[in,out]  size    number of bytes remaining in the serialized stream
-//!
-//! @note   The elements of the array must support deserialization
 template <typename T, size_t N>
 std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size)
 {
@@ -376,13 +415,6 @@ std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in,
     }
     return v;
 }
-
-//! Deserializes a string.
-//!
-//! @param          n       Number of characters to deserialize
-//! @param[in,out]  in      pointer to the next byte to deserialize
-//! @param[in,out]  size    number of bytes remaining in the serialized stream
-std::string deserializeString(size_t n, uint8_t const * & in, size_t & size);
 
 /******************************************************************************************************************/
 /*                                 V A R I A B L E   L E N G T H   I N T E G E R                                  */
