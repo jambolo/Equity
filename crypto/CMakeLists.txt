@@ -4,6 +4,8 @@ set(SOURCES
     Ecc.h
     Hmac.cpp
     Hmac.h
+    Pbkdf2.cpp
+    Pbkdf2.h
     Random.cpp
     Random.h
     Ripemd.cpp
