@@ -19,7 +19,7 @@ namespace Equity
 
 //! Mnemonic Generator.
 //!
-//! This class implement BIP-39.
+//! This class implements BIP-39.
 //! @sa https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 
 class Mnemonic
@@ -33,7 +33,7 @@ public:
     //!
     //! @param  words   mnemonic sentence
     //! @note   If the mnemonic is not valid, invalid size or checksum, then isValid() will return false.
-    Mnemonic(WordList const & words);
+    explicit Mnemonic(WordList const & words);
 
     // Constructor
     //!
@@ -50,13 +50,19 @@ public:
     //! @note   The size of the entropy must be a multiple of 4. If not, isValid() will return false.
     Mnemonic(uint8_t const * entropy, size_t size);
 
-    //! Returns the seed computed from the mnemonic sentence seed.
+    //! Returns the 512-bit seed computed from the mnemonic sentence.
+    //!
     //! @param  password    password used to generate the seed (default: "")
-    //! @return     A seed value
+    //! @return     A 512-bit seed value
     std::vector<uint8_t> seed(char const * password = "") const;
 
     //! Returns the original entropy data used to generate the mnemonic.
     std::vector<uint8_t> entropy() const;
+
+    //! Returns the mnemonic sentence.
+    //!
+    //! The sentence is simply a string containing the words in order separated by a spaces.
+    std::string sentence() const;
 
     //! Returns the mnemonic sentence
     WordList words() const { return words_; }
@@ -75,10 +81,14 @@ public:
 
 private:
 
-    using Dictionary = std::array<char const *, 2048>;
+    static size_t const BITS_PER_WORD = 11;
+    static size_t const BYTES_PER_CHECK_BIT = 4; // 32 bits
+    static size_t const SEED_SIZE = 512 / 8;
+    static int const PBKDF2_ROUNDS = 2048;
+
+    using Dictionary = std::array<char const *, 1 << BITS_PER_WORD>;
 
     bool validate() const;
-
     std::vector<uint8_t> checkedEntropy() const;
     static Dictionary::const_iterator find(std::string const & word);
 

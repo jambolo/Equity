@@ -100,7 +100,7 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
     uint32_t m2 = (zeros <= Crypto::SHA256_HASH_SIZE - 3) ? hash[zeros + 2] : 0;
     uint32_t mantissa = (m0 << 16) | (m1 << 8) | m2;
 
-    int exponent = (int)Crypto::SHA256_HASH_SIZE - zeros;
+    int exponent = (int)Crypto::SHA256_HASH_SIZE - (int)zeros;
 
     // Mantissa is signed, so adjust if mantissa >= 0x800000
     if (mantissa >= 0x800000)

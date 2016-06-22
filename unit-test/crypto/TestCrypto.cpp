@@ -624,18 +624,6 @@ public:
 
     TEST_METHOD(Crypto_pbkdf2HmacSha512)
     {
-//         struct Pbkdf2HmacSha512TestCase
-//         {
-//             char const * password;
-//             char const * salt;
-//             int count;
-//             unsigned char expected[64];
-//         };
-//         std::vector<uint8_t> pbkdf2HmacSha512(std::vector<uint8_t> const & password,
-//             std::vector<uint8_t> const & salt,
-//             int count,
-//             size_t size);
-
         for (auto const & c : PBKDF2HMACSHA512_CASES)
         {
             std::vector<uint8_t> password(c.password, c.password + strlen(c.password));

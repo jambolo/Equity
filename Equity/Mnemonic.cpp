@@ -1,5 +1,6 @@
 #include "Mnemonic.h"
 
+#include <crypto/Pbkdf2.h>
 #include <crypto/Sha256.h>
 
 #include <array>
@@ -278,32 +279,36 @@ Mnemonic::Mnemonic(WordList const & words)
 
 Mnemonic::Mnemonic(uint8_t const * entropy, size_t size)
 {
-    // The number of bits in the seed must be a multiple of 32. There can be at most 256 * 32 bits in the seed
-    if ((size % 4) != 0 || size > Crypto::SHA256_HASH_SIZE * 8 * 4)
+    // The number of bits in the entropy must be a multiple of 32. There can be at most 256 * 32 bits in the entropy
+    if ((size % BYTES_PER_CHECK_BIT) != 0 || size > Crypto::SHA256_HASH_SIZE * 8 * BYTES_PER_CHECK_BIT)
     {
         valid_ = false;
         return;
     }
 
+    // Compute a checksum that is 1 bit for every 32 bits of entropy, up to 256 bits
     Crypto::Sha256Hash hash = Crypto::sha256(entropy, size);
-    size_t checksumSize = (size / 4 + 7) / 8;
+    size_t checksumSize = (size / BYTES_PER_CHECK_BIT + 7) / 8;
+
+    // Append the checksum to the entropy
     std::vector<uint8_t> bits(entropy, entropy + size);
     bits.reserve(size + checksumSize);
     std::copy(hash.data(), hash.data() + checksumSize, std::back_inserter(bits));
 
+    // Every 11 bits is an index into the word list
     auto i = bits.begin();
     int b = 0;
     unsigned d = 0;
     while (i != bits.end())
     {
-        while (b < 11)
+        while (b < BITS_PER_WORD)
         {
             d = (d << 8) | *i++;
             b += 8;
         }
-        unsigned k = (d >> (b - 11)) & 0x7ff;
+        unsigned k = (d >> (b - BITS_PER_WORD)) & ((1 << BITS_PER_WORD) - 1);
         words_.push_back(DICTIONARY[k]);
-        b -= 11;
+        b -= BITS_PER_WORD;
     }
 
     assert(validate());
@@ -313,18 +318,63 @@ Mnemonic::Mnemonic(uint8_t const * entropy, size_t size)
 
 std::vector<uint8_t> Mnemonic::seed(char const * password) const
 {
-    // To create a binary seed from the mnemonic, we use the PBKDF2 function with a mnemonic sentence(in UTF - 8 NFKD) used as the
-    // password and the string "mnemonic" + passphrase(again in UTF - 8 NFKD) used as the salt. The iteration count is set to 2048
-    // and HMAC - SHA512 is used as the pseudo - random function. The length of the derived key is 512 bits(= 64 bytes).
+    if (!valid_)
+    {
+        return std::vector<uint8_t>();
+    }
 
-    return std::vector<uint8_t>(64);
+    // To create a binary seed from the mnemonic, we use the PBKDF2 function with a mnemonic sentence(in UTF-8 NFKD) used as the
+    // password and the string "mnemonic" + passphrase (again in UTF-8 NFKD) used as the salt. The iteration count is set to 2048
+    // and HMAC-SHA512 is used as the pseudo-random function. The length of the derived key is 512 bits(= 64 bytes).
+
+    std::string s = sentence();
+    std::string salt = std::string("mnemonic") + password;
+    return Crypto::pbkdf2HmacSha512(reinterpret_cast<uint8_t const *>(s.data()), s.length(),
+                                    reinterpret_cast<uint8_t const *>(salt.data()), salt.length(),
+                                    PBKDF2_ROUNDS, SEED_SIZE);
 }
 
 std::vector<uint8_t> Mnemonic::entropy() const
 {
+    if (!valid_)
+    {
+        return std::vector<uint8_t>();
+    }
+
     std::vector<uint8_t> e = checkedEntropy();
-    e.resize(words_.size() / 3 * 4);
+    e.resize(words_.size() * BITS_PER_WORD / (BYTES_PER_CHECK_BIT * 8 + 1) * BYTES_PER_CHECK_BIT);    // Drop the checksum bits
     return e;
+}
+
+std::string Mnemonic::sentence() const
+{
+    if (!valid_)
+    {
+        return std::string();
+    }
+
+    // Add up the sizes of all the words to get the size of the sentence
+    size_t size = words_.size() - 1;
+    for (auto const & w : words_)
+    {
+        size += w.size();
+    }
+
+    // Concatenate all the words separated by a space
+    std::string sentence;
+    WordList::const_iterator i = words_.begin();
+    if (i != words_.end())
+    {
+        sentence.reserve(size);
+
+        sentence = *i++;
+        while (i != words_.end())
+        {
+            sentence += ' ';
+            sentence += *i++;
+        }
+    }
+    return sentence;
 }
 
 Mnemonic::WordList Mnemonic::suggestions(std::string const & partial, size_t max /* = 0*/)
@@ -349,9 +399,15 @@ Mnemonic::Dictionary::const_iterator Mnemonic::find(std::string const & word)
 
 bool Mnemonic::validate() const
 {
+    // There must be a value
+    if (words_.size() == 0)
+    {
+        return false;
+    }
+
     // The number of bits in the seed must be a multiple of 32. With the check bit, the number of bits in the mnemonic must be a
-    // multiple of 33, which is exactly 3 words.
-    if ((words_.size() % 3) != 0)
+    // multiple of 33, so the number of words must be a multiple of 3.
+    if (words_.size() % ((BYTES_PER_CHECK_BIT * 8 + 1) / BITS_PER_WORD) != 0)
     {
         return false;
     }
@@ -363,17 +419,13 @@ bool Mnemonic::validate() const
             return false;
     }
 
-    Mnemonic test(entropy());
-    if (words_ != test.words())
-        return false;
-
     return true;
 }
 
 std::vector<uint8_t> Mnemonic::checkedEntropy() const
 {
     std::vector<uint8_t> e;
-    e.reserve((words_.size() * 11 + 7) / 8);
+    e.reserve((words_.size() * BITS_PER_WORD + 7) / 8);
 
     int b = 0;
     unsigned d = 0;
@@ -382,17 +434,21 @@ std::vector<uint8_t> Mnemonic::checkedEntropy() const
         auto i = find(w);
         assert(i != DICTIONARY.end());
         ptrdiff_t offset = std::distance(DICTIONARY.begin(), i);
-        d = d << 11;
+        d = d << BITS_PER_WORD;
         d |= offset;
-        b += 11;
+        b += BITS_PER_WORD;
         while (b > 8)
         {
             e.push_back((d >> (b - 8)) & 0xff);
             b -= 8;
         }
     }
+    if (b > 0)
+    {
+        e.push_back((d << (8 - b)) & 0xff);
+    }
 
-    assert(e.size() == (words_.size() * 11 + 7) / 8);
+    assert(e.size() == (words_.size() * BITS_PER_WORD + 7) / 8);
     return e;
 }
 
