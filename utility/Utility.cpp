@@ -23,7 +23,7 @@ static int xtoi(char x)
     else
     {
         return x - '0';
-}
+    }
 }
 
 namespace Utility

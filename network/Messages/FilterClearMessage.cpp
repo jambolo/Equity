@@ -1,7 +1,7 @@
 #include "FilterClearMessage.h"
 
-#include "utility/Debug.h"
 #include "p2p/Serialize.h"
+#include "utility/Debug.h"
 
 using namespace Network;
 

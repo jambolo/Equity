@@ -19,7 +19,7 @@ public:
 
     // Constructor
     //!
-    //! The object is constructed from the bytes in the range [begin, end). If the size of the range is not 
+    //! The object is constructed from the bytes in the range [begin, end). If the size of the range is not
     //! SIZE bytes or the value is not valid, the constructed object is marked as invalid.
     //!
     //! @param  data    pointer to start of the data

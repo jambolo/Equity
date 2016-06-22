@@ -1,8 +1,8 @@
 #include "Ripemd.h"
 
-#include <openssl/evp.h>
 #include <algorithm>
 #include <cassert>
+#include <openssl/evp.h>
 
 namespace Crypto
 {

@@ -36,7 +36,7 @@ public:
     //! @note   Must be overridden
     virtual void serialize(std::vector<uint8_t> & out) const = 0;
 
-    //! Converts the object to a JSON string.
+    //! Converts the object to a JSON object.
     //!
     //! @note   Must be overridden
     virtual json toJson() const = 0;
@@ -217,6 +217,7 @@ struct ToJsonArrayImpl
     {
         return toJson(a.data(), a.size());
     }
+
 };
 
 //! A helper class for converting an std::array<uint8_t, N> to JSON.
@@ -230,6 +231,7 @@ struct ToJsonArrayImpl<uint8_t, N>
     {
         return Utility::toHex(a.data(), a.size());
     }
+
 };
 
 inline json toJson(Serializable const & x)
@@ -356,6 +358,7 @@ struct DeserializeArrayImpl
         }
         return a;
     }
+
 };
 
 //! A helper class for deserialization of a std::array of uint8_t.
@@ -375,6 +378,7 @@ struct DeserializeArrayImpl<std::array<uint8_t, N> >
         size -= N;
         return a;
     }
+
 };
 
 template <typename T>
@@ -445,6 +449,7 @@ public:
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
+
     //!@}
 
     //! Returns the value
@@ -498,6 +503,7 @@ public:
     {
         return P2p::toJson(data_);
     }
+
     //!@}
 
     //! Returns the elements contained in the array
@@ -597,6 +603,7 @@ public:
     {
         return Utility::toHex(data_);
     }
+
     //!@}
 
     //! Returns the bytes contained in the array
@@ -716,6 +723,7 @@ public:
     {
         return string_;
     }
+
     //!@}
 
     //! Returns the bytes contained in the array

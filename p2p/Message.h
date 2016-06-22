@@ -73,6 +73,7 @@ public:
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
+
     //!@}
 };
 

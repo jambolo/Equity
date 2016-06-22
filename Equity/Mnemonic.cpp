@@ -317,7 +317,6 @@ std::vector<uint8_t> Mnemonic::seed(char const * password) const
     // password and the string "mnemonic" + passphrase(again in UTF - 8 NFKD) used as the salt. The iteration count is set to 2048
     // and HMAC - SHA512 is used as the pseudo - random function. The length of the derived key is 512 bits(= 64 bytes).
 
-
     return std::vector<uint8_t>(64);
 }
 

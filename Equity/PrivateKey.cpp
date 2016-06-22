@@ -103,5 +103,5 @@ std::string PrivateKey::toHex() const
 
 bool PrivateKey::isValid()
 {
-    return (valid_ && Ecc::privateKeyIsValid(value_));
+    return valid_ && Ecc::privateKeyIsValid(value_);
 }

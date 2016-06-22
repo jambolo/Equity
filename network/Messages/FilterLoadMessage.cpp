@@ -6,7 +6,7 @@
 using namespace Network;
 using namespace Utility;
 
-static int const    MAX_NUM_HASH_FUNCIONS   = 50;       // Maximum number of hash functions allowed in a message
+static int const MAX_NUM_HASH_FUNCIONS   = 50;          // Maximum number of hash functions allowed in a message
 static size_t const MAX_FILTER_SIZE         = 36000;    // Maximum size of a filter in a message
 
 char const FilterLoadMessage::TYPE[] = "filterload";

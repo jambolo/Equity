@@ -1,9 +1,9 @@
 #pragma once
 
+#include "p2p/Serialize.h"
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "p2p/Serialize.h"
 
 namespace Network
 {

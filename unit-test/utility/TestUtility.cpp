@@ -32,7 +32,7 @@ TestMerkleTreeConstructorCase const MERKLETREE_CONSTRUCTOR_CASES[] =
         {
             "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
         },
-    "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
+        "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
     },
     // block 286819
     {
@@ -2312,7 +2312,8 @@ static int TestMerkleTree()
         std::vector<uint8_t> expected = fromHexR(c.expected);
         if (expected.size() != m.root().size() || !std::equal(expected.begin(), expected.end(), m.root().begin()))
         {
-            printf("        +== constructor: expected \"%s\", got \"%s\"\n", shorten(c.expected).c_str(), shorten(toHexR(m.root())).c_str());
+            printf("        +== constructor: expected \"%s\", got \"%s\"\n", shorten(c.expected).c_str(), shorten(toHexR(
+                                                                                                                         m.root())).c_str());
             ++errors;
         }
         else

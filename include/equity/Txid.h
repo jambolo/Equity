@@ -29,6 +29,7 @@ struct Txid : public P2p::Serializable
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
+
     //!@}
 
     Crypto::Sha256Hash hash_;   //!< The transaction ID in binary form

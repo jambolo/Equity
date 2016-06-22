@@ -31,11 +31,11 @@ json Block::Header::toJson() const
     return json::object(
     {
         { "version", version },
-        { "previous", Utility::toHexR(previousBlock).c_str()}, // Hashes are stored as big-endian but displayed as little-endian
-        { "root", Utility::toHexR(merkleRoot).c_str()}, // Hashes are stored as big-endian but displayed as little-endian
-        { "time", timestamp},
-        { "target", target},
-        { "nonce", nonce}
+        { "previous", Utility::toHexR(previousBlock).c_str() }, // Hashes are stored as big-endian but displayed as little-endian
+        { "root", Utility::toHexR(merkleRoot).c_str() }, // Hashes are stored as big-endian but displayed as little-endian
+        { "time", timestamp },
+        { "target", target },
+        { "nonce", nonce }
     });
 }
 

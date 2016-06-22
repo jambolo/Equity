@@ -1,8 +1,8 @@
 #include "Sha1.h"
 
-#include <openssl/evp.h>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <openssl/evp.h>
 
 namespace Crypto
 {

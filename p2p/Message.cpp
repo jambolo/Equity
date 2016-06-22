@@ -1,8 +1,8 @@
 #include "Message.h"
 
 #include "crypto/Sha256.h"
-#include "utility/Endian.h"
 #include "p2p/Serialize.h"
+#include "utility/Endian.h"
 
 #include <cassert>
 

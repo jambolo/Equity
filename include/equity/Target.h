@@ -31,7 +31,7 @@ public:
     //!
     //! @param  hash     target in hash form
     explicit Target(Crypto::Sha256Hash const & hash);
-    
+
     // Constructor
     //!
     //! @param compact  target in compact form

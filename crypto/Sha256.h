@@ -1,8 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <vector>
-#include <array>
 
 namespace Crypto
 {
@@ -16,16 +16,17 @@ typedef std::vector<Sha256Hash> Sha256HashList;             //!< A vector of SHA
 size_t const CHECKSUM_SIZE = 4;                             //!< Size of a checksum in bytes
 typedef std::array<uint8_t, CHECKSUM_SIZE> Checksum;        //!< A 4-byte checksum from the first 4 bytes of doubleSha256(input)
 
-//! Computes the SHA-256 hash of the input
+//! Computes the SHA-256 hash of the input.
+//! @param  input   data to hash
 Sha256Hash sha256(std::vector<uint8_t> const & input);
 
-// //! Computes the SHA-256 hash a SHA-256 hash
-// Sha256Hash sha256(Sha256Hash const & input);
-
-//! Computes the SHA-256 hash of the input
+//! Computes the SHA-256 hash of the input.
+//! @param  input   data to hash
+//! @param  length  length of the data
 Sha256Hash sha256(uint8_t const * input, size_t length);
 
-//! Computes the SHA-256 hash of an std::array input
+//! Computes the SHA-256 hash of an std::array of uint8_t
+//! @param  input   data to hash
 template <size_t N>
 Sha256Hash sha256(std::array<uint8_t, N> const & input)
 {
@@ -33,15 +34,21 @@ Sha256Hash sha256(std::array<uint8_t, N> const & input)
 }
 
 //! Computes the double-SHA-256 hash of the input
+//! @param  input   data to hash
 Sha256Hash doubleSha256(std::vector<uint8_t> const & input);
 
 //! Computes the double-SHA-256 hash of the input
+//! @param  input   data to hash
+//! @param  length  length of the data
 Sha256Hash doubleSha256(uint8_t const * input, size_t length);
 
 //! Computes the double-SHA-256 checksum of the input
+//! @param  input   data to hash
 Checksum checksum(std::vector<uint8_t> const & input);
 
 //! Computes the double-SHA-256 checksum of the input
+//! @param  input   data to hash
+//! @param  length  length of the data
 Checksum checksum(uint8_t const * input, size_t length);
 
 } // namespace Crypto

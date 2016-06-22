@@ -3,25 +3,26 @@
 #include "crypto/Sha256.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
 using namespace Equity;
 
 namespace
 {
-    uint32_t const MANTISSA_MASK = 0x7fffff;
-    int const EXPONENT_OFFSET = 24;
+uint32_t const MANTISSA_MASK = 0x7fffff;
+int const EXPONENT_OFFSET = 24;
 
-    uint32_t extractMantissa(uint32_t x)
-    {
-        return x & MANTISSA_MASK;
-    }
+uint32_t extractMantissa(uint32_t x)
+{
+    return x & MANTISSA_MASK;
+}
 
-    int extractExponent(uint32_t x)
-    {
-        return ((x >> EXPONENT_OFFSET) & 0xff);
-    }
+int extractExponent(uint32_t x)
+{
+    return (x >> EXPONENT_OFFSET) & 0xff;
+}
+
 }
 
 Crypto::Sha256Hash const Target::DIFFICULTY_1 =
@@ -98,7 +99,7 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
     uint32_t m1 = (zeros <= Crypto::SHA256_HASH_SIZE - 2) ? hash[zeros + 1] : 0;
     uint32_t m2 = (zeros <= Crypto::SHA256_HASH_SIZE - 3) ? hash[zeros + 2] : 0;
     uint32_t mantissa = (m0 << 16) | (m1 << 8) | m2;
-    
+
     int exponent = (int)Crypto::SHA256_HASH_SIZE - zeros;
 
     // Mantissa is signed, so adjust if mantissa >= 0x800000
@@ -107,7 +108,7 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
         mantissa >>= 8;
         exponent += 1;
     }
-    
+
     uint32_t compact = (exponent << EXPONENT_OFFSET) | mantissa;
     return compact;
 }

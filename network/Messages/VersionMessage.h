@@ -19,7 +19,7 @@ class VersionMessage : public Message
 public:
     // Constructor
     //!
-    //! @param  version         version  
+    //! @param  version         version
     //! @param  services        services
     //! @param  timestamp       timestamp
     //! @param  to              to
@@ -48,6 +48,7 @@ public:
     //!@{
     virtual void serialize(std::vector<uint8_t> & out) const override;
     virtual json toJson() const override;
+
     //!@}
 
     uint32_t version_;          //!< Identifies protocol version being used by the node

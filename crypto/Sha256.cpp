@@ -1,8 +1,8 @@
 #include "Sha256.h"
 
-#include <openssl/evp.h>
-#include <cassert>
 #include <algorithm>
+#include <cassert>
+#include <openssl/evp.h>
 
 namespace Crypto
 {
@@ -12,10 +12,10 @@ Sha256Hash sha256(std::vector<uint8_t> const & input)
     return sha256(input.data(), input.size());
 }
 
-Sha256Hash sha256(Sha256Hash const & input)
-{
-    return sha256(input.data(), input.size());
-}
+// Sha256Hash sha256(Sha256Hash const & input)
+// {
+//     return sha256(input.data(), input.size());
+// }
 
 Sha256Hash sha256(uint8_t const * input, size_t length)
 {

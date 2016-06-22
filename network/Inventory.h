@@ -36,7 +36,7 @@ struct InventoryId : public P2p::Serializable
     //! @param[in,out]     in
     //! @param[in,out]     size
     //!
-    //! @return 
+    //! @return
     InventoryId(uint8_t const * & in, size_t & size);
 
     //! @name Overrides Serializable

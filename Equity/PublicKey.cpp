@@ -1,7 +1,7 @@
 #include "PublicKey.h"
 
-#include "crypto/Ecc.h"
 #include "PrivateKey.h"
+#include "crypto/Ecc.h"
 #include "utility/Utility.h"
 
 using namespace Crypto;

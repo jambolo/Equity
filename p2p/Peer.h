@@ -3,8 +3,8 @@
 namespace P2p
 {
 
-    class Peer
-    {
-    };
+class Peer
+{
+};
 
 } // namespace P2p
