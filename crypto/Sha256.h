@@ -7,8 +7,6 @@
 namespace Crypto
 {
 
-// IMPORTANT NOTE: Hashes are always big-endian
-
 size_t const SHA256_HASH_SIZE = 256 / 8;                    //!< Size of a SHA-256 hash in bytes
 typedef std::array<uint8_t, SHA256_HASH_SIZE> Sha256Hash;   //!< A SHA-256 hash
 typedef std::vector<Sha256Hash> Sha256HashList;             //!< A vector of SHA-256 hashes

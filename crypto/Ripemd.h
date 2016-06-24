@@ -7,8 +7,6 @@
 namespace Crypto
 {
 
-// IMPORTANT NOTE: Hashes are always big-endian
-
 size_t const RIPEMD160_HASH_SIZE = 160 / 8;                         //!< The sized of a RIPEMD-160 hash in bytes
 typedef std::array<uint8_t, RIPEMD160_HASH_SIZE> Ripemd160Hash;     //!< A RIPEMD-160 hash
 

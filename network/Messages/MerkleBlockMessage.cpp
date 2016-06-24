@@ -24,7 +24,7 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
     header_ = Equity::Block::Header(in, size);
-    count_ = littleEndian(P2p::deserialize<uint32_t>(in, size));
+    count_ = Endian::little(P2p::deserialize<uint32_t>(in, size));
     hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
     flags_ = P2p::BitArray(in, size);
 }
@@ -32,7 +32,7 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
 void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(header_, out);
-    P2p::serialize(littleEndian(count_), out);
+    P2p::serialize(Endian::little(count_), out);
     P2p::serialize(P2p::VarArray<Crypto::Sha256Hash>(hashes_), out);
     P2p::serialize(flags_, out);
 }

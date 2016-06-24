@@ -7,8 +7,6 @@
 namespace Crypto
 {
 
-// IMPORTANT NOTE: Hashes are always big-endian
-
 size_t const SHA1_HASH_SIZE = 160 / 8;                  //!< Size of a SHA-1 HASH in bytes
 typedef std::array<uint8_t, SHA1_HASH_SIZE> Sha1Hash;   //!< A SHA-1 hash
 

@@ -17,10 +17,10 @@ PongMessage::PongMessage(uint64_t nonce)
 PongMessage::PongMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    nonce_ = littleEndian(P2p::deserialize<uint64_t>(in, size));
+    nonce_ = Endian::little(P2p::deserialize<uint64_t>(in, size));
 }
 
 void PongMessage::serialize(std::vector<uint8_t> & out) const
 {
-    P2p::serialize(littleEndian(nonce_), out);
+    P2p::serialize(Endian::little(nonce_), out);
 }

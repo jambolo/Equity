@@ -75,14 +75,14 @@ Transaction::Transaction(int version, InputList const & inputs, OutputList const
 Transaction::Transaction(uint8_t const * & in, size_t & size)
     : valid_(false)
 {
-    version_ = Utility::littleEndian(P2p::deserialize<uint32_t>(in, size));
+    version_ = Utility::Endian::little(P2p::deserialize<uint32_t>(in, size));
     // Only version 1 is valid now.
     if (version_ != 1)
         throw P2p::DeserializationError();
 
     inputs_ = P2p::VarArray<Input>(in, size).value();
     outputs_ = P2p::VarArray<Output>(in, size).value();
-    lockTime_ = Utility::littleEndian(P2p::deserialize<uint32_t>(in, size));
+    lockTime_ = Utility::Endian::little(P2p::deserialize<uint32_t>(in, size));
 
     valid_ = true;
 }
@@ -94,10 +94,10 @@ Transaction::Transaction(std::string const & json)
 
 void Transaction::serialize(std::vector<uint8_t> & out) const
 {
-    P2p::serialize(Utility::littleEndian(version_), out);
+    P2p::serialize(Utility::Endian::little(version_), out);
     P2p::serialize(P2p::VarArray<Input>(inputs_), out);
     P2p::serialize(P2p::VarArray<Output>(outputs_), out);
-    P2p::serialize(Utility::littleEndian(lockTime_), out);
+    P2p::serialize(Utility::Endian::little(lockTime_), out);
 }
 
 json Transaction::toJson() const
