@@ -26,6 +26,12 @@ class Mnemonic
 {
 public:
 
+    //! Supported languages
+    enum Language
+    {
+        ENGLISH
+    };
+
     //! A list of words.
     using WordList = std::vector<std::string>;
 
@@ -37,18 +43,23 @@ public:
 
     // Constructor
     //!
-    //! @param  entropy     entropy source
+    //! @param  entropy     entropy source for the mnemonic
+    //! @param  size        size of entropy data
+    //! @param  language    word list language (default: English)
     //! @note   The entropy data does not include a checksum
     //! @note   The size of the entropy must be a multiple of 4. If not, isValid() will return false.
-    explicit Mnemonic(std::vector<uint8_t> const & entropy) : Mnemonic(entropy.data(), entropy.size()) {}
+    Mnemonic(uint8_t const * entropy, size_t size, Language language = ENGLISH);
 
     // Constructor
     //!
-    //! @param  entropy     entropy source for the mnemonic
-    //! @param  size        size of entropy data
+    //! @param  entropy     entropy source
+    //! @param  language    word list language (default: English)
     //! @note   The entropy data does not include a checksum
     //! @note   The size of the entropy must be a multiple of 4. If not, isValid() will return false.
-    Mnemonic(uint8_t const * entropy, size_t size);
+    explicit Mnemonic(std::vector<uint8_t> const & entropy, Language language = ENGLISH)
+        : Mnemonic(entropy.data(), entropy.size(), language)
+    {
+    }
 
     //! Returns the 512-bit seed computed from the mnemonic sentence.
     //!
@@ -64,20 +75,19 @@ public:
     //! The sentence is simply a string containing the words in order separated by a spaces.
     std::string sentence() const;
 
-    //! Returns the mnemonic sentence
+    //! Returns the mnemonic words
     WordList words() const { return words_; }
 
     //! Returns true if the Mnemonic is valid
     bool isValid() const { return valid_; }
 
-    //! Returns a list of the possible words given a partial word
-    //! hint.
+    //! Returns a list of the possible words given a partial word hint.
     //!
     //! @param  word    partial word to test
     //! @param  max     maximum number of suggestions to return
     //!
     //! @return     list of suggestions
-    static WordList suggestions(std::string const & word, size_t max = 0);
+    WordList suggestions(std::string const & word, size_t max = 0);
 
 private:
 
@@ -90,12 +100,14 @@ private:
 
     bool validate() const;
     std::vector<uint8_t> checkedEntropy() const;
-    static Dictionary::const_iterator find(std::string const & word);
+    Dictionary::const_iterator find(std::string const & word) const;
 
     WordList words_;
     bool valid_;
+    Language language_;
+    Dictionary const & dictionary_;
 
-    static Dictionary const DICTIONARY;
+    static Dictionary const ENGLISH_DICTIONARY;
 };
 
 } // namespace Equity

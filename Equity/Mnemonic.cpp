@@ -11,7 +11,7 @@
 namespace Equity
 {
 
-Mnemonic::Dictionary const Mnemonic::DICTIONARY =
+Mnemonic::Dictionary const Mnemonic::ENGLISH_DICTIONARY =
 {
     "abandon",  "ability",  "able",     "about",    "above",    "absent",   "absorb",   "abstract",
     "absurd",   "abuse",    "access",   "accident", "account",  "accuse",   "achieve",  "acid",
@@ -273,12 +273,18 @@ Mnemonic::Dictionary const Mnemonic::DICTIONARY =
 
 Mnemonic::Mnemonic(WordList const & words)
     : words_(words)
+    , language_(ENGLISH)
+    , dictionary_(ENGLISH_DICTIONARY) // Only English is currently supported.
 {
     valid_ = validate();
 }
 
-Mnemonic::Mnemonic(uint8_t const * entropy, size_t size)
+Mnemonic::Mnemonic(uint8_t const * entropy, size_t size, Language language /* = ENGLISH*/)
+    : language_(language)
+    , dictionary_(ENGLISH_DICTIONARY) // Only English is currently supported.
 {
+    assert(language == ENGLISH);
+
     // The number of bits in the entropy must be a multiple of 32. There can be at most 256 * 32 bits in the entropy
     if ((size % BYTES_PER_CHECK_BIT) != 0 || size > Crypto::SHA256_HASH_SIZE * 8 * BYTES_PER_CHECK_BIT)
     {
@@ -307,7 +313,7 @@ Mnemonic::Mnemonic(uint8_t const * entropy, size_t size)
             b += 8;
         }
         unsigned k = (d >> (b - BITS_PER_WORD)) & ((1 << BITS_PER_WORD) - 1);
-        words_.push_back(DICTIONARY[k]);
+        words_.push_back(dictionary_[k]);
         b -= BITS_PER_WORD;
     }
 
@@ -329,9 +335,12 @@ std::vector<uint8_t> Mnemonic::seed(char const * password) const
 
     std::string s = sentence();
     std::string salt = std::string("mnemonic") + password;
-    return Crypto::pbkdf2HmacSha512(reinterpret_cast<uint8_t const *>(s.data()), s.length(),
-                                    reinterpret_cast<uint8_t const *>(salt.data()), salt.length(),
-                                    PBKDF2_ROUNDS, SEED_SIZE);
+    return Crypto::pbkdf2HmacSha512(reinterpret_cast<uint8_t const *>(s.data()),
+                                    s.length(),
+                                    reinterpret_cast<uint8_t const *>(salt.data()),
+                                    salt.length(),
+                                    PBKDF2_ROUNDS,
+                                    SEED_SIZE);
 }
 
 std::vector<uint8_t> Mnemonic::entropy() const
@@ -380,7 +389,7 @@ std::string Mnemonic::sentence() const
 Mnemonic::WordList Mnemonic::suggestions(std::string const & partial, size_t max /* = 0*/)
 {
     WordList matches;
-    for (auto w : DICTIONARY)
+    for (auto w : dictionary_)
     {
         if (strlen(w) >= partial.length() && strncmp(partial.c_str(), w, partial.length()) == 0)
         {
@@ -392,9 +401,9 @@ Mnemonic::WordList Mnemonic::suggestions(std::string const & partial, size_t max
     return matches;
 }
 
-Mnemonic::Dictionary::const_iterator Mnemonic::find(std::string const & word)
+Mnemonic::Dictionary::const_iterator Mnemonic::find(std::string const & word) const
 {
-    return std::find(DICTIONARY.begin(), DICTIONARY.end(), word);
+    return std::find(dictionary_.begin(), dictionary_.end(), word);
 }
 
 bool Mnemonic::validate() const
@@ -415,7 +424,7 @@ bool Mnemonic::validate() const
     // Every word must be in the dictionary
     for (auto w : words_)
     {
-        if (find(w) == DICTIONARY.end())
+        if (find(w) == dictionary_.end())
             return false;
     }
 
@@ -432,8 +441,8 @@ std::vector<uint8_t> Mnemonic::checkedEntropy() const
     for (auto w : words_)
     {
         auto i = find(w);
-        assert(i != DICTIONARY.end());
-        ptrdiff_t offset = std::distance(DICTIONARY.begin(), i);
+        assert(i != dictionary_.end());
+        ptrdiff_t offset = std::distance(dictionary_.begin(), i);
         d = d << BITS_PER_WORD;
         d |= offset;
         b += BITS_PER_WORD;
