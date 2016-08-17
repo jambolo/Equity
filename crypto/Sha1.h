@@ -17,6 +17,10 @@ Sha1Hash sha1(std::vector<uint8_t> const & input);
 Sha1Hash sha1(uint8_t const * input, size_t length);
 
 //! Returns the SHA-1 hash of the input
+template <size_t N> Sha1Hash sha1(std::array<uint8_t, N> const & input);
+
+/********************************************************************************************************************/
+
 template <size_t N>
 Sha1Hash sha1(std::array<uint8_t, N> const & input)
 {

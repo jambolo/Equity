@@ -176,7 +176,7 @@ public:
         }
 
         auto const & c0 = WIF_CASES[0];
-        std::vector<uint8_t> invalidInput(&c0.data[0], &c0.data[sizeof(c0.data)]);
+        std::vector<uint8_t> invalidInput(c0.data, c0.data + sizeof(c0.data));
 
         invalidInput.resize(PrivateKey::SIZE - 1);      // One byte too small
         PrivateKey result1(invalidInput);

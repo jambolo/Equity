@@ -33,6 +33,8 @@ source_group(equity FILES ${EQUITY_TESTS})
 #source_group(utility FILES ${UTILITY_TESTS})
 
 set(SOURCES
+    shared.cpp
+    shared.h
     targetver.h
     ${CRYPTO_TESTS}
     ${EQUITY_TESTS}

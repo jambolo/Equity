@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -50,7 +51,6 @@ Sha256TestCase const SHA256_CASES[] =
     }
 };
 
-
 struct DoubleSha256TestCase
 {
     char const * input;
@@ -93,7 +93,7 @@ DoubleSha256TestCase const DOUBLE_SHA256_CASES[] =
 
 namespace TestCrypto
 {
-    
+
 TEST_CLASS(Crypto_Sha256)
 {
 public:
@@ -103,86 +103,96 @@ public:
         {
             Sha256Hash result = Crypto::sha256((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"sha256", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha256",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha256_sha256_vector)
     {
         for (auto const & c : SHA256_CASES)
         {
-            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input+strlen(c.input));
+            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input + strlen(c.input));
             Sha256Hash result = Crypto::sha256(input);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"sha256", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha256",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha256_sha256_array)
     {
+		Assert::Fail(L"Not implemented");
     }
-    
+
     TEST_METHOD(Crypto_Sha256_doubleSha256_ptr)
     {
         for (auto const & c : DOUBLE_SHA256_CASES)
         {
             Sha256Hash result = Crypto::doubleSha256((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"doubleSha256", c.input, c.expected, sizeof(c.expected), &result[0],
+                           hashErrorMessage(L"doubleSha256",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
                                             result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha256_doubleSha256_vector)
     {
         for (auto const & c : DOUBLE_SHA256_CASES)
         {
-            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input+strlen(c.input));
+            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input + strlen(c.input));
             Sha256Hash result = Crypto::doubleSha256(input);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"doubleSha256", c.input, c.expected, sizeof(c.expected), &result[0],
+                           hashErrorMessage(L"doubleSha256",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
                                             result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha256_checksum_ptr)
     {
         for (auto const & c : DOUBLE_SHA256_CASES)
         {
             Checksum result = Crypto::checksum((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"checksum", c.input, c.expected, CHECKSUM_SIZE, &result[0], result.size()).c_str());
+                           hashErrorMessage(L"checksum",
+                                            c.input,
+                                            c.expected,
+                                            CHECKSUM_SIZE,
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha256_checksum_vector)
     {
         for (auto const & c : DOUBLE_SHA256_CASES)
         {
-            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input+strlen(c.input));
-            Checksum result = Crypto::checksum((input);
+            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input + strlen(c.input));
+            Checksum result = Crypto::checksum(input);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"checksum", c.input, c.expected, CHECKSUM_SIZE, &result[0], result.size()).c_str());
+                           hashErrorMessage(L"checksum",
+                                            c.input,
+                                            c.expected,
+                                            CHECKSUM_SIZE,
+                                            result.data(),
+                                            result.size()).c_str());
         }
-    }
-    
-    static std::wstring hashErrorMessage(wchar_t const * test,
-                                         char const *    input,
-                                         uint8_t const * expected,
-                                         size_t          expectedSize,
-                                         uint8_t const * actual,
-                                         size_t          actualSize)
-    {
-        std::wostringstream message;
-        message
-            << test
-            << L"(\""
-            << ToString(shorten(input))
-            << L"\"): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
-        return message.str();
     }
 };
 

@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -16,10 +17,12 @@ TEST_CLASS(Crypto_Random)
 public:
     TEST_METHOD(Crypto_Random_addEntropy)
     {
+        Assert::Fail(L"Not implemented");
     }
 
     TEST_METHOD(Crypto_Random_getBytes)
     {
+        Assert::Fail(L"Not implemented");
     }
 };
 

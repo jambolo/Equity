@@ -45,10 +45,10 @@ public:
     uint64_t services() const { return services_; }
 
     //! Returns the IP address in IPV6 form
-    uint8_t const * ipv6() const { return &ipv6_[0]; }
+    uint8_t const * ipv6() const { return ipv6_.data(); }
 
-    //! Returns the IP address in IPV6 form
-    uint8_t const * ipv4() const { return &ipv6_[12]; }
+    //! Returns the IP address in IPV4 form
+    uint8_t const * ipv4() const { return ipv6_.data() + 12; }
 
     //! Returns the port
     int port() const { return port_; }

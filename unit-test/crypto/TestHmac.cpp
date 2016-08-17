@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -87,7 +88,7 @@ HmacSha512TestCase const HMACSHA512_CASES[] =
 
 namespace TestCrypto
 {
-    
+
 TEST_CLASS(Crypto_Hmac)
 {
 public:
@@ -103,33 +104,12 @@ public:
                            hmacErrorMessage(L"hmacSha512",
                                             c.key,
                                             c.message,
-                                            c.expected, sizeof(c.expected),
-                                            &result[0], result.size()).c_str());
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-
-    static std::wstring hmacErrorMessage(wchar_t const * test,
-                                         char const *    key,
-                                         char const *    data,
-                                         uint8_t const * expected,
-                                         size_t          expectedSize,
-                                         uint8_t const * actual,
-                                         size_t          actualSize)
-    {
-        std::wostringstream message;
-        message
-            << test
-            << L"(\""
-            << ToString(shorten(key))
-            << L"\", \""
-            << ToString(shorten(data))
-            << L"\"): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
-        return message.str();
-    }
-
 };
 
 } // namespace TestCrypto

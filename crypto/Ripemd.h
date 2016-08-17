@@ -17,6 +17,10 @@ Ripemd160Hash ripemd160(std::vector<uint8_t> const & input);
 Ripemd160Hash ripemd160(uint8_t const * input, size_t length);
 
 //! Computes the RIPEMD-160 hash of an std::array input
+template <size_t N> Ripemd160Hash ripemd160(std::array<uint8_t, N> const & input);
+
+/********************************************************************************************************************/
+
 template <size_t N>
 Ripemd160Hash ripemd160(std::array<uint8_t, N> const & input)
 {

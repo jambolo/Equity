@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -258,12 +259,12 @@ Pbkdf2HmacSha512TestCase const PBKDF2HMACSHA512_CASES[] =
         }
     }
 };
-    
+
 } // anonymous namespace
 
 namespace TestCrypto
 {
-        
+
 TEST_CLASS(Crypto_Pbkdf2)
 {
 public:
@@ -271,17 +272,24 @@ public:
     {
         for (auto const & c : PBKDF2HMACSHA512_CASES)
         {
-            std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512(c.password, strlen(c.password), c.salt, strlen(c.salt), c.count, 64);
+            std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512((uint8_t const *)c.password,
+                                                                   strlen(c.password),
+                                                                   (uint8_t const *)c.salt,
+                                                                   strlen(c.salt),
+                                                                   c.count,
+                                                                   64);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
                            pbkdf2ErrorMessage(L"pbkdf2HmacSha512",
                                               c.password,
                                               c.salt,
                                               c.count,
-                                              c.expected, sizeof(c.expected),
-                                              &result[0], result.size()).c_str());
+                                              c.expected,
+                                              sizeof(c.expected),
+                                              result.data(),
+                                              result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Pbkdf2_pbkdf2HmacSha512_vector)
     {
         for (auto const & c : PBKDF2HMACSHA512_CASES)
@@ -294,36 +302,12 @@ public:
                                               c.password,
                                               c.salt,
                                               c.count,
-                                              c.expected, sizeof(c.expected),
-                                              &result[0], result.size()).c_str());
+                                              c.expected,
+                                              sizeof(c.expected),
+                                              result.data(),
+                                              result.size()).c_str());
         }
     }
-    
-    static std::wstring pbkdf2ErrorMessage(wchar_t const * test,
-                                           char const *    password,
-                                           char const *    salt,
-                                           int             count,
-                                           uint8_t const * expected,
-                                           size_t          expectedSize,
-                                           uint8_t const * actual,
-                                           size_t          actualSize)
-    {
-        std::wostringstream message;
-        message
-            << test
-            << L"(\""
-            << ToString(shorten(password))
-            << L"\", \""
-            << ToString(shorten(salt))
-            << L"\""
-            << count
-            << "): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
-        return message.str();
-    }
-
 };
 
 } // namespace TestCrypto

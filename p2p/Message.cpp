@@ -22,7 +22,7 @@ void Message::Header::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(Endian::little(magic_), out);
 
     // Type (up to 11 bytes + 0 terminator, padded with 0s)
-    out.insert(out.end(), &type_[0], &type_[TYPE_SIZE]);
+    out.insert(out.end(), type_, type_ + TYPE_SIZE);
 
     // Payload size (uint32_t, little-endian)
     P2p::serialize(Endian::little((uint32_t)length_), out);

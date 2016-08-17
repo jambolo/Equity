@@ -79,6 +79,8 @@ bool sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, Publi
 //! @return true if the message's signature is valid and it matches the message
 bool verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature);
 
+/********************************************************************************************************************/
+
 inline bool publicKeyIsValid(uint8_t const * k, size_t size)
 {
     return (size == UNCOMPRESSED_PUBLIC_KEY_SIZE && k[0] == 4) ||
@@ -95,5 +97,5 @@ inline bool privateKeyIsValid(PrivateKey const & k)
     return privateKeyIsValid(k.data(), k.size());
 }
 
-}
-}  // namespace Crypto::Ecc
+} // namespace Ecc
+} // namespace Crypto

@@ -25,11 +25,11 @@ std::vector<uint8_t> pbkdf2HmacSha512(std::vector<uint8_t> const & password,
 //! @param  count           number of iterations
 //! @param  size            desired size of the returned value
 std::vector<uint8_t> pbkdf2HmacSha512(uint8_t const * password,
-                                      size_t passwordSize,
+                                      size_t          passwordSize,
                                       uint8_t const * salt,
-                                      size_t saltSize,
-                                      int count,
-                                      size_t size);
+                                      size_t          saltSize,
+                                      int             count,
+                                      size_t          size);
 
 /********************************************************************************************************************/
 

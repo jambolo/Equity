@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -62,7 +63,7 @@ Sha512TestCase const SHA512_CASES[] =
 
 namespace TestCrypto
 {
-    
+
 TEST_CLASS(Crypto_Sha512)
 {
 public:
@@ -72,42 +73,34 @@ public:
         {
             Sha512Hash result = Crypto::sha512((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"sha512", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha512",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha512_sha512_vector)
     {
         for (auto const & c : SHA512_CASES)
         {
-            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input+strlen(c.input));
+            std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input + strlen(c.input));
             Sha512Hash result = Crypto::sha512(input);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"sha512", c.input, c.expected, sizeof(c.expected), &result[0], result.size()).c_str());
+                           hashErrorMessage(L"sha512",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
+                                            result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Sha512_sha512_array)
     {
-    }
-    
-    static std::wstring hashErrorMessage(wchar_t const * test,
-                                         char const *    input,
-                                         uint8_t const * expected,
-                                         size_t          expectedSize,
-                                         uint8_t const * actual,
-                                         size_t          actualSize)
-    {
-        std::wostringstream message;
-        message
-            << test
-            << L"(\""
-            << ToString(shorten(input))
-            << L"\"): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
-        return message.str();
+        Assert::Fail(L"Not implemented");
     }
 };
 

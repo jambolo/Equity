@@ -22,6 +22,10 @@ Sha512Hash sha512(uint8_t const * input, size_t length);
 
 //! Computes the SHA-512 hash of an std::array of uint8_t.
 //! @param  input   data to hash
+template <size_t N> Sha512Hash sha512(std::array<uint8_t, N> const & input);
+
+/********************************************************************************************************************/
+
 template <size_t N>
 Sha512Hash sha512(std::array<uint8_t, N> const & input)
 {

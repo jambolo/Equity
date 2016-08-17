@@ -1,3 +1,4 @@
+#include "../shared.h"
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
@@ -11,7 +12,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace
 {
-    
+
 struct Ripemd160TestCase
 {
     char const * input;
@@ -68,11 +69,15 @@ public:
         {
             Ripemd160Hash result = Crypto::ripemd160((uint8_t const *)c.input, strlen(c.input));
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"ripemd160", c.input, c.expected, sizeof(c.expected), &result[0],
+                           hashErrorMessage(L"ripemd160",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
                                             result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Ripemd_ripemd160_vector)
     {
         for (auto const & c : RIPEMD160_CASES)
@@ -80,32 +85,18 @@ public:
             std::vector<uint8_t> input((uint8_t const *)c.input, (uint8_t const *)c.input + strlen(c.input));
             Ripemd160Hash result = Crypto::ripemd160(input);
             Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hashErrorMessage(L"ripemd160", c.input, c.expected, sizeof(c.expected), &result[0],
+                           hashErrorMessage(L"ripemd160",
+                                            c.input,
+                                            c.expected,
+                                            sizeof(c.expected),
+                                            result.data(),
                                             result.size()).c_str());
         }
     }
-    
+
     TEST_METHOD(Crypto_Ripemd_ripemd160_array)
     {
-    }
-    
-    static std::wstring hashErrorMessage(wchar_t const * test,
-                                         char const *    input,
-                                         uint8_t const * expected,
-                                         size_t          expectedSize,
-                                         uint8_t const * actual,
-                                         size_t          actualSize)
-    {
-        std::wostringstream message;
-        message
-            << test
-            << L"(\""
-            << ToString(shorten(input))
-            << L"\"): expected "
-            << ToString(toHex(expected, expectedSize))
-            << ", got "
-            << ToString(toHex(actual, actualSize));
-        return message.str();
+        Assert::Fail(L"Not implemented");
     }
 };
 
