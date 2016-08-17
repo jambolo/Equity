@@ -10,6 +10,11 @@ namespace Crypto
 namespace Random
 {
 
+bool status()
+{
+	return RAND_status() != 0;
+}
+
 void getBytes(uint8_t * buffer, size_t size)
 {
     assert(size < std::numeric_limits<int>().max());

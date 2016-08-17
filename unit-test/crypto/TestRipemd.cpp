@@ -96,8 +96,21 @@ public:
 
     TEST_METHOD(Crypto_Ripemd_ripemd160_array)
     {
-        Assert::Fail(L"Not implemented");
-    }
+		std::array<uint8_t, 3> input = { 'a', 'b', 'c' };
+		uint8_t expected[RIPEMD160_HASH_SIZE] =
+		{
+			0x8e, 0xb2, 0x08, 0xf7, 0xe0, 0x5d, 0x98, 0x7a, 0x9b, 0x04, 0x4a, 0x8e, 0x98, 0xc6, 0xb0, 0x87, 0xf1, 0x5a, 0x0b, 0xfc
+		};
+
+		Ripemd160Hash result = Crypto::ripemd160(input);
+		Assert::IsTrue(std::equal(result.begin(), result.end(), expected),
+			hashErrorMessage(L"ripemd160",
+				(char const *)input.data(),
+				expected,
+				sizeof(expected),
+				result.data(),
+				result.size()).c_str());
+	}
 };
 
 } // namespace TestCrypto

@@ -10,6 +10,9 @@ namespace Crypto
 namespace Random
 {
 
+//! Returns true if the RNG has enough entropy
+bool status();
+
 //! Fills the buffer with random bytes.
 //! @param[out]     buffer  buffer to hold bytes
 //! @param          size    number of byte to generate

@@ -96,8 +96,21 @@ public:
 
     TEST_METHOD(Crypto_Sha1_sha1_array)
     {
-        Assert::Fail(L"Not implemented");
-    }
+		std::array<uint8_t, 3> input = { 'a', 'b', 'c' };
+		uint8_t expected[SHA1_HASH_SIZE] =
+		{
+			0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e, 0x25, 0x71, 0x78, 0x50, 0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d
+		};
+
+		Sha1Hash result = Crypto::sha1(input);
+		Assert::IsTrue(std::equal(result.begin(), result.end(), expected),
+			hashErrorMessage(L"sha1",
+				(char const *)input.data(),
+				expected,
+				sizeof(expected),
+				result.data(),
+				result.size()).c_str());
+	}
 };
 
 } // namespace TestCrypto
