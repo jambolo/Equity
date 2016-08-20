@@ -29,8 +29,9 @@ public:
     //! Supported languages
     enum Language
     {
-        ENGLISH
+        ENGLISH,
     };
+    static size_t const NUM_LANGUAGES = Language::ENGLISH + 1;
 
     //! A list of words.
     using WordList = std::vector<std::string>;
@@ -87,7 +88,7 @@ public:
     //! @param  max     maximum number of suggestions to return
     //!
     //! @return     list of suggestions
-    WordList suggestions(std::string const & word, size_t max = 0);
+    WordList suggestions(std::string const & word, size_t max = 0) const;
 
 private:
 
@@ -100,14 +101,16 @@ private:
 
     bool validate() const;
     std::vector<uint8_t> checkedEntropy() const;
-    Dictionary::const_iterator find(std::string const & word) const;
+    static Dictionary::const_iterator find(std::string const & word, Dictionary const & dictionary);
+    static bool areFound(WordList const & words, Dictionary const & dictionary);
+    static Language determineLanguage(WordList const & words);
 
     WordList words_;
     bool valid_;
     Language language_;
-    Dictionary const & dictionary_;
 
     static Dictionary const ENGLISH_DICTIONARY;
+    static Dictionary const * const DICTIONARIES[Mnemonic::NUM_LANGUAGES];
 };
 
 } // namespace Equity
