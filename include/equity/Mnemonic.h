@@ -31,7 +31,7 @@ public:
     {
         ENGLISH,
     };
-    static size_t const NUM_LANGUAGES = Language::ENGLISH + 1;
+    static size_t const NUM_LANGUAGES = Language::ENGLISH + 1;	//!< Number of supported languages
 
     //! A list of words.
     using WordList = std::vector<std::string>;
