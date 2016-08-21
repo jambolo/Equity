@@ -234,6 +234,36 @@ public:
             }
         }
     }
+
+    TEST_METHOD(Equity_PrivateKey_setCompressed)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_PrivateKey_value)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_PrivateKey_compressed)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_PrivateKey_valid)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_PrivateKey_toWif)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_PrivateKey_toHex)
+    {
+        Assert::Fail(L"Not implemented");
+    }
 };
 
 } // namespace TestEquity

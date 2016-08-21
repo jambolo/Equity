@@ -83,22 +83,7 @@ TEST_CLASS(Equity_AddressTest)
 {
 public:
 
-    TEST_METHOD(Equity_Address_constuctor_uint8_t_ptr)
-    {
-        for (auto const & c : CASES)
-        {
-            Address result(c.data, sizeof(c.data));
-            Assert::IsTrue(result.valid());
-            if (result.valid())
-            {
-                std::array<uint8_t, Address::SIZE> value = result.value();
-                Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
-                Assert::AreEqual(c.base58Check, result.toString(c.version).c_str());
-            }
-        }
-    }
-
-    TEST_METHOD(Equity_Address_constuctor_base58Check)
+    TEST_METHOD(Equity_Address_constuctor_string)
     {
         for (auto const & c : STRING_VALIDITY_CASES)
         {
@@ -113,6 +98,21 @@ public:
             {
                 std::array<uint8_t, Address::SIZE> value = result.value();
                 Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
+            }
+        }
+    }
+
+    TEST_METHOD(Equity_Address_constuctor_uint8_t_ptr)
+    {
+        for (auto const & c : CASES)
+        {
+            Address result(c.data, sizeof(c.data));
+            Assert::IsTrue(result.valid());
+            if (result.valid())
+            {
+                std::array<uint8_t, Address::SIZE> value = result.value();
+                Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
+                Assert::AreEqual(c.base58Check, result.toString(c.version).c_str());
             }
         }
     }
@@ -147,7 +147,6 @@ public:
             }
         }
     }
-
 };
 
 } // namespace TestEquity

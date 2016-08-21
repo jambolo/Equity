@@ -42,7 +42,7 @@ public:
         OP_PUSHDATA2            = 0x4d, //!< The next two bytes contain the number of bytes to be pushed onto the stack.
         OP_PUSHDATA4            = 0x4e, //!< The next four bytes contain the number of bytes to be pushed onto the stack.
         OP_1NEGATE              = 0x4f, //!< The number -1 is pushed onto the stack.
-        OP_RESERVED             = 0x50, //!< Transaction is invalid unless occuring in an unexecuted OP_IF branch
+        OP_RESERVED             = 0x50, //!< Transaction is invalid unless occurring in an unexecuted OP_IF branch
         OP_1                    = 0x51, //!< The number 1  is pushed onto the stack.
         OP_TRUE = OP_1,                 //!< The number 1  is pushed onto the stack.
         OP_2                    = 0x52, //!< The number 2  is pushed onto the stack.
@@ -64,13 +64,13 @@ public:
         // Flow control
 
         OP_NOP                  = 0x61, //!< Does nothing.
-        OP_VER                  = 0x62, //!< Transaction is invalid unless occuring in an unexecuted OP_IF branch
+        OP_VER                  = 0x62, //!< Transaction is invalid unless occurring in an unexecuted OP_IF branch
         OP_IF                   = 0x63, //!< If the top stack value is not 0, the statements are executed.The top stack value is
                                         //!< removed.
         OP_NOTIF                = 0x64, //!< If the top stack value is 0, the statements are executed.The top stack value is
                                         //!< removed.
-        OP_VERIF                = 0x65, //!< Transaction is invalid even when occuring in an unexecuted OP_IF branch
-        OP_VERNOTIF             = 0x66, //!< Transaction is invalid even when occuring in an unexecuted OP_IF branch
+        OP_VERIF                = 0x65, //!< Transaction is invalid even when occurring in an unexecuted OP_IF branch
+        OP_VERNOTIF             = 0x66, //!< Transaction is invalid even when occurring in an unexecuted OP_IF branch
         OP_ELSE                 = 0x67, //!< If the preceding OP_IF or OP_NOTIF or OP_ELSE was not executed then these statements
                                         //!< are and if the preceding OP_IF or OP_NOTIF or OP_ELSE was executed then these
                                         //!< statements are not.
@@ -123,8 +123,8 @@ public:
         OP_XOR                  = 0x86, //!< Boolean exclusive or between each bit in the inputs.
         OP_EQUAL                = 0x87, //!< Returns 1 if the inputs are exactly equal, 0 otherwise.
         OP_EQUALVERIFY          = 0x88, //!< Same as OP_EQUAL, but runs OP_VERIFY afterward.
-        OP_RESERVED1            = 0x89, //!< Transaction is invalid unless occuring in an unexecuted OP_IF branch
-        OP_RESERVED2            = 0x8a, //!< Transaction is invalid unless occuring in an unexecuted OP_IF branch
+        OP_RESERVED1            = 0x89, //!< Transaction is invalid unless occurring in an unexecuted OP_IF branch
+        OP_RESERVED2            = 0x8a, //!< Transaction is invalid unless occurring in an unexecuted OP_IF branch
 
         // Arithmetic
 
@@ -171,15 +171,13 @@ public:
         OP_CHECKSIGVERIFY       = 0xad, //!< Same as OP_CHECKSIG, but OP_VERIFY is executed afterward.
         OP_CHECKMULTISIG        = 0xae, //!< Compares the first signature against each public key until it finds an ECDSA
                                         //!< match. Starting with the subsequent public key, it compares the second signature
-                                        // against
-                                        //!< each remaining public key until it finds an ECDSA match. The process is repeated until
-                                        //!< all signatures have been checked or not enough public keys remain to produce a
-                                        //!< successful result. All signatures need to match a public key. Because public keys are
-                                        // not
-                                        //!< checked again if they fail any signature comparison, signatures must be placed in the
-                                        //!< scriptSig using the same order as their corresponding public keys were placed in the
-                                        //!< scriptPubKey or redeemScript. If all signatures are valid, 1 is returned, 0
-                                        //!< otherwise. Due to a bug, one extra unused value is removed from the stack.
+                                        //!< against each remaining public key until it finds an ECDSA match. The process is
+                                        //!< repeated until all signatures have been checked or not enough public keys remain to
+                                        //!< produce a successful result. All signatures need to match a public key. Because public
+                                        //!< keys are not checked again if they fail any signature comparison, signatures must be
+                                        //!< placed in the scriptSig using the same order as their corresponding public keys were
+                                        //!< placed in the scriptPubKey or redeemScript. If all signatures are valid, 1 is returned,
+                                        //!< 0 otherwise. Due to a bug, one extra unused value is removed from the stack.
         OP_CHECKMULTISIGVERIFY  = 0xaf, //!< Same as OP_CHECKMULTISIG, but OP_VERIFY is executed afterward.
         OP_NOP1                 = 0xb0, //!< The word is ignored. Does not mark transaction as invalid.
         OP_CHECKLOCKTIMEVERIFY  = 0xb1, //!< Marks transaction as invalid if the top stack item is greater than the transaction's

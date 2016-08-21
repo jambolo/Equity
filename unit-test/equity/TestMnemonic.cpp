@@ -1,6 +1,7 @@
 #include "../targetver.h"
 #include "CppUnitTest.h"
 
+#include "../shared.h"
 #include <equity/Mnemonic.h>
 #include <utility/Utility.h>
 
@@ -42,7 +43,7 @@ Mnemonic::WordList createWordList(char const * sentence)
 std::string createSentence(Mnemonic::WordList const & words)
 {
     // Add up the sizes of all the words to get the size of the sentence
-    size_t size = words.size()-1;
+    size_t size = words.size() - 1;
     for (auto const & w : words)
     {
         size += w.size();
@@ -65,35 +66,7 @@ std::string createSentence(Mnemonic::WordList const & words)
     return sentence;
 }
 
-std::wstring errorMessage(wchar_t const * test, char const * input, char const * expected, char const * actual)
-{
-    std::wostringstream message;
-    message
-        << test
-        << L"(\""
-        << ToString(shorten(input))
-        << L"\"): expected "
-        << ToString(expected)
-        << ", got "
-        << ToString(actual);
-    return message.str();
-}
-
-std::wstring hexErrorMessage(wchar_t const * test, char const * input, char const * expected, std::vector<uint8_t> const & actual)
-{
-    std::wostringstream message;
-    message
-        << test
-        << L"(\""
-        << ToString(shorten(input))
-        << L"\"): expected "
-        << ToString(expected)
-        << ", got "
-        << ToString(toHex(actual));
-    return message.str();
-}
-
-}
+} // anonymous namespace
 
 namespace TestEquity
 {
@@ -273,6 +246,16 @@ public:
         for (auto const & c : MNEMONIC_TEST_CASES)
         {
             std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+            Mnemonic m(entropy.data(), entropy.size());
+            Assert::IsTrue(m.isValid());
+        }
+    }
+
+    TEST_METHOD(Equity_Mnemonic_constructor_vector)
+    {
+        for (auto const & c : MNEMONIC_TEST_CASES)
+        {
+            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
             Mnemonic m(entropy);
             Assert::IsTrue(m.isValid());
         }
@@ -287,7 +270,7 @@ public:
             std::vector<uint8_t> result = m.seed("TREZOR");
             std::vector<uint8_t> expected = fromHex(c.seed, strlen(c.seed));
             Assert::IsTrue(result == expected,
-                hexErrorMessage(L"seed", c.entropy, c.seed, result).c_str());
+                           hexErrorMessage(L"seed", c.entropy, c.seed, result).c_str());
         }
     }
 
@@ -300,7 +283,7 @@ public:
             std::vector<uint8_t> result = m.entropy();
             std::vector<uint8_t> expected = fromHex(c.entropy, strlen(c.entropy));
             Assert::IsTrue(result == expected,
-                hexErrorMessage(L"entropy", c.mnemonic, c.entropy, result).c_str());
+                           hexErrorMessage(L"entropy", c.mnemonic, c.entropy, result).c_str());
         }
     }
 
@@ -313,7 +296,7 @@ public:
             std::string result = m.sentence();
             char const * expected = c.mnemonic;
             Assert::AreEqual(expected, result.c_str(), false,
-                errorMessage(L"sentence", c.entropy, expected, result.c_str()).c_str());
+                             errorMessage(L"sentence", c.entropy, expected, result.c_str()).c_str());
         }
     }
 
@@ -326,19 +309,19 @@ public:
             Mnemonic::WordList result = m.words();
             Mnemonic::WordList expected = createWordList(c.mnemonic);
             Assert::IsTrue(expected == result,
-                errorMessage(L"words", c.entropy, c.mnemonic, createSentence(result).c_str()).c_str());
+                           errorMessage(L"words", c.entropy, c.mnemonic, createSentence(result).c_str()).c_str());
         }
     }
 
-//     TEST_METHOD(Equity_Mnemonic_isValid)
-//     {
-//         Assert::IsTrue(false);
-//     }
-// 
-//     TEST_METHOD(Equity_Mnemonic_suggestions)
-//     {
-//         Assert::IsTrue(false);
-//     }
+    TEST_METHOD(Equity_Mnemonic_isValid)
+    {
+        Assert::Fail(L"Not implemented");
+    }
+
+    TEST_METHOD(Equity_Mnemonic_suggestions)
+    {
+        Assert::Fail(L"Not implemented");
+    }
 };
 
 } // namespace TestEquity

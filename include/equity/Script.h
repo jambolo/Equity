@@ -11,7 +11,7 @@ namespace Equity
 
 //! A transaction script.
 //!
-//! A Script is processed by a node and if the result is true, the transaction is considered valid.
+//! A Script is processed by a node and if the result is not true, the transaction is rejected.
 class Script : public P2p::Serializable
 {
 public:

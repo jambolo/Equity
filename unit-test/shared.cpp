@@ -74,3 +74,32 @@ std::wstring hmacErrorMessage(wchar_t const * test,
         << ToString(toHex(actual, actualSize));
     return message.str();
 }
+
+
+std::wstring errorMessage(wchar_t const * test, char const * input, char const * expected, char const * actual)
+{
+	std::wostringstream message;
+	message
+		<< test
+		<< L"(\""
+		<< ToString(shorten(input))
+		<< L"\"): expected "
+		<< ToString(expected)
+		<< ", got "
+		<< ToString(actual);
+	return message.str();
+}
+
+std::wstring hexErrorMessage(wchar_t const * test, char const * input, char const * expected, std::vector<uint8_t> const & actual)
+{
+	std::wostringstream message;
+	message
+		<< test
+		<< L"(\""
+		<< ToString(shorten(input))
+		<< L"\"): expected "
+		<< ToString(expected)
+		<< ", got "
+		<< ToString(toHex(actual));
+	return message.str();
+}

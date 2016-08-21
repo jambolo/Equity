@@ -16,12 +16,6 @@ Address::Address(std::string const & s)
     valid_ = Base58Check::decode(s.c_str(), value_.data(), value_.size(), network);
 }
 
-Address::Address(Crypto::Ripemd160Hash const & k)
-    : value_(k)
-    , valid_(true)
-{
-}
-
 Address::Address(uint8_t const * data, size_t size)
     : valid_(true)
 {
@@ -31,6 +25,12 @@ Address::Address(uint8_t const * data, size_t size)
         return;
     }
     std::copy(data, data + size, value_.data());
+}
+
+Address::Address(Crypto::Ripemd160Hash const & k)
+    : value_(k)
+    , valid_(true)
+{
 }
 
 Address::Address(PublicKey const & publicKey)

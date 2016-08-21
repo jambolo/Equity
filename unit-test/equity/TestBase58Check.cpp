@@ -83,6 +83,28 @@ public:
         }
     }
 
+    TEST_METHOD(Equity_Base58Check_encode_array)
+    {
+        for (auto const & c : CASES)
+        {
+
+            if (c.size == 20)
+            {
+                std::array<uint8_t, 20> a;
+                std::copy(c.data, c.data + c.size, a.data());
+                std::string result = Base58Check::encode(a, c.version);
+                Assert::AreEqual(c.stringForm, result.c_str());
+            }
+            else if (c.size == 32)
+            {
+                std::array<uint8_t, 32> a;
+                std::copy(c.data, c.data + c.size, a.data());
+                std::string result = Base58Check::encode(a, c.version);
+                Assert::AreEqual(c.stringForm, result.c_str());
+            }
+        }
+    }
+
     TEST_METHOD(Equity_Base58Check_decode_cstring)
     {
         for (auto const & c : DECODE_VALIDITY_CASES)

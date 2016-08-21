@@ -27,13 +27,14 @@ public:
 
     // Constructor
     //!
-    //! @param  k   address in binary form
-    explicit Address(Crypto::Ripemd160Hash const & k);
-    // Constructor
-    //!
     //! @param  data    start of address in binary form
     //! @param  size    size of the data
     Address(uint8_t const * data, size_t size);
+
+    // Constructor
+    //!
+    //! @param  k   address in binary form
+    explicit Address(Crypto::Ripemd160Hash const & k);
 
     // Constructor
     //!
