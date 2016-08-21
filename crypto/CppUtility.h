@@ -11,12 +11,12 @@
 
 //! @cond IMPLEMENTATION_DETAILS
 
-#define DECLARE_UNIQUE_POINTER_TYPE(TYPE, FREE)         \
-struct TYPE ## _deleter                                 \
-{                                                       \
-    void operator ()(TYPE * p) { FREE(p); }             \
-};                                                      \
-typedef std::unique_ptr<TYPE, TYPE ## _deleter> auto_ ## TYPE
+#define DECLARE_UNIQUE_POINTER_TYPE(TYPE, FREE) \
+    struct TYPE ## _deleter                     \
+    {                                           \
+        void operator ()(TYPE * p) { FREE(p); } \
+    };                                          \
+    typedef std::unique_ptr<TYPE, TYPE ## _deleter> auto_ ## TYPE
 
 namespace Crypto
 {
