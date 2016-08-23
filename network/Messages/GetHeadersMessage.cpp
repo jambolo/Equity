@@ -33,5 +33,10 @@ void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
 
 json GetHeadersMessage::toJson() const
 {
-    return std::string("...");
+	return json::object(
+	{
+		{ "version", version_ },
+		{ "hashes", P2p::toJson(hashes_) },
+		{ "last", last_ }
+	});
 }

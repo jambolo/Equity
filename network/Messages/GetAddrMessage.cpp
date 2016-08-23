@@ -18,4 +18,10 @@ GetAddrMessage::GetAddrMessage(uint8_t const * & in, size_t & size)
 
 void GetAddrMessage::serialize(std::vector<uint8_t> & out) const
 {
+	// Nothing to serialize
+}
+
+json Network::GetAddrMessage::toJson() const
+{
+	return json();
 }

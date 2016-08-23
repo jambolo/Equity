@@ -26,3 +26,8 @@ void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(data_, out);
 }
+
+json Network::FilterAddMessage::toJson() const
+{
+	return P2p::toJson(data_);
+}

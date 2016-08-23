@@ -25,25 +25,23 @@ VersionMessage::VersionMessage(uint32_t            version,
     , userAgent_(userAgent)
     , height_(height)
     , relay_(relay)
-{
-}
+{}
 
 VersionMessage::VersionMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
-    version_ = P2p::deserialize<uint32_t>(in, size);
-    services_ = P2p::deserialize<uint64_t>(in, size);
+    version_   = P2p::deserialize<uint32_t>(in, size);
+    services_  = P2p::deserialize<uint64_t>(in, size);
     timestamp_ = P2p::deserialize<uint64_t>(in, size);
-    to_ = P2p::deserialize<Address>(in, size);
+    to_        = P2p::deserialize<Address>(in, size);
 
     // Fields below require version >= 106
     if (version_ >= 106)
     {
-        from_ = P2p::deserialize<Address>(in, size);
-        nonce_ = P2p::deserialize<uint32_t>(in, size);
-
+        from_      = P2p::deserialize<Address>(in, size);
+        nonce_     = P2p::deserialize<uint32_t>(in, size);
         userAgent_ = P2p::VarString(in, size).value();
-        height_ = P2p::deserialize<uint32_t>(in, size);
+        height_    = P2p::deserialize<uint32_t>(in, size);
 
         // Fields below require version >= 70001
         if (version_ >= 70001)
@@ -66,16 +64,28 @@ void VersionMessage::serialize(std::vector<uint8_t> & out) const
 
 json VersionMessage::toJson() const
 {
-    return json::object(
+    json j =
     {
-        { "version", version_ },
-        { "services", services_ },
-        { "timestamp", timestamp_ },
-        { "to", to_.toJson() },
-        { "from", from_.toJson() },
-        { "nonce", nonce_ },
-        { "userAgent", userAgent_ },
-        { "height", height_ },
-        { "relay", relay_ }
-    });
+        { "version",   version_     },
+        { "services",  services_    },
+        { "timestamp", timestamp_   },
+        { "to",        to_.toJson() }
+    };
+
+    // Fields below require version >= 106
+    if (version_ >= 106)
+    {
+        j["from"]      = from_.toJson();
+        j["nonce"]     = nonce_;
+        j["userAgent"] = userAgent_;
+        j["height"]    = height_;
+
+        // Fields below require version >= 70001
+        if (version_ >= 70001)
+        {
+            j["relay"] = relay_;
+        }
+    }
+
+    return j;
 }

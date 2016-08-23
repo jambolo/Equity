@@ -19,5 +19,10 @@ FilterClearMessage::FilterClearMessage(uint8_t const * & in, size_t & size)
 
 void FilterClearMessage::serialize(std::vector<uint8_t> & out) const
 {
-    NOT_YET_IMPLEMENTED();
+    // Nothing to serialize
+}
+
+json Network::FilterClearMessage::toJson() const
+{
+	return json();
 }

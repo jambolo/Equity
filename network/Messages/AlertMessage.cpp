@@ -26,3 +26,11 @@ void AlertMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(message_, out);
 }
+
+json Network::AlertMessage::toJson() const
+{
+	return json::object(
+	{
+		{ "message", P2p::toJson(message_) }
+	});
+}

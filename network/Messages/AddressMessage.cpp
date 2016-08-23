@@ -22,3 +22,11 @@ void AddressMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(P2p::VarArray<Address>(addresses_), out);
 }
+
+json Network::AddressMessage::toJson() const
+{
+	return json::object(
+	{
+		{ "addresses", P2p::toJson(addresses_) }
+	});
+}

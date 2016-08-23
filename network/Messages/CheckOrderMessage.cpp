@@ -23,3 +23,9 @@ void CheckOrderMessage::serialize(std::vector<uint8_t> & out) const
 {
     THIS_SHOULD_NEVER_HAPPEN();  // not supported
 }
+
+json Network::CheckOrderMessage::toJson() const
+{
+	THIS_SHOULD_NEVER_HAPPEN();  // not supported
+	return json();
+}

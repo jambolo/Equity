@@ -22,3 +22,11 @@ void GetDataMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::VarArray<InventoryId>(inventory_).serialize(out);
 }
+
+json Network::GetDataMessage::toJson() const
+{
+	return json::object(
+	{
+		{ "inventory", P2p::toJson(inventory_) }
+	});
+}

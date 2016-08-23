@@ -43,3 +43,14 @@ void FilterLoadMessage::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(Endian::little(tweak_), out);
     P2p::serialize(flags_, out);
 }
+
+json Network::FilterLoadMessage::toJson() const
+{
+	return json::object(
+	{
+		{"filter", P2p::toJson(filter_) },
+		{"num_hash_funcs", nHashFuncs_ },
+		{"tweak", tweak_ },
+		{"flags", flags_ }
+	} );
+}

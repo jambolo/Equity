@@ -23,3 +23,8 @@ void BlockMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(block_, out);
 }
+
+json Network::BlockMessage::toJson() const
+{
+	return block_.toJson();
+}

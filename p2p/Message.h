@@ -11,6 +11,7 @@ namespace P2p
 
 //! A P2P network message.
 //!
+//! @note	This is the raw form of a Network::Message.
 //! @sa     https://en.bitcoin.it/wiki/Protocol_documentation#Message_structure
 
 class Message
@@ -35,9 +36,6 @@ public:
 
     //! Returns the size of the payload
     size_t size() const { return payload_.size(); }
-
-    //! Returns the checksum of the payload
-    uint32_t checksum() const;
 
 private:
 

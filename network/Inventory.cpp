@@ -26,3 +26,12 @@ void InventoryId::serialize(std::vector<uint8_t> & out) const
     P2p::serialize(Endian::little((uint32_t)type_), out);
     P2p::serialize(hash_, out);
 }
+
+json Network::InventoryId::toJson() const
+{
+    return json::object(
+    {
+        { "type", type_ },
+        { "hash", P2p::toJson(hash_) }
+    });
+}
