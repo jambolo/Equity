@@ -1,6 +1,6 @@
-set(VSCPPUNIT_DIR "D:/Program Files (x86)/VC/UnitTest")
-set(VSCPPUNIT_INCLUDE_DIR ${VSCPPUNIT_DIR}/include)
-set(VSCPPUNIT_LIB_DIR ${VSCPPUNIT_DIR}/lib)
+set(VSCPPUNIT_DIR "C:/Program Files (x86)/Microsoft Visual Studio 12.0/VC/UnitTest")
+set(VSCPPUNIT_INCLUDE_DIR ${VSCPPUNIT_DIR}/Include)
+set(VSCPPUNIT_LIB_DIR ${VSCPPUNIT_DIR}/Lib)
 
 file(GLOB CRYPTO_TESTS
     ${CMAKE_CURRENT_SOURCE_DIR}/crypto/*.cpp

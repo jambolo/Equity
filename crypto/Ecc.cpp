@@ -23,13 +23,13 @@ bool Crypto::Ecc::privateKeyIsValid(uint8_t const * k, size_t size)
     if (size != PRIVATE_KEY_SIZE)
         return false;
 
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> i(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> i(BN_new(), BN_free);
     BN_bin2bn(k, (int)size, i.get());
 
     if (BN_is_zero(i.get()))
         return false;
 
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> maxPrivateKey(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> maxPrivateKey(BN_new(), BN_free);
     BN_bin2bn(MAX_PRIVATE_KEY, (int)sizeof(MAX_PRIVATE_KEY), maxPrivateKey.get());
 
     if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
@@ -40,12 +40,12 @@ bool Crypto::Ecc::privateKeyIsValid(uint8_t const * k, size_t size)
 
 bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey, bool uncompressed /* = false*/)
 {
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> prvKey_bn(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> prvKey_bn(BN_new(), BN_free);
     BN_bin2bn(prvKey.data(), (int)prvKey.size(), prvKey_bn.get());
 
-    std::unique_ptr<EC_GROUP, decl_type(EC_GROUP_free)*> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
-    std::unique_ptr<EC_POINT, decl_type(EC_POINT_free)*> point(EC_POINT_new(group.get()), EC_POINT_free);
-    std::unique_ptr<BN_CTX, decl_type(BN_CTX_free)*> ctx(BN_CTX_new(), BN_CTX_free);
+    std::unique_ptr<EC_GROUP, decltype(EC_GROUP_free) *> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
+    std::unique_ptr<EC_POINT, decltype(EC_POINT_free) *> point(EC_POINT_new(group.get()), EC_POINT_free);
+    std::unique_ptr<BN_CTX, decltype(BN_CTX_free) *> ctx(BN_CTX_new(), BN_CTX_free);
 
     if (!EC_POINT_mul(group.get(), point.get(), prvKey_bn.get(), NULL, NULL, ctx.get()))
         return false;
@@ -69,17 +69,17 @@ bool Crypto::Ecc::sign(uint8_t const *    message,
 {
     signature.clear();
 
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> prvKey_bn(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> prvKey_bn(BN_new(), BN_free);
     BN_bin2bn(prvKey.data(), (int)prvKey.size(), prvKey_bn.get());
 
-    std::unique_ptr<EC_KEY, decl_type(EC_KEY_free)*> ecKey(EC_KEY_new(), EC_KEY_free);
+    std::unique_ptr<EC_KEY, decltype(EC_KEY_free) *> ecKey(EC_KEY_new(), EC_KEY_free);
     if (!EC_KEY_set_private_key(ecKey.get(), prvKey_bn.get()))
         return false;
 
-    std::unique_ptr<EVP_PKEY, decl_type(EVP_PKEY_free)*> pkey(EVP_PKEY_new(), EVP_PKEY_free);
+    std::unique_ptr<EVP_PKEY, decltype(EVP_PKEY_free) *> pkey(EVP_PKEY_new(), EVP_PKEY_free);
     EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
 
-    std::unique_ptr<EVP_MD_CTX, decl_type(EVP_MD_CTX_free)*> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_free);
+    std::unique_ptr<EVP_MD_CTX, decltype(EVP_MD_CTX_destroy) *> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_destroy);
     if (!EVP_DigestSignInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
         return false;
 
@@ -110,19 +110,19 @@ bool Crypto::Ecc::sign(uint8_t const *    message,
 //! @return true if the message's signature is vaid and it matches the message
 bool Crypto::Ecc::verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature)
 {
-    std::unique_ptr<EC_GROUP, decl_type(EC_GROUP_free)*> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
-    std::unique_ptr<EC_POINT, decl_type(EC_POINT_free)*> point(EC_POINT_new(group.get()), EC_POINT_free);
+    std::unique_ptr<EC_GROUP, decltype(EC_GROUP_free) *> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
+    std::unique_ptr<EC_POINT, decltype(EC_POINT_free) *> point(EC_POINT_new(group.get()), EC_POINT_free);
     if (!EC_POINT_oct2point(group.get(), point.get(), pubKey.data(), pubKey.size(), NULL))
         return false;
 
-    std::unique_ptr<EC_KEY, decl_type(EC_KEY_free)*> ecKey(EC_KEY_new(), EC_KEY_free);
+    std::unique_ptr<EC_KEY, decltype(EC_KEY_free) *> ecKey(EC_KEY_new(), EC_KEY_free);
     if (!EC_KEY_set_public_key(ecKey.get(), point.get()))
         return false;
 
-    std::unique_ptr<EVP_PKEY, decl_type(EVP_PKEY_free)*> pkey(EVP_PKEY_new(), EVP_PKEY_free);
+    std::unique_ptr<EVP_PKEY, decltype(EVP_PKEY_free) *> pkey(EVP_PKEY_new(), EVP_PKEY_free);
     EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
 
-    std::unique_ptr<EVP_MD_CTX, decl_type(EVP_MD_CTX_free)*> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_free);
+    std::unique_ptr<EVP_MD_CTX, decltype(EVP_MD_CTX_destroy) *> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_destroy);
     if (!EVP_DigestVerifyInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
         return false;
 

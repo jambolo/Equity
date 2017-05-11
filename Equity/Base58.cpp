@@ -7,28 +7,22 @@
 
 using namespace Equity;
 
-struct BIGNUM_deleter
-{
-    void operator ()(BIGNUM * a) { BN_free(a); }
-};
-typedef std::unique_ptr<BIGNUM, BIGNUM_deleter> std::unique_ptr<BIGNUM, decl_type(BN_free)*>;
-
 static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-static int const DECODE_MAP[] =
+static int const DECODE_MAP[]  =
 {
-    0, 1, 2, 3, 4, 5, 6, 7, 8,                              // '1' - '9' (49 - 57)
-    -1, -1, -1, -1, -1, -1, -1,                             // ':' - '@' (58 - 64)
-    9, 10, 11, 12, 13, 14, 15, 16,                          // 'A' - 'H' (65 - 72)
-    -1,                                                     // 'I'       (73)
-    17, 18, 19, 20, 21,                                     // 'J' - 'N' (74 - 78)
-    -1,                                                     // 'O'       (79)
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,             // 'P' - 'Z' (80 - 90)
-    -1, -1, -1, -1, -1, -1,                                 // '[' - '`' (91 - 96)
-    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,             // 'a' - 'k' (97 - 107)
-    -1,                                                     // 'l'       (108)
-    44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57  // 'm' - 'z' (109 - 122)
+    0,  1,  2,  3,  4,  5,  6,  7,  8,                     // '1' - '9' (49 - 57)
+    -1, -1, -1, -1, -1, -1, -1,                            // ':' - '@' (58 - 64)
+    9,  10, 11, 12, 13, 14, 15, 16,                        // 'A' - 'H' (65 - 72)
+    -1,                                                    // 'I'       (73)
+    17, 18, 19, 20, 21,                                    // 'J' - 'N' (74 - 78)
+    -1,                                                    // 'O'       (79)
+    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,            // 'P' - 'Z' (80 - 90)
+    -1, -1, -1, -1, -1, -1,                                // '[' - '`' (91 - 96)
+    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,            // 'a' - 'k' (97 - 107)
+    -1,                                                    // 'l'       (108)
+    44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57 // 'm' - 'z' (109 - 122)
 };
-static size_t const DECODE_MAP_SIZE = sizeof(DECODE_MAP) / sizeof(int);
+static size_t const DECODE_MAP_SIZE = sizeof(DECODE_MAP) / sizeof(DECODE_MAP[0]);
 
 static char encode(int x)
 {
@@ -55,7 +49,7 @@ std::string Base58::encode(std::vector<uint8_t> const & input)
 
 std::string Base58::encode(uint8_t const * input, size_t length)
 {
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> i(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> i(BN_new(), BN_free);
     if (!i)
     {
         return "";
@@ -88,7 +82,7 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
         return false;
     }
 
-    std::unique_ptr<BIGNUM, decl_type(BN_free)*> i(BN_new(), BN_free);
+    std::unique_ptr<BIGNUM, decltype(BN_free) *> i(BN_new(), BN_free);
     if (!i)
     {
         return false;
