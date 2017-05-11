@@ -11,7 +11,7 @@ struct BIGNUM_deleter
 {
     void operator ()(BIGNUM * a) { BN_free(a); }
 };
-typedef std::unique_ptr<BIGNUM, BIGNUM_deleter> auto_BIGNUM;
+typedef std::unique_ptr<BIGNUM, BIGNUM_deleter> std::unique_ptr<BIGNUM, decl_type(BN_free)*>;
 
 static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 static int const DECODE_MAP[] =
@@ -55,7 +55,7 @@ std::string Base58::encode(std::vector<uint8_t> const & input)
 
 std::string Base58::encode(uint8_t const * input, size_t length)
 {
-    auto_BIGNUM i(BN_new());
+    std::unique_ptr<BIGNUM, decl_type(BN_free)*> i(BN_new(), BN_free);
     if (!i)
     {
         return "";
@@ -88,7 +88,7 @@ bool Base58::decode(char const * input, std::vector<uint8_t> & output)
         return false;
     }
 
-    auto_BIGNUM i(BN_new());
+    std::unique_ptr<BIGNUM, decl_type(BN_free)*> i(BN_new(), BN_free);
     if (!i)
     {
         return false;
