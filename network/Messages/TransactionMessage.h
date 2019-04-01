@@ -2,10 +2,10 @@
 
 #include "equity/Transaction.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A transaction message.
 //!
 //! This message describes a bitcoin transaction, in reply to a get-data message.
@@ -27,8 +27,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -36,16 +36,15 @@ public:
     Equity::Transaction::InputList inputs;      //!<  A list of 1 or more transaction inputs or sources for coins
     Equity::Transaction::OutputList outputs;    //!< A list of 1 or more transaction outputs or destinations for coins
     uint32_t lockTime;                          //!< The block number or timestamp at which this transaction is locked :
-                                                //!<    Value       Description
-                                                //!<    0	        Not locked
-                                                //!< < 500000000	Block number at which this transaction is locked
-                                                //!< >= 500000000	UNIX timestamp at which this transaction is locked
-                                                //!< If all TxIn inputs have final (0xffffffff) sequence numbers then lockTime
-                                                //!< is irrelevant. Otherwise, the transaction may not be added to a block
-                                                //!< until after lock_time(see NLockTime).
+    //!<    Value       Description
+    //!<    0	        Not locked
+    //!< < 500000000	Block number at which this transaction is locked
+    //!< >= 500000000	UNIX timestamp at which this transaction is locked
+    //!< If all TxIn inputs have final (0xffffffff) sequence numbers then lockTime
+    //!< is irrelevant. Otherwise, the transaction may not be added to a block
+    //!< until after lock_time(see NLockTime).
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

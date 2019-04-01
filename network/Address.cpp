@@ -3,6 +3,9 @@
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 using namespace Utility;
 
@@ -22,7 +25,7 @@ Address::Address(uint8_t const * & in, size_t & size)
 {
     time_     = Endian::little(P2p::deserialize<uint32_t>(in, size));
     services_ = Endian::little(P2p::deserialize<uint64_t>(in, size));
-    ipv6_     = P2p::deserializeArray<std::array<uint8_t, 16> >(in, size);
+    ipv6_     = P2p::deserializeArray<std::array<uint8_t, 16>>(in, size);
     port_     = Endian::little(P2p::deserialize<uint16_t>(in, size));
 }
 

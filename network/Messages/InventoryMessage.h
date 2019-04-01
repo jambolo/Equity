@@ -2,10 +2,10 @@
 
 #include "network/Inventory.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! An inventory message.
 //!
 //! Contains hashes corresponding to transactions and blocks. Can be sent unsolicited or in response to a get-blocks message.
@@ -28,8 +28,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -38,5 +38,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

@@ -1,9 +1,10 @@
 #pragma once
+
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A send-headers message.
 //!
 //! Upon receipt of this message, the node is be permitted, but not required, to announce new blocks by headers
@@ -27,13 +28,12 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

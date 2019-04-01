@@ -2,10 +2,10 @@
 
 #include "crypto/Sha256.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A reject message.
 //!
 //! The reject message is sent when messages are rejected. It is sent in response to a version, tx or block message.
@@ -19,14 +19,14 @@ public:
     //! Values describing the reasons for a rejection
     enum Code
     {
-        REJECT_MALFORMED        = 0x01,
-        REJECT_INVALID          = 0x10,
-        REJECT_OBSOLETE         = 0x11,
-        REJECT_DUPLICATE        = 0x12,
-        REJECT_NONSTANDARD      = 0x40,
-        REJECT_DUST             = 0x41,
-        REJECT_INSUFFICIENTFEE  = 0x42,
-        REJECT_CHECKPOINT       = 0x43
+        REJECT_MALFORMED       = 0x01,
+        REJECT_INVALID         = 0x10,
+        REJECT_OBSOLETE        = 0x11,
+        REJECT_DUPLICATE       = 0x12,
+        REJECT_NONSTANDARD     = 0x40,
+        REJECT_DUST            = 0x41,
+        REJECT_INSUFFICIENTFEE = 0x42,
+        REJECT_CHECKPOINT      = 0x43
     };
 
     // Constructor
@@ -50,8 +50,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -63,5 +63,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

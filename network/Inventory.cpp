@@ -3,6 +3,9 @@
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 using namespace Utility;
 

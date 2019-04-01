@@ -3,11 +3,14 @@
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 using namespace Utility;
 
-static int const MAX_NUM_HASH_FUNCIONS      = 50;       // Maximum number of hash functions allowed in a message
-static size_t const MAX_FILTER_SIZE         = 36000;    // Maximum size of a filter in a message
+static int const    MAX_NUM_HASH_FUNCIONS = 50;         // Maximum number of hash functions allowed in a message
+static size_t const MAX_FILTER_SIZE       = 36000;      // Maximum size of a filter in a message
 
 char const FilterLoadMessage::TYPE[] = "filterload";
 
@@ -46,11 +49,11 @@ void FilterLoadMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::FilterLoadMessage::toJson() const
 {
-	return json::object(
-	{
-		{"filter", P2p::toJson(filter_) },
-		{"num_hash_funcs", nHashFuncs_ },
-		{"tweak", tweak_ },
-		{"flags", flags_ }
-	} );
+    return json::object(
+    {
+        { "filter", P2p::toJson(filter_) },
+        { "num_hash_funcs", nHashFuncs_ },
+        { "tweak", tweak_ },
+        { "flags", flags_ }
+    });
 }

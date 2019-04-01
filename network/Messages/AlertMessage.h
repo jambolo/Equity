@@ -1,11 +1,11 @@
 #pragma once
 
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 #include <vector>
 
 namespace Network
 {
-
 //! An alert message.
 //!
 //! An alert is sent between nodes to send a general notification message throughout the network. If the alert can be confirmed
@@ -30,8 +30,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -41,5 +41,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

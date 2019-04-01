@@ -3,6 +3,9 @@
 #include "p2p/Serialize.h"
 #include "utility/Debug.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 
 char const FilterClearMessage::TYPE[] = "filterclear";
@@ -24,5 +27,5 @@ void FilterClearMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::FilterClearMessage::toJson() const
 {
-	return json();
+    return json();
 }

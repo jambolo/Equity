@@ -1,10 +1,13 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.10)
 project(Equity CXX)
 
 #set(Equity_VERSION_MAJOR 0)
 #set(Equity_VERSION_MINOR 1)
 #configure_file("$(PROJECT_SOURCE_DIR)/Version.h.in" "$(PROJECT_BINARY_DIR)/Version.h")
-#include_directories("$(PROJECT_BINARY_DIR)")
+
+option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
+
+# Common compiler defines
 
 add_definitions(
     -DNOMINMAX
@@ -15,11 +18,9 @@ add_definitions(
     -D_SCL_SECURE_NO_WARNINGS
 )
 
-option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
+# Common external libraries
 
-# JSON library include
-
-include_directories($(PROJECT_SOURCE_DIR)/json/src)
+find_package(nlohmann_json REQUIRED)
 
 # Libraries
 

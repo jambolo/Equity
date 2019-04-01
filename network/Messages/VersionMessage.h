@@ -2,10 +2,10 @@
 
 #include "network/Address.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A version message
 //!
 //! When a node creates an outgoing connection, it will immediately advertise its version. The remote node will respond with its
@@ -46,8 +46,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -59,7 +59,7 @@ public:
     // Fields below require version >= 106
     Address from_;              //!< The network address of the node emitting this message
     uint64_t nonce_;            //!< Node random nonce, randomly generated every time a version packet is sent. This nonce is used
-                                //!< to detect connections to self.
+    //!< to detect connections to self.
     std::string userAgent_;     //!< User Agent(0x00 if string is 0 bytes long)
     uint32_t height_;           //!< The last block received by the emitting node
 
@@ -69,5 +69,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

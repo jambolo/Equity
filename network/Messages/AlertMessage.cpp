@@ -2,6 +2,7 @@
 
 #include "p2p/Serialize.h"
 
+using json = nlohmann::json;
 using namespace Network;
 
 // public key
@@ -29,8 +30,8 @@ void AlertMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::AlertMessage::toJson() const
 {
-	return json::object(
-	{
-		{ "message", P2p::toJson(message_) }
-	});
+    return json::object(
+    {
+        { "message", P2p::toJson(message_) }
+    });
 }

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Txid.h"
 #include "crypto/Sha256.h"
 #include "p2p/Serialize.h"
+#include "Txid.h"
 #include <cstdint>
+#include <nlohmann/json_fwd.hpp>
 #include <vector>
 
 namespace Equity
 {
-
 //! A Bitcoin transaction.
 //!
 //! A Bitcoin transaction moves bitcoins from outputs of other transactions to new outputs.
@@ -41,7 +41,7 @@ public:
         // Constructor
         //!
         //! @param  json    A json representation of the input
-        explicit Input(json const & json);
+        explicit Input(nlohmann::json const & json);
 
         // Deserialization constructor
         //!
@@ -51,8 +51,8 @@ public:
 
         //! @name Overrides Serializable
         //!@{
-        virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual json toJson() const override;
+        virtual void           serialize(std::vector<uint8_t> & out) const override;
+        virtual nlohmann::json toJson() const override;
 
         //!@}
     };
@@ -81,8 +81,8 @@ public:
 
         //! @name Overrides Serializable
         //!@{
-        virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual json toJson() const override;
+        virtual void           serialize(std::vector<uint8_t> & out) const override;
+        virtual nlohmann::json toJson() const override;
 
         //!@}
     };
@@ -109,8 +109,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -140,5 +140,4 @@ private:
 
 //! A list of transactions
 typedef std::vector<Transaction> TransactionList;
-
 }

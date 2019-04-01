@@ -3,6 +3,7 @@
 #include "equity/Block.h"
 #include "p2p/Serialize.h"
 
+using json = nlohmann::json;
 using namespace Network;
 
 char const BlockMessage::TYPE[] = "block";
@@ -26,5 +27,5 @@ void BlockMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::BlockMessage::toJson() const
 {
-	return block_.toJson();
+    return block_.toJson();
 }

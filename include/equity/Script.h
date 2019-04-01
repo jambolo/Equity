@@ -3,12 +3,12 @@
 #include "equity/Instruction.h"
 #include "p2p/Serialize.h"
 #include <cstdint>
+#include <nlohmann/json_fwd.hpp>
 #include <stack>
 #include <vector>
 
 namespace Equity
 {
-
 //! A transaction script.
 //!
 //! A Script is processed by a node and if the result is not true, the transaction is rejected.
@@ -22,8 +22,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -47,5 +47,4 @@ private:
     std::vector<Instruction> instructions_;
     bool valid_;
 };
-
 } // namespace Equity

@@ -2,10 +2,10 @@
 
 #include "network/Inventory.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A get-data message.
 //!
 //! The get-data message is sent in response to an inventory message in order to retrieve the content of a specific object, and is
@@ -29,8 +29,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -39,5 +39,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

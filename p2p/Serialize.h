@@ -2,20 +2,17 @@
 
 #include <array>
 #include <cstdint>
-#include <json.hpp>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility/Utility.h>
 #include <vector>
 
-using json = nlohmann::json;
-
 //! @todo Move serialization to Serializer class in Network namespace
 
 namespace P2p
 {
-
 //! Exception thrown for a deserialization error.
 class DeserializationError : public std::runtime_error
 {
@@ -39,8 +36,7 @@ public:
     //! Converts the object to a JSON object.
     //!
     //! @note   Must be overridden
-    virtual json toJson() const = 0;
-
+    virtual nlohmann::json toJson() const = 0;
 };
 
 /******************************************************************************************************************/
@@ -99,7 +95,7 @@ template <typename T> void serialize(std::vector<T> const & v, std::vector<uint8
 //!
 //! @param  v       std::vector to be serialized
 //! @param  out     destination
-template <typename T, size_t N> void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out);
+template <typename T, size_t N> void serialize(std::vector<std::array<T, N>> const & v, std::vector<uint8_t> & out);
 
 //! Serializes a vector of uint8_t.
 //!
@@ -130,7 +126,7 @@ void serialize(std::vector<T> const & v, std::vector<uint8_t> & out)
 }
 
 template <typename T, size_t N>
-void serialize(std::vector<std::array<T, N> > const & v, std::vector<uint8_t> & out)
+void serialize(std::vector<std::array<T, N>> const & v, std::vector<uint8_t> & out)
 {
     for (auto const & element : v)
     {
@@ -152,7 +148,6 @@ struct SerializeArrayImpl
             serialize(element, out);
         }
     }
-
 };
 
 //! A helper class for serialization of an std::array of uint8_t.
@@ -166,7 +161,6 @@ struct SerializeArrayImpl<uint8_t, N>
     {
         out.insert(out.end(), a.begin(), a.end());
     }
-
 };
 
 template <typename T, size_t N>
@@ -183,28 +177,28 @@ void serialize(std::array<T, N> const & a, std::vector<uint8_t> & out)
 //! Converts a Serializable to JSON object.
 //!
 //! @param  x       object to be serialized
-json toJson(Serializable const & x);
+nlohmann::json toJson(Serializable const & x);
 
 //! Converts a generic array to a JSON array value toJson.
 //!
 //! @param  v       pointer to array
 //! @param  size    number of elements in the array
-template <typename T> json toJson(T const * v, size_t size);
+template <typename T> nlohmann::json toJson(T const * v, size_t size);
 
 //! Converts a std::vector to a JSON array value toJson.
 //!
 //! @param  v       std::vector to be serialized
-template <typename T> json toJson(std::vector<T> const & v);
+template <typename T> nlohmann::json toJson(std::vector<T> const & v);
 
 //! Converts a std::vector<uint8_t> to a JSON hex string toJson.
 //!
 //! @param  v
-template <> json toJson(std::vector<uint8_t> const & v);
+template <> nlohmann::json toJson(std::vector<uint8_t> const & v);
 
 //! Converts a generic std::array to a JSON array value
 //!
 //! @param  a       std::array to be serialized
-template <typename T, size_t N> json toJson(std::array<T, N> const & a);
+template <typename T, size_t N> nlohmann::json toJson(std::array<T, N> const & a);
 
 //! A helper class for converting an std::array to JSON.
 //!
@@ -213,11 +207,10 @@ template <typename T, size_t N>
 struct ToJsonArrayImpl
 {
     //! Json functor.
-    json operator ()(std::array<T, N> const & a)
+    nlohmann::json operator ()(std::array<T, N> const & a)
     {
         return toJson(a.data(), a.size());
     }
-
 };
 
 //! A helper class for converting an std::array<uint8_t, N> to JSON.
@@ -227,22 +220,21 @@ template <size_t N>
 struct ToJsonArrayImpl<uint8_t, N>
 {
     //! Json functor.
-    json operator ()(std::array<uint8_t, N> const & a)
+    nlohmann::json operator ()(std::array<uint8_t, N> const & a)
     {
         return Utility::toHex(a.data(), a.size());
     }
-
 };
 
-inline json toJson(Serializable const & x)
+inline nlohmann::json toJson(Serializable const & x)
 {
     return x.toJson();
 }
 
 template <typename T>
-json toJson(T const * v, size_t size)
+nlohmann::json toJson(T const * v, size_t size)
 {
-    json array;
+    nlohmann::json array;
     if (v)
     {
         while (size-- > 0)
@@ -254,13 +246,13 @@ json toJson(T const * v, size_t size)
 }
 
 template <typename T>
-json toJson(std::vector<T> const & v)
+nlohmann::json toJson(std::vector<T> const & v)
 {
     return toJson(v.data(), v.size());
 }
 
 template <typename T, size_t N>
-json toJson(std::array<T, N> const & a)
+nlohmann::json toJson(std::array<T, N> const & a)
 {
     ToJsonArrayImpl<T, N> impl;
     return impl(a);
@@ -333,7 +325,7 @@ template <typename T> T deserializeArray(uint8_t const * & in, size_t & size);
 //! @param[in,out]  size    number of bytes remaining in the serialized stream
 //!
 //! @note   The elements of the array must support deserialization
-template <typename T, size_t N> std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size);
+template <typename T, size_t N> std::vector<std::array<T, N>> deserializeVector(size_t n, uint8_t const * & in, size_t & size);
 
 //! Deserializes a string.
 //!
@@ -358,14 +350,13 @@ struct DeserializeArrayImpl
         }
         return a;
     }
-
 };
 
 //! A helper class for deserialization of a std::array of uint8_t.
 //!
 //! @note   The reason for this ridiculous code is that partial template specialization is not allowed with functions
 template <size_t N>
-struct DeserializeArrayImpl<std::array<uint8_t, N> >
+struct DeserializeArrayImpl<std::array<uint8_t, N>>
 {
     //! Deserialization functor.
     std::array<uint8_t, N> operator ()(uint8_t const * & in, size_t & size)
@@ -374,11 +365,10 @@ struct DeserializeArrayImpl<std::array<uint8_t, N> >
             throw DeserializationError();
         std::array<uint8_t, N> a;
         std::copy(in, in + N, a.data());
-        in += N;
+        in   += N;
         size -= N;
         return a;
     }
-
 };
 
 template <typename T>
@@ -407,7 +397,7 @@ T deserializeArray(uint8_t const * & in, size_t & size)
 }
 
 template <typename T, size_t N>
-std::vector<std::array<T, N> > deserializeVector(size_t n, uint8_t const * & in, size_t & size)
+std::vector<std::array<T, N>> deserializeVector(size_t n, uint8_t const * & in, size_t & size)
 {
     typedef std::array<T, N> A;
 
@@ -447,8 +437,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -499,7 +489,7 @@ public:
         P2p::serialize(data_, out);
     }
 
-    virtual json toJson() const override
+    virtual nlohmann::json toJson() const override
     {
         return P2p::toJson(data_);
     }
@@ -520,7 +510,7 @@ private:
 //! @sa VASize
 
 template <typename T, size_t N>
-class VarArray<std::array<T, N> > : public Serializable
+class VarArray<std::array<T, N>> : public Serializable
 {
 public:
     // Constructor
@@ -529,7 +519,7 @@ public:
     // Constructor
     //!
     //! @param  v       The elements to be contained in the array
-    explicit VarArray(std::vector<std::array<T, N> > const & v) : data_(v) {}
+    explicit VarArray(std::vector<std::array<T, N>> const & v) : data_(v) {}
 
     // Deserializaton constructor
     //!
@@ -549,7 +539,7 @@ public:
         P2p::serialize(data_, out);
     }
 
-    json toJson() const override
+    nlohmann::json toJson() const override
     {
         return P2p::toJson(data_);
     }
@@ -557,10 +547,10 @@ public:
     //!@}
 
     //! Returns the elements contained in the array
-    std::vector<std::array<T, N> > value() const { return data_; }
+    std::vector<std::array<T, N>> value() const { return data_; }
 
 private:
-    std::vector<std::array<T, N> > data_;
+    std::vector<std::array<T, N>> data_;
 };
 
 //! An array of uint8_t.
@@ -599,7 +589,7 @@ public:
         P2p::serialize(data_, out);
     }
 
-    json toJson() const override
+    nlohmann::json toJson() const override
     {
         return Utility::toHex(data_);
     }
@@ -670,8 +660,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -719,7 +709,7 @@ public:
         P2p::serialize(string_, out);
     }
 
-    virtual json toJson() const override
+    virtual nlohmann::json toJson() const override
     {
         return string_;
     }
@@ -732,5 +722,4 @@ public:
 private:
     std::string string_;
 };
-
 } // namespace Utility

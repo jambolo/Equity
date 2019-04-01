@@ -4,7 +4,9 @@
 #include "utility/Utility.h"
 
 #include <algorithm>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 using namespace Equity;
 
 Txid::Txid(json const & json)
@@ -21,7 +23,7 @@ Txid::Txid(uint8_t const * & in, size_t & size)
         throw P2p::DeserializationError();
     std::copy(in, in + hash_.size(), hash_.data());
     std::reverse(hash_.begin(), hash_.end());   // Txid's are stored and displayed as big-endian, but serialized as little-endian.
-    in += Crypto::SHA256_HASH_SIZE;
+    in   += Crypto::SHA256_HASH_SIZE;
     size -= Crypto::SHA256_HASH_SIZE;
 }
 

@@ -4,12 +4,12 @@
 #include "equity/Transaction.h"
 #include "p2p/Serialize.h"
 #include <cstdint>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
 
 namespace Equity
 {
-
 //! A block in the block chain.
 //!
 //! A Block contains a list of validated transactions and information about its inclusion in the block chain
@@ -28,7 +28,7 @@ public:
         int32_t version;                    //!< Block version information, based upon the software version creating this block
         Crypto::Sha256Hash previousBlock;   //!< The hash value of the previous block this particular block references
         Crypto::Sha256Hash merkleRoot;      //!< The reference to a Merkle tree collection which is a hash of all transactions
-                                            //!< related to this block
+        //!< related to this block
         uint32_t timestamp;                 //!< A timestamp recording when this block was created
         uint32_t target;                    //!< The calculated difficulty target being used for this block
         uint32_t nonce;                     //!< The nonce used to generate this block
@@ -44,8 +44,8 @@ public:
 
         //! @name Overrides Serializable
         //!@{
-        virtual void serialize(std::vector<uint8_t> & out) const override;
-        virtual json toJson() const override;
+        virtual void           serialize(std::vector<uint8_t> & out) const override;
+        virtual nlohmann::json toJson() const override;
 
         //!@}
     };
@@ -67,8 +67,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -89,5 +89,4 @@ typedef std::vector<Block> BlockList;
 
 //! A list of block headers
 typedef std::vector<Block::Header> BlockHeaderList;
-
 } // namespace Equity

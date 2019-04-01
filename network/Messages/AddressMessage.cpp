@@ -2,6 +2,9 @@
 
 #include "p2p/Serialize.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 
 char const AddressMessage::TYPE[] = "addr";
@@ -25,8 +28,8 @@ void AddressMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::AddressMessage::toJson() const
 {
-	return json::object(
-	{
-		{ "addresses", P2p::toJson(addresses_) }
-	});
+    return json::object(
+    {
+        { "addresses", P2p::toJson(addresses_) }
+    });
 }

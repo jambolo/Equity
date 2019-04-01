@@ -2,10 +2,10 @@
 
 #include "network/Message.h"
 #include <network/Address.h>
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 class Address;
 
 //! An address message.
@@ -17,7 +17,7 @@ class AddressMessage : public Message
 public:
     // Constructor
     //!
-    //! @param  addresses   Vector of node decriptions
+    //! @param  addresses   Vector of node descriptions
     AddressMessage(std::vector<Address> const & addresses);
 
     // Deserialization constructor
@@ -28,8 +28,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -39,5 +39,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

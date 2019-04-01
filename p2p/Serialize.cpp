@@ -1,12 +1,13 @@
 #include "Serialize.h"
 
-//#include "Utility.h"
+// #include "Utility.h"
 
 #include <algorithm>
 
+using json = nlohmann::json;
+
 namespace P2p
 {
-
 void serialize(uint8_t const & a, std::vector<uint8_t> & out)
 {
     out.push_back(a);
@@ -66,8 +67,8 @@ uint8_t deserialize<uint8_t>(uint8_t const * & in, size_t & size)
     if (size < 1)
         throw DeserializationError();
     uint8_t out;
-    out = in[0];
-    in += 1;
+    out   = in[0];
+    in   += 1;
     size -= 1;
 
     return out;
@@ -80,7 +81,7 @@ uint16_t deserialize<uint16_t>(uint8_t const * & in, size_t & size)
         throw DeserializationError();
     uint16_t out = (uint16_t)in[0] +
                    ((uint16_t)in[1] << 8);
-    in += 2;
+    in   += 2;
     size -= 2;
     return out;
 }
@@ -94,7 +95,7 @@ uint32_t deserialize<uint32_t>(uint8_t const * & in, size_t & size)
                    ((uint32_t)in[1] << 8) +
                    ((uint32_t)in[2] << 16) +
                    ((uint32_t)in[3] << 24);
-    in += 4;
+    in   += 4;
     size -= 4;
     return out;
 }
@@ -112,7 +113,7 @@ uint64_t deserialize<uint64_t>(uint8_t const * & in, size_t & size)
                    ((uint64_t)in[5] << 40) +
                    ((uint64_t)in[6] << 48) +
                    ((uint64_t)in[7] << 56);
-    in += 8;
+    in   += 8;
     size -= 8;
     return out;
 }
@@ -123,7 +124,7 @@ std::vector<uint8_t> deserializeVector<uint8_t>(size_t n, uint8_t const * & in, 
     if (size < n)
         throw DeserializationError();
     std::vector<uint8_t> v(in, in + n);
-    in += n;
+    in   += n;
     size -= n;
 
     return v;
@@ -135,7 +136,7 @@ std::string deserializeString(size_t n, uint8_t const * & in, size_t & size)
         throw DeserializationError();
 
     std::string s((char const *)in, (char const *)in + n);
-    in += n;
+    in   += n;
     size -= n;
     return s;
 }
@@ -199,8 +200,8 @@ bool BitArray::get(size_t index) const
     size_t i = index / 8;
     if (i >= bits_.size())
         return false;
-    size_t b = index % 8;
-    bool result = ((bits_[i] & (0x80U >> b)) != 0);
+    size_t b      = index % 8;
+    bool   result = ((bits_[i] & (0x80U >> b)) != 0);
     return result;
 }
 
@@ -225,5 +226,4 @@ json BitArray::toJson() const
 {
     return P2p::toJson(bits_);
 }
-
 } // namespace P2p

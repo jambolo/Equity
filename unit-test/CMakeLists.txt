@@ -53,4 +53,4 @@ link_directories(${VSCPPUNIT_LIB_DIR})
 add_library(unit-test SHARED ${SOURCES})
 
 target_include_directories(unit-test PRIVATE ${INCLUDE_PATHS})
-target_link_libraries(unit-test equity crypto utility p2p )
+target_link_libraries(unit-test equity crypto utility p2p nlohmann_json::nlohmann_json)

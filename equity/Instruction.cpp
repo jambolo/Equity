@@ -3,7 +3,9 @@
 #include "p2p/Serialize.h"
 
 #include <cassert>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 using namespace Equity;
 
 Instruction::Description const Instruction::DESCRIPTIONS[Instruction::NUMBER_OF_INSTRUCTIONS] =
@@ -335,7 +337,7 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
     try
     {
         // Get the opcode
-        op_ = P2p::deserialize<uint8_t>(in, size);
+        op_    = P2p::deserialize<uint8_t>(in, size);
         size_ += 1;
 
         assert(DESCRIPTIONS[op_].value == op_);    // Sanity check
@@ -354,22 +356,22 @@ Instruction::Instruction(uint8_t const * & in, size_t & size, size_t location)
             }
             else if (op_ == OP_PUSHDATA1)
             {
-                count = P2p::deserialize<uint8_t>(in, size);
+                count  = P2p::deserialize<uint8_t>(in, size);
                 size_ += 1;
             }
             else if (op_ == OP_PUSHDATA2)
             {
-                count = P2p::deserialize<uint16_t>(in, size);
+                count  = P2p::deserialize<uint16_t>(in, size);
                 size_ += 2;
             }
             else
             {
                 assert(op_ == OP_PUSHDATA4);
-                count = P2p::deserialize<uint32_t>(in, size);
+                count  = P2p::deserialize<uint32_t>(in, size);
                 size_ += 4;
             }
 
-            data_ = P2p::deserializeVector<uint8_t>(count, in, size);
+            data_  = P2p::deserializeVector<uint8_t>(count, in, size);
             size_ += count;
         }
     }

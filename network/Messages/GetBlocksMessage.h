@@ -2,10 +2,10 @@
 
 #include "crypto/Sha256.h"
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A get-blocks message.
 //!
 //! Requests an inventory message containing the list of blocks starting right after the last known hash in the block locator
@@ -31,8 +31,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -43,5 +43,4 @@ public:
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

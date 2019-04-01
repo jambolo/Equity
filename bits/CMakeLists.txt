@@ -3,6 +3,6 @@ set(SOURCES
 )
 
 add_executable(bits ${SOURCES})
-target_link_libraries(bits equity utility)
+target_link_libraries(bits equity utility nlohmann_json::nlohmann_json)
 
 source_group(Sources FILES ${SOURCES})

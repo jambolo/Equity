@@ -6,7 +6,6 @@
 
 namespace Network
 {
-
 //! A description of a network node.
 //!
 //! @sa     VersionMessage, AddressMessage
@@ -33,8 +32,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
@@ -60,5 +59,4 @@ private:
     std::array<uint8_t, 16> ipv6_;
     uint16_t port_;
 };
-
 } // namespace Network

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! a version-acknowledge message.
 //!
 //! The version-acknowledge message is sent in reply to a version message. This message contains no payload.
@@ -23,13 +23,12 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

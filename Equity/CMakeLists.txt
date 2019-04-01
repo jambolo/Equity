@@ -47,7 +47,7 @@ set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 
 add_library(equity ${SOURCES} ${HEADERS})
 target_include_directories(equity PUBLIC ${INTERFACE_INCLUDE_PATH} PRIVATE ${INCLUDE_PATHS})
-target_link_libraries(equity crypto utility p2p ${OPENSSL_LIBRARIES})
+target_link_libraries(equity crypto utility p2p ${OPENSSL_LIBRARIES}  nlohmann_json::nlohmann_json)
 
 source_group(Sources FILES ${SOURCES})
 source_group(Headers FILES ${HEADERS})

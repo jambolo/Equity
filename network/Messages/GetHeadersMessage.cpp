@@ -3,6 +3,9 @@
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 using namespace Utility;
 
@@ -20,8 +23,8 @@ GetHeadersMessage::GetHeadersMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
     version_ = Endian::little(P2p::deserialize<uint32_t>(in, size));
-    hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
-    last_ = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
+    hashes_  = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
+    last_    = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
 }
 
 void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
@@ -33,10 +36,10 @@ void GetHeadersMessage::serialize(std::vector<uint8_t> & out) const
 
 json GetHeadersMessage::toJson() const
 {
-	return json::object(
-	{
-		{ "version", version_ },
-		{ "hashes", P2p::toJson(hashes_) },
-		{ "last", last_ }
-	});
+    return json::object(
+    {
+        { "version", version_ },
+        { "hashes", P2p::toJson(hashes_) },
+        { "last", last_ }
+    });
 }

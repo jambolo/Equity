@@ -3,17 +3,20 @@
 #include "crypto/Sha256.h"
 #include "p2p/Serialize.h"
 #include "utility/Utility.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 using namespace Equity;
 
 Block::Header::Header(uint8_t const * & in, size_t & size)
 {
-    version         = P2p::deserialize<uint32_t>(in, size);
-    previousBlock   = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
-    merkleRoot      = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
-    timestamp       = P2p::deserialize<uint32_t>(in, size);
-    target          = P2p::deserialize<uint32_t>(in, size);
-    nonce           = P2p::deserialize<uint32_t>(in, size);
+    version       = P2p::deserialize<uint32_t>(in, size);
+    previousBlock = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
+    merkleRoot    = P2p::deserializeArray<Crypto::Sha256Hash>(in, size);
+    timestamp     = P2p::deserialize<uint32_t>(in, size);
+    target        = P2p::deserialize<uint32_t>(in, size);
+    nonce         = P2p::deserialize<uint32_t>(in, size);
 }
 
 void Block::Header::serialize(std::vector<uint8_t> & out) const
@@ -47,8 +50,8 @@ Block::Block(Header const & header, TransactionList const & transactions)
 
 Block::Block(uint8_t const * & in, size_t & size)
 {
-    header_         = Header(in, size);
-    transactions_   = P2p::VarArray<Transaction>(in, size).value();
+    header_       = Header(in, size);
+    transactions_ = P2p::VarArray<Transaction>(in, size).value();
 }
 
 void Block::serialize(std::vector<uint8_t> & out) const

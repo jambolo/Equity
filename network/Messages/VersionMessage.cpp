@@ -2,6 +2,7 @@
 
 #include "p2p/Serialize.h"
 
+using json = nlohmann::json;
 using namespace Network;
 
 char const VersionMessage::TYPE[] = "version";
@@ -82,9 +83,7 @@ json VersionMessage::toJson() const
 
         // Fields below require version >= 70001
         if (version_ >= 70001)
-        {
             j["relay"] = relay_;
-        }
     }
 
     return j;

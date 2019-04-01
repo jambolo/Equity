@@ -1,10 +1,10 @@
 #pragma once
 
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A mempool message.
 //!
 //! Requests a node to provide information about transactions it has verified but which have not yet confirmed. The response
@@ -30,13 +30,12 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

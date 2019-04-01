@@ -28,7 +28,7 @@ set(INCLUDE_PATHS
 set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR})
 
 add_library(crypto ${SOURCES})
-target_link_libraries(crypto ${OPENSSL_LIBRARIES})
+target_link_libraries(crypto ${OPENSSL_LIBRARIES}  nlohmann_json::nlohmann_json)
 target_include_directories(crypto PUBLIC ${INTERFACE_INCLUDE_PATH} PRIVATE ${INCLUDE_PATHS})
 
 source_group(Sources FILES ${SOURCES})

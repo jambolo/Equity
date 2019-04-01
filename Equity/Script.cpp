@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stack>
 
+using json = nlohmann::json;
 using namespace Equity;
 
 Script::Script(std::vector<uint8_t> const & data)
@@ -24,15 +25,10 @@ void Script::serialize(std::vector<uint8_t> & out) const
 
 static std::string toString(Instruction const i)
 {
-
     if (i.op() >= 0x01 && i.op() <= Instruction::OP_1NEGATE)
-    {
         return Utility::toHex(i.data());
-    }
     else
-    {
         return i.description().name;
-    }
 }
 
 json Script::toJson() const
@@ -60,8 +56,8 @@ bool Script::parse(std::vector<uint8_t> const & raw)
 {
     instructions_.clear();
 
-    uint8_t const * p = raw.data();
-    size_t size = raw.size();
+    uint8_t const * p    = raw.data();
+    size_t          size = raw.size();
     while (p != nullptr && size > 0)
     {
         try

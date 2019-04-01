@@ -1,10 +1,10 @@
 #pragma once
 
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A load-filter message.
 //!
 //! Upon receiving a load-filter message, the remote peer will immediately restrict the broadcast transactions it announces (in
@@ -36,20 +36,19 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
     std::vector<uint8_t> filter_;   //!< The filter itself is simply a bit field of arbitrary byte-aligned size. The maximum size is
-                                    //!< 36,000 bytes.
+    //!< 36,000 bytes.
     uint32_t nHashFuncs_;           //!< The number of hash functions to use in this filter. The maximum value allowed in this field
-                                    //!< is 50.
+    //!< is 50.
     uint32_t tweak_;                //!< A random value to add to the seed value in the hash function used by the bloom filter.
     uint8_t flags_;                 //!< A set of flags that control how matched items are added to the filter.
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

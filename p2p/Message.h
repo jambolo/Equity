@@ -2,13 +2,13 @@
 
 #include "Serialize.h"
 #include <cstdint>
+#include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace P2p
 {
-
 //! A P2P network message.
 //!
 //! @note	This is the raw form of a Network::Message.
@@ -52,14 +52,14 @@ class Message::Header : public P2p::Serializable
 public:
 
     // Known magic numbers
-    static uint32_t const MAGIC_MAIN    = 0xD9B4BEF9;   //!< Main network magic number
-    static uint32_t const MAGIC_TEST    = 0xDAB5BFFA;   //!< Testnet network magic number
-    static uint32_t const MAGIC_TEST3   = 0x0709110B;   //!< Testnet3 network magic number
+    static uint32_t const MAGIC_MAIN  = 0xD9B4BEF9;     //!< Main network magic number
+    static uint32_t const MAGIC_TEST  = 0xDAB5BFFA;     //!< Testnet network magic number
+    static uint32_t const MAGIC_TEST3 = 0x0709110B;     //!< Testnet3 network magic number
 
     // Field sizes
-    static size_t const MAGIC_SIZE = 4;                 //!< Size of the magic number field
-    static size_t const TYPE_SIZE = 12;                 //!< Size of the type field
-    static size_t const LENGTH_SIZE = 4;                //!< Size of the length field
+    static size_t const MAGIC_SIZE    = 4;              //!< Size of the magic number field
+    static size_t const TYPE_SIZE     = 12;             //!< Size of the type field
+    static size_t const LENGTH_SIZE   = 4;              //!< Size of the length field
     static size_t const CHECKSUM_SIZE = 4;              //!< Size of the checksum field
 
     uint32_t magic_;                                    //!< Magic number
@@ -69,8 +69,8 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 };
@@ -80,5 +80,4 @@ struct InvalidMessageError : public std::runtime_error
 {
     InvalidMessageError() : std::runtime_error("invalid message data") {}
 };
-
 } // namespace Network

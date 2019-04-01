@@ -3,6 +3,9 @@
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Network;
 using namespace Utility;
 
@@ -24,9 +27,9 @@ MerkleBlockMessage::MerkleBlockMessage(uint8_t const * & in, size_t & size)
     : Message(TYPE)
 {
     header_ = Equity::Block::Header(in, size);
-    count_ = Endian::little(P2p::deserialize<uint32_t>(in, size));
+    count_  = Endian::little(P2p::deserialize<uint32_t>(in, size));
     hashes_ = P2p::VarArray<Crypto::Sha256Hash>(in, size).value();
-    flags_ = P2p::BitArray(in, size);
+    flags_  = P2p::BitArray(in, size);
 }
 
 void MerkleBlockMessage::serialize(std::vector<uint8_t> & out) const

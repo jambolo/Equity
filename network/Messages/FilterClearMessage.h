@@ -1,10 +1,10 @@
 #pragma once
 
 #include "network/Message.h"
+#include <nlohmann/json_fwd.hpp>
 
 namespace Network
 {
-
 //! A clear-filter message.
 //!
 //! This message deletes the current filter and goes back to regular pre-BIP37 usage
@@ -26,13 +26,12 @@ public:
 
     //! @name Overrides Serializable
     //!@{
-    virtual void serialize(std::vector<uint8_t> & out) const override;
-    virtual json toJson() const override;
+    virtual void           serialize(std::vector<uint8_t> & out) const override;
+    virtual nlohmann::json toJson() const override;
 
     //!@}
 
     //! Message type
     static char const TYPE[];
 };
-
 } // namespace Network

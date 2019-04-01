@@ -2,6 +2,7 @@
 
 #include "p2p/Serialize.h"
 
+using json = nlohmann::json;
 using namespace Network;
 
 static size_t const MAX_FILTER_SIZE = 520;
@@ -29,5 +30,5 @@ void FilterAddMessage::serialize(std::vector<uint8_t> & out) const
 
 json Network::FilterAddMessage::toJson() const
 {
-	return P2p::toJson(data_);
+    return P2p::toJson(data_);
 }

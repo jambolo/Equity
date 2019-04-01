@@ -5,6 +5,9 @@
 #include "utility/Endian.h"
 #include "utility/Utility.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 using namespace Equity;
 
 Equity::Transaction::Input::Input(json const & json)
@@ -17,10 +20,10 @@ Equity::Transaction::Input::Input(json const & json)
 
 Transaction::Input::Input(uint8_t const * & in, size_t & size)
 {
-    txid = Txid(in, size);
+    txid        = Txid(in, size);
     outputIndex = P2p::deserialize<uint32_t>(in, size);
-    script = P2p::VarArray<uint8_t>(in, size).value();
-    sequence = P2p::deserialize<uint32_t>(in, size);
+    script      = P2p::VarArray<uint8_t>(in, size).value();
+    sequence    = P2p::deserialize<uint32_t>(in, size);
 }
 
 void Transaction::Input::serialize(std::vector<uint8_t> & out) const
@@ -44,7 +47,7 @@ json Transaction::Input::toJson() const
 
 Transaction::Output::Output(uint8_t const * & in, size_t & size)
 {
-    value = P2p::deserialize<uint64_t>(in, size);
+    value  = P2p::deserialize<uint64_t>(in, size);
     script = P2p::VarArray<uint8_t>(in, size).value();
 }
 
@@ -80,8 +83,8 @@ Transaction::Transaction(uint8_t const * & in, size_t & size)
     if (version_ != 1)
         throw P2p::DeserializationError();
 
-    inputs_ = P2p::VarArray<Input>(in, size).value();
-    outputs_ = P2p::VarArray<Output>(in, size).value();
+    inputs_   = P2p::VarArray<Input>(in, size).value();
+    outputs_  = P2p::VarArray<Output>(in, size).value();
     lockTime_ = Utility::Endian::little(P2p::deserialize<uint32_t>(in, size));
 
     valid_ = true;
