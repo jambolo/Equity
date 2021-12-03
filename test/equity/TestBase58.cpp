@@ -1,18 +1,13 @@
-#include "../targetver.h"
-#include "CppUnitTest.h"
-
-#include "equity/Base58.h"
+#include "include/equity/Base58.h"
 #include "utility/Utility.h"
 
-#include <string>
-#include <vector>
+#include <gtest/gtest.h>
 
 using namespace Equity;
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+using namespace Utility;
 
-namespace TestEquity
+namespace
 {
-
 struct TestInput
 {
     size_t size;
@@ -88,52 +83,52 @@ static DecodeValidityTestInput const DECODE_VALIDITY_CASES[] =
     { "O", false },
     { "l", false },
 };
+} // anonymous namespace
 
-TEST_CLASS(Equity_Base58Test)
+TEST(EquityBase58Test, encode_uint8_t_ptr)
 {
-public:
-
-    TEST_METHOD(Equity_Base58_encode_uint8_t_ptr)
+    for (auto const & c : ENCODE_CASES)
     {
-        for (auto const & c : ENCODE_CASES)
-        {
-            std::string result = Base58::encode(c.data, c.size);
-            Assert::AreEqual(c.stringForm, result.c_str());
-        }
+        std::string result = Base58::encode(c.data, c.size);
+        EXPECT_EQ(c.stringForm, result.c_str());
     }
+}
 
-    TEST_METHOD(Equity_Base58_encode_vector)
+TEST(EquityBase58Test, encode_vector)
+{
+    for (auto const & c : ENCODE_CASES)
     {
-        for (auto const & c : ENCODE_CASES)
-        {
-            std::string result = Base58::encode(std::vector<uint8_t>(c.data, c.data + c.size));
-            Assert::AreEqual(c.stringForm, result.c_str());
-        }
+        std::string result = Base58::encode(std::vector<uint8_t>(c.data, c.data + c.size));
+        EXPECT_EQ(c.stringForm, result.c_str());
     }
+}
 
-    TEST_METHOD(Equity_Base58_decode_cstring)
+TEST(EquityBase58Test, decode_cstring)
+{
+    for (auto const & c : DECODE_VALIDITY_CASES)
     {
-        for (auto const & c : DECODE_VALIDITY_CASES)
-        {
-            std::vector<uint8_t> resultVector;
+        std::vector<uint8_t> resultVector;
 
-            bool ok = Base58::decode(c.data, resultVector);
-            Assert::AreEqual(c.expected, ok);
-        }
+        bool ok = Base58::decode(c.data, resultVector);
+        EXPECT_EQ(c.expected, ok);
     }
+}
 
-    TEST_METHOD(Equity_Base58_decode_string)
+TEST(EquityBase58Test, decode_string)
+{
+    for (auto const & c : DECODE_CASES)
     {
-        for (auto const & c : DECODE_CASES)
-        {
-            std::vector<uint8_t> resultVector;
+        std::vector<uint8_t> resultVector;
 
-            bool ok = Base58::decode(c.stringForm, resultVector);
-            Assert::IsTrue(ok);
-            Assert::AreEqual(c.size, resultVector.size());
-            Assert::IsTrue(std::equal(resultVector.begin(), resultVector.end(), c.data));
-        }
+        bool ok = Base58::decode(c.stringForm, resultVector);
+        EXPECT_TRUE(ok);
+        EXPECT_EQ(c.size, resultVector.size());
+        EXPECT_TRUE(std::equal(resultVector.begin(), resultVector.end(), c.data));
     }
-};
+}
 
-} // namespace TestEquity
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

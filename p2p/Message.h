@@ -9,6 +9,9 @@
 
 namespace P2p
 {
+//! @ingroup P2pGroup
+//!@{
+
 //! A P2P network message.
 //!
 //! @note	This is the raw form of a Network::Message.
@@ -80,4 +83,6 @@ struct InvalidMessageError : public std::runtime_error
 {
     InvalidMessageError() : std::runtime_error("invalid message data") {}
 };
+
+//!@}
 } // namespace Network

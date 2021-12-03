@@ -10,10 +10,12 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
+
 //! A block in the block chain.
 //!
 //! A Block contains a list of validated transactions and information about its inclusion in the block chain
-
 class Block : public P2p::Serializable
 {
 public:
@@ -89,4 +91,6 @@ typedef std::vector<Block> BlockList;
 
 //! A list of block headers
 typedef std::vector<Block::Header> BlockHeaderList;
+
+//!@}
 } // namespace Equity

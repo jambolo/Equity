@@ -10,8 +10,8 @@ using namespace Equity;
 
 namespace
 {
-uint32_t const MANTISSA_MASK = 0x7fffff;
-int const EXPONENT_OFFSET = 24;
+uint32_t const MANTISSA_MASK   = 0x7fffff;
+int const      EXPONENT_OFFSET = 24;
 
 uint32_t extractMantissa(uint32_t x)
 {
@@ -22,7 +22,6 @@ int extractExponent(uint32_t x)
 {
     return (x >> EXPONENT_OFFSET) & 0xff;
 }
-
 }
 
 Crypto::Sha256Hash const Target::DIFFICULTY_1 =
@@ -42,6 +41,7 @@ Target::Target(Crypto::Sha256Hash const & hash)
 Target::Target(uint32_t compact)
     : hash_(convertToHash(compact))
 {
+    // @BUG : Assumes that the value is normalized
     compact_ = std::max(compact, TARGET_0_COMPACT);
 }
 
@@ -55,12 +55,12 @@ Crypto::Sha256Hash Target::convertToHash(uint32_t compact)
     assert((compact & 0x800000) == 0);         // No negative numbers
 
     uint32_t mantissa = extractMantissa(compact);
-    int exponent = extractExponent(compact);
+    int      exponent = extractExponent(compact);
 
     if ((mantissa & 0x00ff0000) == 0)
     {
         mantissa <<= 8;
-        exponent -= 1;
+        exponent  -= 1;
     }
     assert(exponent >= 0 && exponent <= 32);
 
@@ -87,8 +87,8 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
 {
     // Count the number of 0 bytes
     Crypto::Sha256Hash::const_iterator i = std::find_if_not(hash.begin(), hash.end(), [](uint8_t x) {
-        return x == 0;
-    });
+                                                                return x == 0;
+                                                            });
     size_t zeros = std::distance(hash.begin(), i);
 
     if (zeros == Crypto::SHA256_HASH_SIZE)
@@ -106,7 +106,7 @@ uint32_t Target::convertToCompact(Crypto::Sha256Hash const & hash)
     if (mantissa >= 0x800000)
     {
         mantissa >>= 8;
-        exponent += 1;
+        exponent  += 1;
     }
 
     uint32_t compact = (exponent << EXPONENT_OFFSET) | mantissa;

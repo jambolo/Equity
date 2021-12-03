@@ -7,8 +7,14 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
 //! A wallet holds private keys and other metadata related to those keys.
+//!
+//! @note   The Bitcoin protocol does not have a concept of a wallet. This class is provided as a convenience for
+//!         applications that need to manage private keys.
+//!
 class Wallet
 {
 public:
@@ -38,4 +44,5 @@ private:
     EntryList entries_;
 };
 
+//!@}
 } // namespace Equity

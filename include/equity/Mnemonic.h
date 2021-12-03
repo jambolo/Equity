@@ -1,13 +1,7 @@
-//
-//  Mnemonic.h
-//  Equity
-//
-//  Created by John Bolton on 6/5/16.
-//
-//
+#pragma once
 
-#ifndef Mnemonic_h
-#define Mnemonic_h
+#ifndef MNEMONIC_H_INCLUDED
+#define MNEMONIC_H_INCLUDED
 
 #include <array>
 #include <cstdint>
@@ -16,6 +10,8 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
 //! Mnemonic Generator.
 //!
@@ -31,7 +27,7 @@ public:
     {
         ENGLISH,
     };
-    static size_t const NUM_LANGUAGES = Language::ENGLISH + 1;	//!< Number of supported languages
+    static size_t constexpr NUM_LANGUAGES = Language::ENGLISH + 1;  //!< Number of supported languages
 
     //! A list of words.
     using WordList = std::vector<std::string>;
@@ -92,18 +88,18 @@ public:
 
 private:
 
-    static size_t const BITS_PER_WORD = 11;
+    static size_t const BITS_PER_WORD       = 11;
     static size_t const BYTES_PER_CHECK_BIT = 4; // 32 bits
-    static size_t const SEED_SIZE = 512 / 8;
-    static int const PBKDF2_ROUNDS = 2048;
+    static size_t const SEED_SIZE           = 512 / 8;
+    static int const PBKDF2_ROUNDS          = 2048;
 
     using Dictionary = std::array<char const *, 1 << BITS_PER_WORD>;
 
-    bool validate() const;
-    std::vector<uint8_t> checkedEntropy() const;
+    bool                              validate() const;
+    std::vector<uint8_t>              checkedEntropy() const;
     static Dictionary::const_iterator find(std::string const & word, Dictionary const & dictionary);
-    static bool areFound(WordList const & words, Dictionary const & dictionary);
-    static Language determineLanguage(WordList const & words);
+    static bool                       areFound(WordList const & words, Dictionary const & dictionary);
+    static Language                   determineLanguage(WordList const & words);
 
     WordList words_;
     bool valid_;
@@ -113,6 +109,7 @@ private:
     static Dictionary const * const DICTIONARIES[Mnemonic::NUM_LANGUAGES];
 };
 
+//!@}
 } // namespace Equity
 
-#endif /* Mnemonic_h */
+#endif // MNEMONIC_H_INCLUDED

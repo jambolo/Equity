@@ -9,6 +9,9 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
+
 //! A Bitcoin transaction.
 //!
 //! A Bitcoin transaction moves bitcoins from outputs of other transactions to new outputs.
@@ -140,4 +143,6 @@ private:
 
 //! A list of transactions
 typedef std::vector<Transaction> TransactionList;
-}
+
+//!@}
+} // namespace Equity

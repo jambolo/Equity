@@ -9,6 +9,9 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
+
 //! A transaction script.
 //!
 //! A Script is processed by a node and if the result is not true, the transaction is rejected.
@@ -47,4 +50,6 @@ private:
     std::vector<Instruction> instructions_;
     bool valid_;
 };
+
+//!@}
 } // namespace Equity

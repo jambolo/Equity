@@ -4,6 +4,8 @@
 
 namespace Crypto
 {
+//! @addtogroup CryptoGroup
+//!@{
 
 //! Returns the result of a PBKDF2 operation using SHA-512.
 //!
@@ -31,6 +33,8 @@ std::vector<uint8_t> pbkdf2HmacSha512(uint8_t const * password,
                                       int             count,
                                       size_t          size);
 
+//!@}
+
 /********************************************************************************************************************/
 
 inline std::vector<uint8_t> pbkdf2HmacSha512(std::vector<uint8_t> const & password,
@@ -40,5 +44,4 @@ inline std::vector<uint8_t> pbkdf2HmacSha512(std::vector<uint8_t> const & passwo
 {
     return pbkdf2HmacSha512(password.data(), password.size(), salt.data(), salt.size(), count, size);
 }
-
 } // namespace Crypto

@@ -1,8 +1,9 @@
 #pragma once
 
-//! Bitcoin Network Layer.
-
 namespace Network
 {
+//! @ingroup NetworkGroup
+//!@{
 
+//!@}
 } // namespace Network

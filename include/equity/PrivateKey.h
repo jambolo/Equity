@@ -7,6 +7,8 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
 //! A Bitcoin private key
 //!
@@ -77,4 +79,5 @@ private:
     bool compressed_;
 };
 
+//!@}
 } // namespace Equity

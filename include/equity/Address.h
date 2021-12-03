@@ -8,11 +8,12 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
 class PublicKey;
 
-//! A Bitcoin address
-
+//! A Bitcoin address.
 class Address
 {
 public:
@@ -56,4 +57,5 @@ private:
     bool valid_;
 };
 
+//!@}
 } // namespace Equity

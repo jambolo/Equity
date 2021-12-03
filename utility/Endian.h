@@ -6,10 +6,12 @@
 
 namespace Utility
 {
+//! @addtogroup UtilityGroup
+//!@{
 
+//! Conversions between endian formats
 namespace Endian
 {
-
 inline uint16_t swap(uint16_t x)
 {
     uint8_t high = (uint8_t)(x & 0xff);
@@ -33,33 +35,34 @@ inline uint64_t swap(uint64_t x)
 
 // Note: Conversions in each direction are identical, so the same function is used for both.
 
-#if defined(TARGET_LITTLE_ENDIAN)
+#if defined(TARGET_LITTLE_ENDIAN) && !defined(TARGET_BIG_ENDIAN)
 
-inline uint8_t  little(uint8_t x) { return x; }
+inline uint8_t  little(uint8_t x)  { return x; }
 inline uint16_t little(uint16_t x) { return x; }
 inline uint32_t little(uint32_t x) { return x; }
 inline uint64_t little(uint64_t x) { return x; }
 
-inline uint8_t  big(uint8_t x) { return x; }
+inline uint8_t  big(uint8_t x)  { return x; }
 inline uint16_t big(uint16_t x) { return swap(x); }
 inline uint32_t big(uint32_t x) { return swap(x); }
 inline uint64_t big(uint64_t x) { return swap(x); }
 
-#elif defined(TARGET_BIG_ENDIAN)
+#elif defined(TARGET_BIG_ENDIAN) && !defined(TARGET_LITTLE_ENDIAN)
 
-inline uint8_t  little(uint8_t x) { return x; }
+inline uint8_t  little(uint8_t x)  { return x; }
 inline uint16_t little(uint16_t x) { return swap(x); }
 inline uint32_t little(uint32_t x) { return swap(x); }
 inline uint64_t little(uint64_t x) { return swap(x); }
 
-inline uint8_t  big(uint8_t x) { return x; }
+inline uint8_t  big(uint8_t x)  { return x; }
 inline uint16_t big(uint16_t x) { return x; }
 inline uint32_t big(uint32_t x) { return x; }
 inline uint64_t big(uint64_t x) { return x; }
 
-#else // if defined(TARGET_LITTLE_ENDIAN)
-  #error TARGET_LITTLE_ENDIAN or TARGET_LITTLE_ENDIAN (but not both) must be defined
-#endif // if defined(TARGET_LITTLE_ENDIAN)
+#else   // if defined(TARGET_LITTLE_ENDIAN) && !defined(TARGET_BIG_ENDIAN)
+#error TARGET_BIG_ENDIAN or TARGET_LITTLE_ENDIAN (but not both) must be defined
+#endif  // if defined(TARGET_LITTLE_ENDIAN) && !defined(TARGET_BIG_ENDIAN)
+}   // namespace Endian
 
-} // namespace Endian
+//!@}
 } // namespace Utility

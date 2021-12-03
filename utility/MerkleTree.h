@@ -5,8 +5,10 @@
 
 namespace Utility
 {
+//! @addtogroup UtilityGroup
+//!@{
 
-//! A Merkle Tree with some idiosyncracies specific to Bitcoin
+//! A Merkle Tree implementation with all the idiosyncracies specific to Bitcoin
 class MerkleTree
 {
 public:
@@ -47,4 +49,6 @@ private:
     size_t nLeaves_;                        // Number of leaf nodes
     size_t offset_;                         // Offset to the first leaf node
 };
+
+//!@}
 } // namespace Utility

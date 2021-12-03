@@ -6,6 +6,9 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
+
 //! A transaction ID.
 //!
 //! This object is used to reference a transaction in the block chain.
@@ -34,4 +37,6 @@ struct Txid : public P2p::Serializable
 
     Crypto::Sha256Hash hash_;   //!< The transaction ID in binary form
 };
+
+//!@}
 } // namespace Equity

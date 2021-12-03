@@ -6,9 +6,10 @@
 
 namespace Crypto
 {
-
 namespace Random
 {
+//! @addtogroup CryptoGroup
+//!@{
 
 //! Returns true if the RNG has enough entropy
 bool status();
@@ -19,9 +20,11 @@ bool status();
 void getBytes(uint8_t * buffer, size_t size);
 
 //! Adds entropy to the random byte generator.
+//! @param      buffer      additional entropy
 //! @param      entropy     entropy to add
 //! @param      size        number of bytes of entropy
 void addEntropy(uint8_t const * buffer, size_t size, double entropy);
 
-} // namespace Random
+//!@}
+}   // namespace Random
 } // namespace Crypto

@@ -7,8 +7,10 @@
 
 namespace Network
 {
+//! @ingroup NetworkGroup
+//!@{
 
-//! All network message classes are derived from this class.
+//! Base class for all network message classes.
 
 class Message : public P2p::Serializable
 {
@@ -32,4 +34,5 @@ struct InvalidMessageError : public std::runtime_error
     InvalidMessageError() : std::runtime_error("invalid message data") {}
 };
 
+//!@}
 } // namespace Network

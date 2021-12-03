@@ -8,6 +8,9 @@
 
 namespace Network
 {
+//! @ingroup NetworkGroup
+//!@{
+
 //! Represents an object in an inventory message
 //!
 //! Used in inventory requests for notifying other nodes about objects that they have or are requesting.
@@ -52,4 +55,6 @@ struct InventoryId : public P2p::Serializable
 
 //! A list of inventory IDs
 typedef std::vector<InventoryId> InventoryList;
+
+//!@}
 } // namespace Network

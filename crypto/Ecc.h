@@ -4,23 +4,23 @@
 #include <cstdint>
 #include <vector>
 
-//! Crypto library.
-//!
-//! The primary purpose of this library is to provide a generic interface wrapping a specific implementation.
+//! @defgroup   CryptoGroup  Cryptographic library
+//! @brief      Library of cyrptographic functions.
 
+//! Cryptographic library.
+//!
+//! This library provides a generic interface wrapping a specific implementation of cryptographic functions.
 namespace Crypto
 {
-
 //! ECC library.
 //!
 //! @note   Key values are assumed to be big-endian.
-
+//! @ingroup CryptoGroup
 namespace Ecc
 {
-
-size_t const COMPRESSED_PUBLIC_KEY_SIZE     = 33;               //!< Size of a compressed public key
-size_t const UNCOMPRESSED_PUBLIC_KEY_SIZE   = 65;               //!< Size of an uncompressed public key
-size_t const PRIVATE_KEY_SIZE               = 256 / 8;          //!< Size of a private key
+size_t const COMPRESSED_PUBLIC_KEY_SIZE   = 33;                 //!< Size of a compressed public key
+size_t const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;                 //!< Size of an uncompressed public key
+size_t const PRIVATE_KEY_SIZE = 256 / 8;                        //!< Size of a private key
 
 typedef std::vector<uint8_t> PublicKey;                         //!< An ECC public key
 typedef std::array<uint8_t, PRIVATE_KEY_SIZE> PrivateKey;       //!< An ECC private key
@@ -96,6 +96,5 @@ inline bool privateKeyIsValid(PrivateKey const & k)
 {
     return privateKeyIsValid(k.data(), k.size());
 }
-
-} // namespace Ecc
+}   // namespace Ecc
 } // namespace Crypto

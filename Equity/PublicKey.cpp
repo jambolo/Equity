@@ -1,7 +1,7 @@
 #include "PublicKey.h"
 
-#include "PrivateKey.h"
 #include "crypto/Ecc.h"
+#include "PrivateKey.h"
 #include "utility/Utility.h"
 
 using namespace Crypto;
@@ -31,7 +31,7 @@ PublicKey::PublicKey(PrivateKey const & k)
 {
     if (k.valid())
     {
-        valid_ = Ecc::derivePublicKey(k.value(), value_, !k.compressed());
+        valid_      = /*Ecc::derivePublicKey(k.value(), value_, !k.compressed())*/ false;
         compressed_ = k.compressed();
     }
 }

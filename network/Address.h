@@ -6,6 +6,9 @@
 
 namespace Network
 {
+//! @ingroup NetworkGroup
+//!@{
+
 //! A description of a network node.
 //!
 //! @sa     VersionMessage, AddressMessage
@@ -59,4 +62,6 @@ private:
     std::array<uint8_t, 16> ipv6_;
     uint16_t port_;
 };
+
+//!@}
 } // namespace Network

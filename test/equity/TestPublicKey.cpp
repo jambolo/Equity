@@ -1,20 +1,14 @@
-#include "../targetver.h"
-#include "CppUnitTest.h"
-
-#include "equity/PrivateKey.h"
-#include "equity/PublicKey.h"
+#include "include/equity/PrivateKey.h"
+#include "include/equity/PublicKey.h"
 #include "utility/Utility.h"
 
-#include <cstdio>
-#include <string>
-#include <vector>
+#include <gtest/gtest.h>
 
 using namespace Equity;
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+using namespace Utility;
 
-namespace TestEquity
+namespace
 {
-
 struct PublicKeyInput
 {
     uint8_t data[PublicKey::UNCOMPRESSED_SIZE];
@@ -87,68 +81,68 @@ static PrivateKeyInput PRIVATE_KEY_CASES[] =
         }
     }
 };
+} // anonymous namespace
 
-TEST_CLASS(Equity_PublicKeyTest)
+TEST(EquityPublicKeyTest, constructor_uint8_t_ptr)
 {
-public:
-
-    TEST_METHOD(Equity_PublicKey_constructor_uint8_t_ptr)
+    for (auto const & c : PUBLIC_KEY_CASES)
     {
-        for (auto const & c : PUBLIC_KEY_CASES)
-        {
-            PublicKey result(c.data, sizeof(c.data));
-            std::vector<uint8_t> value = result.value();
-            Assert::IsTrue(result.valid());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
-        }
+        PublicKey result(c.data, sizeof(c.data));
+        std::vector<uint8_t> value = result.value();
+        EXPECT_TRUE(result.valid());
+        EXPECT_TRUE(std::equal(value.begin(), value.end(), c.data));
     }
+}
 
-    TEST_METHOD(Equity_PublicKey_constructor_vector)
+TEST(EquityPublicKeyTest, constructor_vector)
+{
+    for (auto const & c : PUBLIC_KEY_CASES)
     {
-        for (auto const & c : PUBLIC_KEY_CASES)
-        {
-            std::vector<uint8_t> input(c.data, c.data + sizeof(c.data));
+        std::vector<uint8_t> input(c.data, c.data + sizeof(c.data));
 
-            PublicKey result(input);
-            std::vector<uint8_t> value = result.value();
-            Assert::IsTrue(result.valid());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.data));
-        }
+        PublicKey result(input);
+        std::vector<uint8_t> value = result.value();
+        EXPECT_TRUE(result.valid());
+        EXPECT_TRUE(std::equal(value.begin(), value.end(), c.data));
     }
+}
 
-    TEST_METHOD(Equity_PublicKey_constructor_PrivateKey)
+TEST(EquityPublicKeyTest, constructor_PrivateKey)
+{
+    for (auto const & c : PRIVATE_KEY_CASES)
     {
-        for (auto const & c : PRIVATE_KEY_CASES)
-        {
-            PrivateKey privateKey(c.privateKey, sizeof(c.privateKey));
+        PrivateKey privateKey(c.privateKey, sizeof(c.privateKey));
 
-            PublicKey result(privateKey);
-            std::vector<uint8_t> value = result.value();
+        PublicKey result(privateKey);
+        std::vector<uint8_t> value = result.value();
 
-            Assert::IsTrue(result.valid());
-            Assert::IsTrue(std::equal(value.begin(), value.end(), c.expected));
-        }
+        EXPECT_TRUE(result.valid());
+        EXPECT_TRUE(std::equal(value.begin(), value.end(), c.expected));
     }
+}
 
-    TEST_METHOD(Equity_PublicKey_value)
-    {
-        Assert::Fail(L"Not implemented");
-    }
+TEST(EquityPublicKeyTest, value)
+{
+    GTEST_SKIP();
+}
 
-    TEST_METHOD(Equity_PublicKey_compressed)
-    {
-        Assert::Fail(L"Not implemented");
-    }
+TEST(EquityPublicKeyTest, compressed)
+{
+    GTEST_SKIP();
+}
 
-    TEST_METHOD(Equity_PublicKey_valid)
-    {
-        Assert::Fail(L"Not implemented");
-    }
+TEST(EquityPublicKeyTest, valid)
+{
+    GTEST_SKIP();
+}
 
-    TEST_METHOD(Equity_PublicKey_toHex)
-    {
-        Assert::Fail(L"Not implemented");
-    }
-};
+TEST(EquityPublicKeyTest, toHex)
+{
+    GTEST_SKIP();
+}
 
-} // namespace TestEquity
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

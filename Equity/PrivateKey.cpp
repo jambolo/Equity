@@ -25,7 +25,7 @@ PrivateKey::PrivateKey(std::string const & s)
             return;
         }
         std::string appended = s + '?';
-        Sha256Hash check = sha256(reinterpret_cast<uint8_t const *>(appended.data()), appended.length());
+        Sha256Hash  check    = sha256(reinterpret_cast<uint8_t const *>(appended.data()), appended.length());
         if (check[0] != 0)
         {
             valid_ = false;
@@ -103,5 +103,5 @@ std::string PrivateKey::toHex() const
 
 bool PrivateKey::isValid()
 {
-    return valid_ && Ecc::privateKeyIsValid(value_);
+    return valid_ /* && Ecc::privateKeyIsValid(value_)*/;
 }

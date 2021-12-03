@@ -1,18 +1,10 @@
-#include "../shared.h"
-#include "../targetver.h"
-#include "CppUnitTest.h"
-
 #include "crypto/Pbkdf2.h"
 #include "utility/Utility.h"
-#include <cstdio>
 
-using namespace Crypto;
-using namespace Utility;
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+#include <gtest/gtest.h>
 
 namespace
 {
-
 struct Pbkdf2HmacSha512TestCase
 {
     char const * password;
@@ -259,55 +251,35 @@ Pbkdf2HmacSha512TestCase const PBKDF2HMACSHA512_CASES[] =
         }
     }
 };
-
 } // anonymous namespace
 
-namespace TestCrypto
+TEST(CryptoPbkdf2Test, pbkdf2HmacSha512_ptr)
 {
+    for (auto const & c : PBKDF2HMACSHA512_CASES)
+    {
+        std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512((uint8_t const *)c.password,
+                                                               strlen(c.password),
+                                                               (uint8_t const *)c.salt,
+                                                               strlen(c.salt),
+                                                               c.count,
+                                                               64);
+        EXPECT_TRUE(std::equal(result.begin(), result.end(), c.expected));
+    }
+}
 
-TEST_CLASS(Crypto_Pbkdf2)
+TEST(CryptoPbkdf2Test, pbkdf2HmacSha512_vector)
 {
-public:
-    TEST_METHOD(Crypto_Pbkdf2_pbkdf2HmacSha512_ptr)
+    for (auto const & c : PBKDF2HMACSHA512_CASES)
     {
-        for (auto const & c : PBKDF2HMACSHA512_CASES)
-        {
-            std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512((uint8_t const *)c.password,
-                                                                   strlen(c.password),
-                                                                   (uint8_t const *)c.salt,
-                                                                   strlen(c.salt),
-                                                                   c.count,
-                                                                   64);
-            Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           pbkdf2ErrorMessage(L"pbkdf2HmacSha512",
-                                              c.password,
-                                              c.salt,
-                                              c.count,
-                                              c.expected,
-                                              sizeof(c.expected),
-                                              result.data(),
-                                              result.size()).c_str());
-        }
+        std::vector<uint8_t> password(c.password, c.password + strlen(c.password));
+        std::vector<uint8_t> salt(c.salt, c.salt + strlen(c.salt));
+        std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512(password, salt, c.count, 64);
+        EXPECT_TRUE(std::equal(result.begin(), result.end(), c.expected));
     }
+}
 
-    TEST_METHOD(Crypto_Pbkdf2_pbkdf2HmacSha512_vector)
-    {
-        for (auto const & c : PBKDF2HMACSHA512_CASES)
-        {
-            std::vector<uint8_t> password(c.password, c.password + strlen(c.password));
-            std::vector<uint8_t> salt(c.salt, c.salt + strlen(c.salt));
-            std::vector<uint8_t> result = Crypto::pbkdf2HmacSha512(password, salt, c.count, 64);
-            Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           pbkdf2ErrorMessage(L"pbkdf2HmacSha512",
-                                              c.password,
-                                              c.salt,
-                                              c.count,
-                                              c.expected,
-                                              sizeof(c.expected),
-                                              result.data(),
-                                              result.size()).c_str());
-        }
-    }
-};
-
-} // namespace TestCrypto
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

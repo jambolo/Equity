@@ -4,6 +4,8 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
 //! Represents a target value in both 256-bit hash form and compact form.
 //!
@@ -18,10 +20,10 @@ class Target
 {
 public:
 
-    //! Target in compact form of difficulty 1
+    //! Target of difficulty 1 in compact form
     static uint32_t const DIFFICULTY_1_COMPACT = 0x1d00ffff;
 
-    //! Target in hash form of difficulty 1
+    //! Target of difficulty 1 in hash form
     static Crypto::Sha256Hash const DIFFICULTY_1;
 
     //! Target value of 0 in compact form
@@ -63,13 +65,16 @@ private:
 //! Less-than operator overload for Target
 inline bool operator <(Target const & a, Target const b)
 {
+    // @BUG : Assumes that the compact form is normalized
     return uint32_t(a) < uint32_t(b);
 }
 
 //! Less-than-or-equal operator overload for Target
 inline bool operator <=(Target const & a, Target const b)
 {
+    // @BUG : Assumes that the compact form is normalized
     return !(b < a);
 }
 
+//!@}
 } // namespace Equity

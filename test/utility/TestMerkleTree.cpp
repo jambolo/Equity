@@ -1,23 +1,12 @@
-#include "crypto/Sha256.h"
 #include "utility/MerkleTree.h"
-#include "utility/Utility.h"
-#include <cstdio>
-#include <vector>
+
+#include <gtest/gtest.h>
 
 using namespace Utility;
 
-static int TestMerkleTree();
-
-int TestUtility()
+namespace
 {
-    printf("Utility\n");
-
-    int errors = 0;
-    errors += TestMerkleTree();
-    return errors;
-}
-
-struct TestMerkleTreeConstructorCase
+struct TestMerkleTreeCase
 {
     std::vector<std::string> data;
     std::string expected;
@@ -25,7 +14,7 @@ struct TestMerkleTreeConstructorCase
 
 // Note: block explorers show little endian hashes, and that's where I'm getting this test data from, so the values
 // are reversed.
-TestMerkleTreeConstructorCase const MERKLETREE_CONSTRUCTOR_CASES[] =
+TestMerkleTreeCase const MERKLETREE_CONSTRUCTOR_CASES[] =
 {
     // block 0
     {
@@ -2288,51 +2277,15 @@ TestMerkleTreeConstructorCase const MERKLETREE_CONSTRUCTOR_CASES[] =
         "824b7b84ea02014fead6151f43c0010fe6e8a8002c480b534ef96fd3c52727ab"
     }
 };
+} // anonymous namespace
 
-static int TestMerkleTree()
+TEST(UtilityMerkleTreeTest, constructor)
 {
-    printf("+-- MerkleTree\n");
-    int errors = 0;
+    GTEST_SKIP();
+}
 
-    printf("    +-- testing MerkleTree::MerkleTree()\n");
-
-    for (auto const & c : MERKLETREE_CONSTRUCTOR_CASES)
-    {
-        Crypto::Sha256HashList hashes;
-        for (auto s : c.data)
-        {
-            std::vector<uint8_t> h = fromHexR(s);
-            Crypto::Sha256Hash hash;
-            std::copy(h.begin(), h.end(), hash.begin());
-            hashes.emplace_back(hash);
-        }
-
-        MerkleTree m(hashes);
-
-        std::vector<uint8_t> expected = fromHexR(c.expected);
-        if (expected.size() != m.root().size() || !std::equal(expected.begin(), expected.end(), m.root().begin()))
-        {
-            printf("        +== constructor: expected \"%s\", got \"%s\"\n", shorten(c.expected).c_str(), shorten(toHexR(
-                                                                                                                         m.root())).c_str());
-            ++errors;
-        }
-        else
-        {
-            printf("        +-- constructor: ok\n");
-        }
-    }
-    //MerkleTree(Crypto::Sha256HashList const & hashes);
-
-    //Crypto::Sha256Hash root() const;
-    //Crypto::Sha256Hash hashAt(size_t i) const;
-
-    //Crypto::Sha256HashList proof(size_t i) const;
-
-    ////! Verifies that the given hash is the hash for the ith item given a proof and a root
-    //static bool verify(Crypto::Sha256Hash const &              hash,
-    //    size_t                                  i,
-    //    Crypto::Sha256HashList const & proof,
-    //    Crypto::Sha256Hash const &              root);
-
-    return errors;
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

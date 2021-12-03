@@ -6,6 +6,8 @@
 
 namespace Crypto
 {
+//! @addtogroup CryptoGroup
+//!@{
 
 size_t const SHA256_HASH_SIZE = 256 / 8;                    //!< Size of a SHA-256 hash in bytes
 typedef std::array<uint8_t, SHA256_HASH_SIZE> Sha256Hash;   //!< A SHA-256 hash
@@ -45,6 +47,8 @@ Checksum checksum(std::vector<uint8_t> const & input);
 //! @param  length  length of the data
 Checksum checksum(uint8_t const * input, size_t length);
 
+//!@}
+
 /********************************************************************************************************************/
 
 template <size_t N>
@@ -52,5 +56,4 @@ Sha256Hash sha256(std::array<uint8_t, N> const & input)
 {
     return sha256(input.data(), input.size());
 }
-
 } // namespace Crypto

@@ -7,6 +7,9 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
+
 //! Exception thrown for a script parsing error
 class ScriptParsingError : public std::runtime_error
 {
@@ -268,4 +271,6 @@ private:
 
 //! A list of instructions
 typedef std::vector<Instruction> Program;
+
+//!@}
 } // namespace Equity

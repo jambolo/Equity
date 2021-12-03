@@ -13,6 +13,9 @@
 
 namespace P2p
 {
+//! @ingroup P2pGroup
+//!@{
+
 //! Exception thrown for a deserialization error.
 class DeserializationError : public std::runtime_error
 {
@@ -722,4 +725,6 @@ public:
 private:
     std::string string_;
 };
+
+//!@}
 } // namespace Utility

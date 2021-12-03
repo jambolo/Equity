@@ -1,23 +1,15 @@
-#include "../shared.h"
-#include "../targetver.h"
-#include "CppUnitTest.h"
-
 #include "crypto/Hmac.h"
 #include "utility/Utility.h"
-#include <cstdio>
 
-using namespace Crypto;
-using namespace Utility;
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+#include <gtest/gtest.h>
 
 namespace
 {
-
 struct HmacSha512TestCase
 {
     char const * key;           // note: in hex
     char const * message;       // note: in hex
-    uint8_t expected[SHA512_HASH_SIZE];
+    uint8_t expected[Crypto::SHA512_HASH_SIZE];
 };
 
 HmacSha512TestCase const HMACSHA512_CASES[] =
@@ -83,33 +75,21 @@ HmacSha512TestCase const HMACSHA512_CASES[] =
         }
     }
 };
-
 } // anonymous namespace
 
-namespace TestCrypto
+TEST(CryptoHmacTest, hmacSha512)
 {
-
-TEST_CLASS(Crypto_Hmac)
-{
-public:
-
-    TEST_METHOD(Crypto_Hmac_hmacsha512)
+    for (auto const & c : HMACSHA512_CASES)
     {
-        for (auto const & c : HMACSHA512_CASES)
-        {
-            std::vector<uint8_t> key = fromHex(c.key, strlen(c.key));
-            std::vector<uint8_t> message = fromHex(c.message, strlen(c.message));
-            Sha512Hash result = Crypto::hmacSha512(key.data(), key.size(), message.data(), message.size());
-            Assert::IsTrue(std::equal(result.begin(), result.end(), c.expected),
-                           hmacErrorMessage(L"hmacSha512",
-                                            c.key,
-                                            c.message,
-                                            c.expected,
-                                            sizeof(c.expected),
-                                            result.data(),
-                                            result.size()).c_str());
-        }
+        std::vector<uint8_t> key     = Utility::fromHex(c.key, strlen(c.key));
+        std::vector<uint8_t> message = Utility::fromHex(c.message, strlen(c.message));
+        Crypto::Sha512Hash   result  = Crypto::hmacSha512(key.data(), key.size(), message.data(), message.size());
+        EXPECT_TRUE(std::equal(result.begin(), result.end(), c.expected));
     }
-};
+}
 
-} // namespace TestCrypto
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

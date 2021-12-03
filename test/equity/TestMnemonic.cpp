@@ -1,27 +1,17 @@
-#include "../targetver.h"
-#include "CppUnitTest.h"
+#include "include/equity/Mnemonic.h"
+#include "utility/Utility.h"
 
-#include "../shared.h"
-#include <equity/Mnemonic.h>
-#include <utility/Utility.h>
+#include <gtest/gtest.h>
 
-#include <cstdio>
-#include <cstring>
-#include <string>
-#include <vector>
-
-using namespace Crypto;
 using namespace Utility;
 using namespace Equity;
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace
 {
-
 Mnemonic::WordList createWordList(char const * sentence)
 {
     Mnemonic::WordList words;
-    char const * end = nullptr;
+    char const *       end = nullptr;
     while (sentence != nullptr)
     {
         end = strchr(sentence, ' ');
@@ -65,11 +55,6 @@ std::string createSentence(Mnemonic::WordList const & words)
     }
     return sentence;
 }
-
-} // anonymous namespace
-
-namespace TestEquity
-{
 
 struct MnemonicTestCase
 {
@@ -226,102 +211,98 @@ MnemonicTestCase MNEMONIC_TEST_CASES[] =
         "xprv9s21ZrQH143K39rnQJknpH1WEPFJrzmAqqasiDcVrNuk926oizzJDDQkdiTvNPr2FYDYzWgiMiC63YmfPAa2oPyNB23r2g7d1yiK6WpqaQS"
     }
 };
+} // anonymous namespace
 
-TEST_CLASS(Equity_MnemonicTest)
+TEST(EquityMnemonicTest, constructor_WordList)
 {
-public:
-
-    TEST_METHOD(Equity_Mnemonic_constructor_WordList)
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            Mnemonic::WordList words = createWordList(c.mnemonic);
-            Mnemonic m(words);
-            Assert::IsTrue(m.isValid());
-        }
+        Mnemonic::WordList words = createWordList(c.mnemonic);
+        Mnemonic           m(words);
+        EXPECT_TRUE(m.isValid());
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_constructor_uint8_t_ptr)
+TEST(EquityMnemonicTest, constructor_uint8_t_ptr)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-            Mnemonic m(entropy.data(), entropy.size());
-            Assert::IsTrue(m.isValid());
-        }
+        std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+        Mnemonic m(entropy.data(), entropy.size());
+        EXPECT_TRUE(m.isValid());
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_constructor_vector)
+TEST(EquityMnemonicTest, constructor_vector)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-            Mnemonic m(entropy);
-            Assert::IsTrue(m.isValid());
-        }
+        std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+        Mnemonic m(entropy);
+        EXPECT_TRUE(m.isValid());
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_seed)
+TEST(EquityMnemonicTest, seed)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-            Mnemonic m(entropy);
-            std::vector<uint8_t> result = m.seed("TREZOR");
-            std::vector<uint8_t> expected = fromHex(c.seed, strlen(c.seed));
-            Assert::IsTrue(result == expected,
-                           hexErrorMessage(L"seed", c.entropy, c.seed, result).c_str());
-        }
+        std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+        Mnemonic m(entropy);
+        std::vector<uint8_t> result   = m.seed("TREZOR");
+        std::vector<uint8_t> expected = fromHex(c.seed, strlen(c.seed));
+        EXPECT_TRUE(result == expected);
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_entropy)
+TEST(EquityMnemonicTest, entropy)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            Mnemonic::WordList words = createWordList(c.mnemonic);
-            Mnemonic m(words);
-            std::vector<uint8_t> result = m.entropy();
-            std::vector<uint8_t> expected = fromHex(c.entropy, strlen(c.entropy));
-            Assert::IsTrue(result == expected,
-                           hexErrorMessage(L"entropy", c.mnemonic, c.entropy, result).c_str());
-        }
+        Mnemonic::WordList   words = createWordList(c.mnemonic);
+        Mnemonic             m(words);
+        std::vector<uint8_t> result   = m.entropy();
+        std::vector<uint8_t> expected = fromHex(c.entropy, strlen(c.entropy));
+        EXPECT_TRUE(result == expected);
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_sentence)
+TEST(EquityMnemonicTest, sentence)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-            Mnemonic m(entropy);
-            std::string result = m.sentence();
-            char const * expected = c.mnemonic;
-            Assert::AreEqual(expected, result.c_str(), false,
-                             errorMessage(L"sentence", c.entropy, expected, result.c_str()).c_str());
-        }
+        std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+        Mnemonic     m(entropy);
+        std::string  result   = m.sentence();
+        char const * expected = c.mnemonic;
+        EXPECT_STREQ(expected, result.c_str());
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_words)
+TEST(EquityMnemonicTest, words)
+{
+    for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        for (auto const & c : MNEMONIC_TEST_CASES)
-        {
-            std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-            Mnemonic m(entropy);
-            Mnemonic::WordList result = m.words();
-            Mnemonic::WordList expected = createWordList(c.mnemonic);
-            Assert::IsTrue(expected == result,
-                           errorMessage(L"words", c.entropy, c.mnemonic, createSentence(result).c_str()).c_str());
-        }
+        std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
+        Mnemonic           m(entropy);
+        Mnemonic::WordList result   = m.words();
+        Mnemonic::WordList expected = createWordList(c.mnemonic);
+        EXPECT_TRUE(expected == result);
     }
+}
 
-    TEST_METHOD(Equity_Mnemonic_isValid)
-    {
-        Assert::Fail(L"Not implemented");
-    }
+TEST(EquityMnemonicTest, isValid)
+{
+    GTEST_SKIP();
+}
 
-    TEST_METHOD(Equity_Mnemonic_suggestions)
-    {
-        Assert::Fail(L"Not implemented");
-    }
-};
+TEST(EquityMnemonicTest, suggestions)
+{
+    GTEST_SKIP();
+}
 
-} // namespace TestEquity
+int main(int argc, char ** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

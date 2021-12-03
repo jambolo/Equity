@@ -13,51 +13,31 @@ static char itox(int i)
 static int xtoi(char x)
 {
     if (x >= 'a')
-    {
         return x - 'a' + 10;
-    }
     else if (x >= 'A')
-    {
         return x - 'A' + 10;
-    }
     else
-    {
         return x - '0';
-    }
 }
 
 namespace Utility
 {
-
 /********************************************************************************************************************/
 /*                                           H E X   C O N V E R S I O N                                            */
 /********************************************************************************************************************/
 
-std::string toHex(P2p::Serializable const & s)
-{
-    std::vector<uint8_t> out;
-    s.serialize(out);
-    return toHex(out);
-}
-
 std::string toHex(std::vector<uint8_t> const & v)
 {
     if (v.empty())
-    {
         return toHex(nullptr, 0);
-    }
     else
-    {
         return toHex(v.data(), v.size());
-    }
 }
 
 std::string toHex(uint8_t const * v, size_t length)
 {
     if (!v || length == 0)
-    {
         return std::string();
-    }
 
     std::string x;
     x.reserve(length * 2);
@@ -75,9 +55,7 @@ std::string toHex(uint8_t const * v, size_t length)
 std::vector<uint8_t> fromHex(std::string const & x)
 {
     if (x.empty())
-    {
         return std::vector<uint8_t>();
-    }
 
     return fromHex(x.data(), x.size());
 }
@@ -85,9 +63,7 @@ std::vector<uint8_t> fromHex(std::string const & x)
 std::vector<uint8_t> fromHex(char const * x, size_t length)
 {
     if (!x || length == 0)
-    {
         return std::vector<uint8_t>();
-    }
 
     std::vector<uint8_t> v;
     v.reserve(length / 2);
@@ -103,21 +79,15 @@ std::vector<uint8_t> fromHex(char const * x, size_t length)
 std::string toHexR(std::vector<uint8_t> const & v)
 {
     if (v.empty())
-    {
         return std::string();
-    }
     else
-    {
         return toHexR(v.data(), v.size());
-    }
 }
 
 std::string toHexR(uint8_t const * v, size_t length)
 {
     if (!v || length == 0)
-    {
         return std::string();
-    }
 
     std::string x;
     x.reserve(length * 2);
@@ -136,9 +106,7 @@ std::string toHexR(uint8_t const * v, size_t length)
 std::vector<uint8_t> fromHexR(std::string const & x)
 {
     if (x.empty())
-    {
         return std::vector<uint8_t>();
-    }
 
     return fromHexR(x.data(), x.size());
 }
@@ -146,9 +114,7 @@ std::vector<uint8_t> fromHexR(std::string const & x)
 std::vector<uint8_t> fromHexR(char const * x, size_t length)
 {
     if (!x || length == 0)
-    {
         return std::vector<uint8_t>();
-    }
 
     std::vector<uint8_t> v;
     v.reserve(length / 2);
@@ -185,5 +151,4 @@ std::string shorten(std::string const & in, size_t size /* = 11*/)
         return in.substr(0, size);
     }
 }
-
 }     // namespace Utility

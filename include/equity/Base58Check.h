@@ -6,11 +6,12 @@
 
 namespace Equity
 {
+//! @addtogroup EquityGroup
+//!@{
 
-//! Functions that convert between binary and the Base58Check format. Typically used for addresses and private keys.
+//! Base58Check format encoding and decoding, used for addresses and private keys.
 namespace Base58Check
 {
-
 //! Encode the input into Base58Check format
 std::string encode(std::vector<uint8_t> const & input, unsigned version);
 
@@ -32,6 +33,7 @@ bool decode(char const * input, std::vector<uint8_t> & output, unsigned & versio
 
 //! Decode the Base58Check format into binary
 bool decode(char const * input, uint8_t * output, size_t size, unsigned & version);
+}   // namespace Base58Check
 
-} // namespace Base58Check
+//!@}
 } // namespace Equity
