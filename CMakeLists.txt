@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project(Equity LANGUAGES CXX DESCRIPTION "Bitcoin Node and Protocol LIbrary")
+project(Equity LANGUAGES CXX DESCRIPTION "Bitcoin Node and Protocol Library")
 
 option(BUILD_SHARED_LIBS "Build libraries as DLLs" FALSE)
 

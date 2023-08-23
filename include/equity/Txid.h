@@ -19,6 +19,10 @@ struct Txid : public P2p::Serializable
     Txid() {}
 
     // Constructor
+    //! @param  hash    A hash representing the txid
+    Txid(Crypto::Sha256Hash const & hash) : hash_(hash) {}
+
+    // Constructor
     //! @param  json    A json representation of the txid
     explicit Txid(nlohmann::json const & json);
 
@@ -34,6 +38,11 @@ struct Txid : public P2p::Serializable
     virtual nlohmann::json toJson() const override;
 
     //!@}
+
+    //! Converts the txid into hash form
+    operator Crypto::Sha256Hash() { return hash_; }
+
+private:
 
     Crypto::Sha256Hash hash_;   //!< The transaction ID in binary form
 };

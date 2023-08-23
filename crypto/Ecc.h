@@ -18,9 +18,9 @@ namespace Crypto
 //! @ingroup CryptoGroup
 namespace Ecc
 {
-size_t const COMPRESSED_PUBLIC_KEY_SIZE   = 33;                 //!< Size of a compressed public key
-size_t const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;                 //!< Size of an uncompressed public key
-size_t const PRIVATE_KEY_SIZE = 256 / 8;                        //!< Size of a private key
+size_t constexpr PRIVATE_KEY_SIZE             = 256 / 8;                    //!< Size of a private key
+size_t constexpr COMPRESSED_PUBLIC_KEY_SIZE   = 1 + PRIVATE_KEY_SIZE;       //!< Size of a compressed public key
+size_t constexpr UNCOMPRESSED_PUBLIC_KEY_SIZE = 1 + 2 * PRIVATE_KEY_SIZE;   //!< Size of an uncompressed public key
 
 typedef std::vector<uint8_t> PublicKey;                         //!< An ECC public key
 typedef std::array<uint8_t, PRIVATE_KEY_SIZE> PrivateKey;       //!< An ECC private key
@@ -68,7 +68,7 @@ bool derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey, bool uncompr
 //! @param      pubKey      public key
 //! @param[out] signature   signature
 //! @return true if the returned signature is valid
-bool sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, PublicKey const & pubKey, Signature & signature);
+bool sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, Signature & signature);
 
 //! Verifies a signed message.
 //!
@@ -81,12 +81,6 @@ bool verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Sign
 
 /********************************************************************************************************************/
 
-inline bool publicKeyIsValid(uint8_t const * k, size_t size)
-{
-    return (size == UNCOMPRESSED_PUBLIC_KEY_SIZE && k[0] == 4) ||
-           (size == COMPRESSED_PUBLIC_KEY_SIZE && (k[0] == 2 || k[0] == 3));
-}
-
 inline bool publicKeyIsValid(PublicKey const & k)
 {
     return publicKeyIsValid(k.data(), k.size());
@@ -96,5 +90,6 @@ inline bool privateKeyIsValid(PrivateKey const & k)
 {
     return privateKeyIsValid(k.data(), k.size());
 }
-}   // namespace Ecc
+
+} // namespace Ecc
 } // namespace Crypto

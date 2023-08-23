@@ -1,9 +1,10 @@
 #include "Base58.h"
 
+#include <wolfssl/wolfcrypt/sp_int.h>
+
 #include <algorithm>
 #include <array>
 #include <memory>
-#include <openssl/bn.h>
 
 using namespace Equity;
 

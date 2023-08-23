@@ -1,7 +1,9 @@
 #include "Hmac.h"
 
-#include <openssl/evp.h>
-#include <openssl/hmac.h>
+#include "Sha512.h"
+
+#include <wolfssl/wolfcrypt/hmac.h>
+#include <wolfssl/wolfcrypt/sha512.h>
 
 #include <cassert>
 

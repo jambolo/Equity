@@ -1,133 +1,268 @@
 #include "Ecc.h"
 
 #include "CppUtility.h"
-#include "openssl/ec.h"
-#include "openssl/evp.h"
-#include "openssl/obj_mac.h"
+#include "Sha256.h"
 
+#define HAVE_ECC
+#include <wolfssl/wolfcrypt/ecc.h>
+#include <wolfssl/wolfcrypt/random.h>
+#include <wolfssl/wolfcrypt/sha256.h>
+#include <wolfssl/wolfcrypt/sp.h>
+#include <wolfssl/wolfcrypt/sp_int.h>
+
+#include <cassert>
 #include <memory>
 
 using namespace Crypto;
 using namespace Crypto::Ecc;
 
-static uint8_t const MAX_PRIVATE_KEY[] =
+size_t constexpr CURVE_SIZE = PRIVATE_KEY_SIZE;
+
+namespace
 {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-    0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
-    0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x40
-};
+// Loads a public key into a wolfSSL ecc_key structure.
+// Returns true if there were no problems.
+static bool loadPublicKey(uint8_t const * k, size_t size, ecc_key * pub)
+{
+    int rc;
+
+    // Need the curve index to import the public key
+    int curveIndex = wc_ecc_get_curve_idx(ECC_SECP256K1);
+    assert(curveIndex >= 0);
+
+    // Load the public key into a point
+    ecc_point * point = wc_ecc_new_point();
+    if (!point)
+        return false;
+
+    rc = wc_ecc_import_point_der_ex(k, (word32)size, curveIndex, point, 0);
+    if (rc != 0)
+    {
+        wc_ecc_del_point(point);
+        return false;
+    }
+
+    uint8_t x[CURVE_SIZE];
+    rc = mp_to_unsigned_bin_len(point->x, x, sizeof(x));
+    if (rc != MP_OKAY)
+    {
+        wc_ecc_del_point(point);
+        return false;
+    }
+    uint8_t y[CURVE_SIZE];
+    rc = mp_to_unsigned_bin_len(point->y, y, sizeof(y));
+    if (rc != MP_OKAY)
+    {
+        wc_ecc_del_point(point);
+        return false;
+    }
+
+    wc_ecc_del_point(point);
+
+    rc = wc_ecc_import_unsigned(pub, x, y, NULL, ECC_SECP256K1);
+    return rc == 0 && pub->type == ECC_PUBLICKEY;
+}
+
+// Loads a private key into a wolfSSL ecc_key structure.
+// Returns true if there were no problems.
+bool loadPrivateKey(uint8_t const * k, size_t size, ecc_key * prv)
+{
+    int rc = wc_ecc_import_private_key_ex(k, (word32)size, NULL, 0, prv, ECC_SECP256K1);
+    return rc == 0;
+}
+} // anonymous namespace
+
+bool Crypto::Ecc::publicKeyIsValid(uint8_t const * k, size_t size)
+{
+    int     rc;
+    ecc_key pub;
+    rc = wc_ecc_init(&pub);
+    assert(rc == 0);
+
+    if (!loadPublicKey(k, size, &pub))
+    {
+        wc_ecc_free(&pub);
+        return false;
+    }
+
+    // Make sure it is a valid key
+    rc = wc_ecc_check_key(&pub);
+    wc_ecc_free(&pub);
+    return rc == 0;
+}
 
 bool Crypto::Ecc::privateKeyIsValid(uint8_t const * k, size_t size)
 {
-    if (size != PRIVATE_KEY_SIZE)
+    int rc;
+
+    // Load the private key
+    ecc_key prv;
+    rc = wc_ecc_init(&prv);
+    assert(rc == 0);
+
+    if (!loadPrivateKey(k, size, &prv))
+    {
+        wc_ecc_free(&prv);
         return false;
+    }
 
-    std::unique_ptr<BIGNUM, decltype(BN_free) *> i(BN_new(), BN_free);
-    BN_bin2bn(k, (int)size, i.get());
-
-    if (BN_is_zero(i.get()))
-        return false;
-
-    std::unique_ptr<BIGNUM, decltype(BN_free) *> maxPrivateKey(BN_new(), BN_free);
-    BN_bin2bn(MAX_PRIVATE_KEY, (int)sizeof(MAX_PRIVATE_KEY), maxPrivateKey.get());
-
-    if (BN_cmp(i.get(), maxPrivateKey.get()) > 0)
-        return false;
-
-    return true;
+    // Check if it is a valid key
+    rc = wc_ecc_check_key(&prv);
+    wc_ecc_free(&prv);
+    return rc == 0;
 }
 
 bool Crypto::Ecc::derivePublicKey(PrivateKey const & prvKey, PublicKey & pubKey, bool uncompressed /* = false*/)
 {
-    std::unique_ptr<BIGNUM, decltype(BN_free) *> prvKey_bn(BN_new(), BN_free);
-    BN_bin2bn(prvKey.data(), (int)prvKey.size(), prvKey_bn.get());
+    int rc;
 
-    std::unique_ptr<EC_GROUP, decltype(EC_GROUP_free) *> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
-    std::unique_ptr<EC_POINT, decltype(EC_POINT_free) *> point(EC_POINT_new(group.get()), EC_POINT_free);
-    std::unique_ptr<BN_CTX, decltype(BN_CTX_free) *> ctx(BN_CTX_new(), BN_CTX_free);
+    pubKey.clear();
 
-    if (!EC_POINT_mul(group.get(), point.get(), prvKey_bn.get(), NULL, NULL, ctx.get()))
+    // Load the private key
+    ecc_key prv;
+    rc = wc_ecc_init(&prv);
+    assert(rc == 0);
+
+    if (!loadPrivateKey(prvKey.data(), prvKey.size(), &prv))
+    {
+        wc_ecc_free(&prv);
         return false;
+    }
 
-    pubKey.resize(uncompressed ? UNCOMPRESSED_PUBLIC_KEY_SIZE : COMPRESSED_PUBLIC_KEY_SIZE, 0);
-    size_t length = EC_POINT_point2oct(group.get(),
-                                       point.get(),
-                                       uncompressed ? POINT_CONVERSION_UNCOMPRESSED : POINT_CONVERSION_COMPRESSED,
-                                       pubKey.data(),
-                                       pubKey.size(),
-                                       ctx.get());
-    std::rotate(pubKey.begin(), pubKey.begin() + length, pubKey.end());
+    // Derive the public key
+    ecc_point * pub = wc_ecc_new_point();
+    if (!pub)
+    {
+        wc_ecc_free(&prv);
+        return false;
+    }
+    rc = wc_ecc_make_pub(&prv, pub);
+    if (rc != 0)
+    {
+        wc_ecc_del_point(pub);
+        wc_ecc_free(&prv);
+        return false;
+    }
+
+    wc_ecc_free(&prv);
+
+    // Export the public key
+    word32 outLen     = uncompressed ? UNCOMPRESSED_PUBLIC_KEY_SIZE : COMPRESSED_PUBLIC_KEY_SIZE;
+    int    curveIndex = wc_ecc_get_curve_idx(ECC_SECP256K1);
+    assert(curveIndex >= 0);
+
+    pubKey.resize(outLen);
+    rc = wc_ecc_export_point_der_ex(curveIndex, pub, &pubKey[0], &outLen, (int)!uncompressed);
+    if (rc != 0)
+    {
+        wc_ecc_del_point(pub);
+        return false;
+    }
+    assert(outLen == pubKey.size());
+    wc_ecc_del_point(pub);
     return true;
 }
 
-bool Crypto::Ecc::sign(uint8_t const *    message,
-                       size_t             size,
-                       PrivateKey const & prvKey,
-                       PublicKey const &  pubKey,
-                       Signature &        signature)
+bool Crypto::Ecc::sign(uint8_t const * message, size_t size, PrivateKey const & prvKey, Signature & signature)
 {
+    int rc;
+
     signature.clear();
 
-    std::unique_ptr<BIGNUM, decltype(BN_free) *> prvKey_bn(BN_new(), BN_free);
-    BN_bin2bn(prvKey.data(), (int)prvKey.size(), prvKey_bn.get());
+    // Hash the message
+    Sha256Hash hash = sha256(message, size);
 
-    std::unique_ptr<EC_KEY, decltype(EC_KEY_free) *> ecKey(EC_KEY_new(), EC_KEY_free);
-    if (!EC_KEY_set_private_key(ecKey.get(), prvKey_bn.get()))
+    // Set up the rng
+    WC_RNG rng;
+    rc = wc_InitRng(&rng);
+    assert(rc == 0);
+
+    // Load the private key
+    ecc_key prv;
+    rc = wc_ecc_init(&prv);
+    assert(rc == 0);
+
+    if (!loadPrivateKey(prvKey.data(), (word32)prvKey.size(), &prv))
+    {
+        wc_ecc_free(&prv);
+        wc_FreeRng(&rng);
         return false;
+    }
 
-    std::unique_ptr<EVP_PKEY, decltype(EVP_PKEY_free) *> pkey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
+    // Set up r & s
+    mp_int r, s;
+    rc = mp_init(&r);
+    assert(rc == MP_OKAY);
+    rc = mp_init(&s);
+    assert(rc == MP_OKAY);
 
-    std::unique_ptr<EVP_MD_CTX, decltype(EVP_MD_CTX_destroy) *> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_destroy);
-    if (!EVP_DigestSignInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
+    rc = wc_ecc_sign_hash_ex(hash.data(), (word32)hash.size(), &rng, &prv, &r, &s);
+    if (rc != 0)
+    {
+        mp_free(&r);
+        mp_free(&s);
+        wc_ecc_free(&prv);
+        wc_FreeRng(&rng);
         return false;
+    }
 
-    if (!EVP_DigestSignUpdate(mdctx.get(), message, size))
-        return false;
+    wc_ecc_free(&prv);
+    wc_FreeRng(&rng);
 
-    // First call EVP_DigestSignFinal with a NULL sig parameter to obtain the maximum length of the signature.
-    size_t signatureSize;
-    if (!EVP_DigestSignFinal(mdctx.get(), NULL, &signatureSize))
-        return false;
+    /* export r/s */
+    size_t rSize = (size_t)mp_unsigned_bin_size(&r);
+    assert(rSize == CURVE_SIZE);
+    size_t sSize = (size_t)mp_unsigned_bin_size(&s);
+    assert(sSize == CURVE_SIZE);
+    signature.resize(rSize + sSize);
+    mp_to_unsigned_bin(&r, &signature[0]);
+    mp_to_unsigned_bin(&s, &signature[rSize]);
 
-    /* Obtain the signature */
-    signature.resize(signatureSize);
-    if (!EVP_DigestSignFinal(mdctx.get(), signature.data(), &signatureSize))
-        return false;
+    mp_free(&r);
+    mp_free(&s);
 
-    // Resize to the actual size
-    signature.resize(signatureSize);
     return true;
 }
 
-//! Verifies a signed message.
-//!
-//! @param      message     signed message
-//! @param      size        size of the message
-//! @param      pubKey      public key
-//! @param      signature   signature to verify
-//! @return true if the message's signature is vaid and it matches the message
 bool Crypto::Ecc::verify(uint8_t const * message, size_t size, PublicKey const & pubKey, Signature const & signature)
 {
-    std::unique_ptr<EC_GROUP, decltype(EC_GROUP_free) *> group(EC_GROUP_new_by_curve_name(NID_secp256k1), EC_GROUP_free);
-    std::unique_ptr<EC_POINT, decltype(EC_POINT_free) *> point(EC_POINT_new(group.get()), EC_POINT_free);
-    if (!EC_POINT_oct2point(group.get(), point.get(), pubKey.data(), pubKey.size(), NULL))
+    int rc;
+
+    if (signature.size() != 2 * CURVE_SIZE)
         return false;
 
-    std::unique_ptr<EC_KEY, decltype(EC_KEY_free) *> ecKey(EC_KEY_new(), EC_KEY_free);
-    if (!EC_KEY_set_public_key(ecKey.get(), point.get()))
+    // Hash the message
+    Sha256Hash hash = sha256(message, size);
+
+    ecc_key pub;
+    rc = wc_ecc_init(&pub);
+
+    assert(rc == 0);
+    rc = loadPublicKey(pubKey.data(), pubKey.size(), &pub);
+    if (rc != 0)
+    {
+        wc_ecc_free(&pub);
+        return false;
+    }
+
+    mp_int r;
+    rc = mp_init(&r);
+    assert(rc == MP_OKAY);
+    rc = mp_read_unsigned_bin(&r, &signature[0], CURVE_SIZE);
+
+    mp_int s;
+    rc = mp_init(&s);
+    assert(rc == MP_OKAY);
+    rc = mp_read_unsigned_bin(&r, &signature[0], CURVE_SIZE);
+
+    // Verify the signature
+    int verified = 0;
+    rc = wc_ecc_verify_hash_ex(&r, &s, hash.data(), (word32)hash.size(), &verified, &pub);
+    mp_free(&r);
+    mp_free(&s);
+    wc_ecc_free(&pub);
+    if (rc != 0)
         return false;
 
-    std::unique_ptr<EVP_PKEY, decltype(EVP_PKEY_free) *> pkey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pkey.get(), ecKey.get());
-
-    std::unique_ptr<EVP_MD_CTX, decltype(EVP_MD_CTX_destroy) *> mdctx(EVP_MD_CTX_create(), EVP_MD_CTX_destroy);
-    if (!EVP_DigestVerifyInit(mdctx.get(), NULL, EVP_sha256(), NULL, pkey.get()))
-        return false;
-
-    if (!EVP_DigestVerifyUpdate(mdctx.get(), message, size))
-        return false;
-
-    return EVP_DigestVerifyFinal(mdctx.get(), signature.data(), signature.size()) != 0;
+    return verified != 0;
 }

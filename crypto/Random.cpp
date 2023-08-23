@@ -1,6 +1,5 @@
 #include "Random.h"
 
-#include "openssl/rand.h"
 
 #include <cassert>
 #include <limits>
