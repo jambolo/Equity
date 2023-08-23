@@ -4,13 +4,12 @@
 #include <gtest/gtest.h>
 
 using namespace Utility;
-using namespace Equity;
 
 namespace
 {
-Mnemonic::WordList createWordList(char const * sentence)
+Equity::Mnemonic::WordList createWordList(char const * sentence)
 {
-    Mnemonic::WordList words;
+    Equity::Mnemonic::WordList words;
     char const *       end = nullptr;
     while (sentence != nullptr)
     {
@@ -30,7 +29,7 @@ Mnemonic::WordList createWordList(char const * sentence)
     return words;
 }
 
-std::string createSentence(Mnemonic::WordList const & words)
+std::string createSentence(Equity::Mnemonic::WordList const & words)
 {
     // Add up the sizes of all the words to get the size of the sentence
     size_t size = words.size() - 1;
@@ -41,7 +40,7 @@ std::string createSentence(Mnemonic::WordList const & words)
 
     // Concatenate all the words separated by a space
     std::string sentence;
-    Mnemonic::WordList::const_iterator i = words.begin();
+    Equity::Mnemonic::WordList::const_iterator i = words.begin();
     if (i != words.end())
     {
         sentence.reserve(size);
@@ -217,8 +216,8 @@ TEST(EquityMnemonicTest, constructor_WordList)
 {
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        Mnemonic::WordList words = createWordList(c.mnemonic);
-        Mnemonic           m(words);
+        Equity::Mnemonic::WordList words = createWordList(c.mnemonic);
+        Equity::Mnemonic           m(words);
         EXPECT_TRUE(m.isValid());
     }
 }
@@ -228,7 +227,7 @@ TEST(EquityMnemonicTest, constructor_uint8_t_ptr)
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
         std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-        Mnemonic m(entropy.data(), entropy.size());
+        Equity::Mnemonic m(entropy.data(), entropy.size());
         EXPECT_TRUE(m.isValid());
     }
 }
@@ -238,7 +237,7 @@ TEST(EquityMnemonicTest, constructor_vector)
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
         std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-        Mnemonic m(entropy);
+        Equity::Mnemonic m(entropy);
         EXPECT_TRUE(m.isValid());
     }
 }
@@ -248,7 +247,7 @@ TEST(EquityMnemonicTest, seed)
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
         std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-        Mnemonic m(entropy);
+        Equity::Mnemonic m(entropy);
         std::vector<uint8_t> result   = m.seed("TREZOR");
         std::vector<uint8_t> expected = fromHex(c.seed, strlen(c.seed));
         EXPECT_TRUE(result == expected);
@@ -259,8 +258,8 @@ TEST(EquityMnemonicTest, entropy)
 {
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
-        Mnemonic::WordList   words = createWordList(c.mnemonic);
-        Mnemonic             m(words);
+        Equity::Mnemonic::WordList   words = createWordList(c.mnemonic);
+        Equity::Mnemonic             m(words);
         std::vector<uint8_t> result   = m.entropy();
         std::vector<uint8_t> expected = fromHex(c.entropy, strlen(c.entropy));
         EXPECT_TRUE(result == expected);
@@ -272,7 +271,7 @@ TEST(EquityMnemonicTest, sentence)
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
         std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-        Mnemonic     m(entropy);
+        Equity::Mnemonic     m(entropy);
         std::string  result   = m.sentence();
         char const * expected = c.mnemonic;
         EXPECT_STREQ(expected, result.c_str());
@@ -284,9 +283,9 @@ TEST(EquityMnemonicTest, words)
     for (auto const & c : MNEMONIC_TEST_CASES)
     {
         std::vector<uint8_t> entropy = fromHex(c.entropy, strlen(c.entropy));
-        Mnemonic           m(entropy);
-        Mnemonic::WordList result   = m.words();
-        Mnemonic::WordList expected = createWordList(c.mnemonic);
+        Equity::Mnemonic           m(entropy);
+        Equity::Mnemonic::WordList result   = m.words();
+        Equity::Mnemonic::WordList expected = createWordList(c.mnemonic);
         EXPECT_TRUE(expected == result);
     }
 }

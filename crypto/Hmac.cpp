@@ -1,6 +1,7 @@
 #include "Hmac.h"
-
 #include "Sha512.h"
+
+#include "utility/Debug.h"
 
 #include <wolfssl/wolfcrypt/hmac.h>
 #include <wolfssl/wolfcrypt/sha512.h>
@@ -12,19 +13,9 @@ namespace Crypto
 
 Sha512Hash hmacSha512(uint8_t const * key, size_t keySize, uint8_t const * message, size_t messageSize)
 {
-    EVP_MD const * md = EVP_sha512();
-
-    unsigned outputLength;
-    uint8_t output[EVP_MAX_MD_SIZE];
-
-    HMAC(md, key, (int)keySize, message, (int)messageSize, output, &outputLength);
-
+    NOT_YET_IMPLEMENTED();
     Sha512Hash hash = {};
-    assert(outputLength == hash.size());
-    std::copy(output, output + outputLength, hash.begin());
-
     return hash;
-
 }
 
 } // namespace Crypto

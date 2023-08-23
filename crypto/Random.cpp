@@ -1,5 +1,6 @@
 #include "Random.h"
 
+#include "utility/Debug.h"
 
 #include <cassert>
 #include <limits>
@@ -11,19 +12,20 @@ namespace Random
 
 bool status()
 {
-	return RAND_status() != 0;
+    NOT_YET_IMPLEMENTED();
+	return false;
 }
 
 void getBytes(uint8_t * buffer, size_t size)
 {
     assert(size < std::numeric_limits<int>().max());
-    RAND_bytes(buffer, (int)size);
+    NOT_YET_IMPLEMENTED();
 }
 
 void addEntropy(uint8_t const * buffer, size_t size, double entropy)
 {
     assert(size < std::numeric_limits<int>().max());
-    RAND_add(buffer, (int)size, entropy);
+    NOT_YET_IMPLEMENTED();
 }
 
 }  // namespace Random

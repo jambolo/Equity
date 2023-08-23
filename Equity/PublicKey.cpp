@@ -13,26 +13,24 @@ PublicKey::PublicKey(std::vector<uint8_t> const & k)
 }
 
 PublicKey::PublicKey(uint8_t const * data, size_t size)
-    : valid_(true)
+    : valid_(false)
+    , compressed_(data[0] != 4)
+
 {
-    if (!Ecc::publicKeyIsValid(data, size))
+    if (Ecc::publicKeyIsValid(data, size))
     {
-        valid_ = false;
-    }
-    else
-    {
+        valid_ = true;
         value_.assign(data, data + size);
-        compressed_ = (data[0] != 4);
     }
 }
 
 PublicKey::PublicKey(PrivateKey const & k)
     : valid_(false)
+    , compressed_(k.compressed())
 {
     if (k.valid())
     {
-        valid_      = /*Ecc::derivePublicKey(k.value(), value_, !k.compressed())*/ false;
-        compressed_ = k.compressed();
+        valid_ = Ecc::derivePublicKey(k.value(), value_, !k.compressed());
     }
 }
 
