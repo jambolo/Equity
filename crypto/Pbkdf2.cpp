@@ -1,9 +1,12 @@
 #include "Pbkdf2.h"
 
-#include <wolfssl/wolfcrypt/pwdBased.h>
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
+#include <wolfssl/wolfcrypt/pwdbased.h>
 #include <wolfssl/wolfcrypt/sha512.h>
 
 #include <cassert>
+#include <cstdint>
 
 namespace Crypto
 {

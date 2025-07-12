@@ -3,6 +3,8 @@
 
 #include "utility/Debug.h"
 
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
 #include <wolfssl/wolfcrypt/hmac.h>
 #include <wolfssl/wolfcrypt/sha512.h>
 

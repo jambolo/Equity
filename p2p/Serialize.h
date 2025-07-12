@@ -419,7 +419,7 @@ std::vector<std::array<T, N>> deserializeVector(size_t n, uint8_t const * & in, 
 
 //! A compressed 64-bit value.
 //!
-//! This value is primarily used in serializaton of arrays to indicate the number of elements in an array. In the
+//! This value is primarily used in serialization of arrays to indicate the number of elements in an array. In the
 //! reference code, it is known as CompactSize.
 //!
 //! @sa     VarArray
@@ -474,7 +474,7 @@ public:
     //! @param  v       The elements to be contained in the array
     explicit VarArray(std::vector<T> const & v) : data_(v) {}
 
-    // Deserializaton constructor
+    // Deserialization constructor
     //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
@@ -524,7 +524,7 @@ public:
     //! @param  v       The elements to be contained in the array
     explicit VarArray(std::vector<std::array<T, N>> const & v) : data_(v) {}
 
-    // Deserializaton constructor
+    // Deserialization constructor
     //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
@@ -574,7 +574,7 @@ public:
     //! @param  v       The bytes to be contained in the array
     VarArray(std::vector<uint8_t> const & v) : data_(v) {}
 
-    // Deserializaton constructor
+    // Deserialization constructor
     //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream
@@ -694,7 +694,7 @@ public:
     //! @param  s       The bytes to be contained in the array
     VarString(std::string const & s) : string_(s) {}
 
-    // Deserializaton constructor
+    // Deserialization constructor
     //!
     //! @param[in,out]  in      pointer to the next byte to deserialize
     //! @param[in,out]  size    number of bytes remaining in the serialized stream

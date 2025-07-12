@@ -1,5 +1,7 @@
 #include "Sha512.h"
 
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
 #include <wolfssl/wolfcrypt/sha512.h>
 
 #include <algorithm>

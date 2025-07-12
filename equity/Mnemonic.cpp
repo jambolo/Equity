@@ -6,7 +6,9 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <iterator>
+#include <algorithm>
 
 namespace Equity
 {

@@ -17,6 +17,10 @@ set(PUBLIC_INCLUDE_PATH
 )
 
 add_library(p2p ${SOURCES})
-target_link_libraries(p2p PUBLIC utility crypto nlohmann_json::nlohmann_json ws2_32.lib)
+if(WIN32)
+    target_link_libraries(p2p PUBLIC utility crypto nlohmann_json::nlohmann_json ws2_32.lib)
+else()
+    target_link_libraries(p2p PUBLIC utility crypto nlohmann_json::nlohmann_json)
+endif()
 target_include_directories(p2p PUBLIC ${PUBLIC_INCLUDE_PATH} PRIVATE ${PRIVATE_INCLUDE_PATH})
 

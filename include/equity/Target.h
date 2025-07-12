@@ -21,13 +21,13 @@ class Target
 public:
 
     //! Target of difficulty 1 in compact form
-    static uint32_t const DIFFICULTY_1_COMPACT = 0x1d00ffff;
+    static uint32_t constexpr DIFFICULTY_1_COMPACT = 0x1d00ffff;
 
     //! Target of difficulty 1 in hash form
     static Crypto::Sha256Hash const DIFFICULTY_1;
 
     //! Target value of 0 in compact form
-    static uint32_t const TARGET_0_COMPACT = 0x0100ffff;
+    static uint32_t constexpr TARGET_0_COMPACT = 0x0100ffff;
 
     // Constructor
     //!

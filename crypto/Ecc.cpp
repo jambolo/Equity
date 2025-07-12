@@ -3,11 +3,11 @@
 #include "CppUtility.h"
 #include "Sha256.h"
 
-#define HAVE_ECC
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
 #include <wolfssl/wolfcrypt/ecc.h>
 #include <wolfssl/wolfcrypt/random.h>
 #include <wolfssl/wolfcrypt/sha256.h>
-#include <wolfssl/wolfcrypt/sp.h>
 #include <wolfssl/wolfcrypt/sp_int.h>
 
 #include <cassert>
@@ -253,7 +253,7 @@ bool Crypto::Ecc::verify(uint8_t const * message, size_t size, PublicKey const &
     mp_int s;
     rc = mp_init(&s);
     assert(rc == MP_OKAY);
-    rc = mp_read_unsigned_bin(&r, &signature[0], CURVE_SIZE);
+    rc = mp_read_unsigned_bin(&s, &signature[CURVE_SIZE], CURVE_SIZE);
 
     // Verify the signature
     int verified = 0;

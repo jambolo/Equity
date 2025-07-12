@@ -37,6 +37,7 @@ set(HEADERS
 )
 
 #find_package(OpenSSL)
+find_package(wolfssl REQUIRED)
 
 set(INCLUDE_PATHS
     ${PROJECT_SOURCE_DIR}/include/equity
@@ -47,16 +48,9 @@ set(INTERFACE_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 
 add_library(equity ${SOURCES} ${HEADERS})
 target_include_directories(equity PUBLIC ${INTERFACE_INCLUDE_PATH} PRIVATE ${INCLUDE_PATHS})
-target_include_directories(equity PRIVATE
-    C:/Users/John/Projects/3rdParty/wolfssl/include
-    C:/Users/John/Projects/3rdParty/wolfssl/include/IDE/WIN
-)
-target_link_libraries(equity crypto utility p2p nlohmann_json::nlohmann_json)
-target_link_libraries(equity C:/Users/John/Projects/3rdParty/wolfssl/lib/Debug/x64/wolfssl.lib)
-target_compile_definitions(equity PRIVATE
-    -DWOLFSSL_USER_SETTINGS
-    -DWOLFSSL_LIB
-)
+
+target_include_directories(equity PRIVATE wolfssl::wolfssl)
+target_link_libraries(equity crypto utility p2p nlohmann_json::nlohmann_json wolfssl::wolfssl)
 
 source_group(Sources FILES ${SOURCES})
 source_group(Headers FILES ${HEADERS})

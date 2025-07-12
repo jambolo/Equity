@@ -5,7 +5,7 @@
 #include <vector>
 
 //! @defgroup   CryptoGroup  Cryptographic library
-//! @brief      Library of cyrptographic functions.
+//! @brief      Library of cryptographic functions.
 
 //! Cryptographic library.
 //!

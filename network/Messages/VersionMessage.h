@@ -28,7 +28,7 @@ public:
     //! @param  userAgent       userAgent
     //! @param  height          height
     //! @param  relay           relay
-    VersionMessage::VersionMessage(uint32_t            version,
+    VersionMessage(uint32_t            version,
                                    uint64_t            services,
                                    uint64_t            timestamp,
                                    Address const &     to,

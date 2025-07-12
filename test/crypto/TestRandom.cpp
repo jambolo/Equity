@@ -10,7 +10,7 @@ namespace
     static size_t const SIZE      = 256;
     static size_t const SAFE_SIZE = SIZE / 2 - 1;   // Make it odd to catch alignment assumptions
 
-    static uint8_t const ZEROS[SIZE];
+    static uint8_t const ZEROS[SIZE] = {0};
 } // anonymous namespace
 
 TEST(CryptoRandomTest, status)

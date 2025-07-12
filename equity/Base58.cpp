@@ -2,6 +2,8 @@
 
 #include "utility/Debug.h"
 
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
 #include <wolfssl/wolfcrypt/sp_int.h>
 
 #include <algorithm>
