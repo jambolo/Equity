@@ -1,0 +1,9 @@
+[package]
+name = "bits"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap.workspace = true
+anyhow.workspace = true
+utility = { path = "../../libs/utility" }

@@ -1,0 +1,11 @@
+[package]
+name = "view-transactions"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+equity = { path = "../../libs/equity" }
+crypto = { path = "../../libs/crypto" }

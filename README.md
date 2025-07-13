@@ -18,4 +18,4 @@ Learning by doing. The plan is to implement a Bitcoin node from scratch. This is
 * **list-prefixes**: Lists Base5Check address ranges of all version codes.
 * **view-transaction**: Displays a transaction in human-readable form
 
-![Project Organization](project_organization.png?raw=true)
+![Project Organization](./docs/project_organization.png?raw=true)

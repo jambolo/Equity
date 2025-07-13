@@ -1,0 +1,10 @@
+[package]
+name = "equity"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+anyhow.workspace = true
+crypto = { path = "../crypto" }
+utility = { path = "../utility" }
