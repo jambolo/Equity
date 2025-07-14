@@ -4,6 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+cxx = "1.0"
 tokio.workspace = true
 serde.workspace = true
 anyhow.workspace = true
+
+[build-dependencies]
+cxx-build = "1.0"

@@ -8,3 +8,8 @@ serde.workspace = true
 anyhow.workspace = true
 crypto = { path = "../crypto" }
 utility = { path = "../utility" }
+cxx = "1.0"
+hex = "0.4"
+
+[build-dependencies]
+cxx-build = "1.0"
