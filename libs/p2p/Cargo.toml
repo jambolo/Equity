@@ -6,3 +6,8 @@ edition.workspace = true
 [dependencies]
 serde.workspace = true
 anyhow.workspace = true
+cxx = "1.0"
+hex = "0.4"
+
+[build-dependencies]
+cxx-build = "1.0"

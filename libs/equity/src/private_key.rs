@@ -1,88 +1,76 @@
-use crate::{ffi, Network, Result, error};
+//! Private key functionality for Bitcoin
+//! 
+//! Provides functionality for creating, validating, and converting Bitcoin private keys.
 
-/// Represents a Bitcoin private key with validation and conversion capabilities
-#[derive(Debug, Clone, PartialEq, Eq)]
+use crate::ffi::{self, PrivateKeyCpp};
+use crate::{Result, EquityError, Network};
+
+/// A Bitcoin private key
 pub struct PrivateKey {
-    bytes: Vec<u8>,
-    compressed: bool,
+    inner: PrivateKeyCpp,
 }
 
 impl PrivateKey {
-    /// Create a private key from bytes
-    pub fn from_bytes(data: &[u8], compressed: bool) -> Result<Self> {
+    /// Create a private key from binary data
+    pub fn from_data(data: &[u8]) -> Result<Self> {
         if data.len() != 32 {
-            return Err(error("Private key must be exactly 32 bytes"));
+            return Err(EquityError("Private key data must be 32 bytes".to_string()));
         }
-
-        let data_vec = data.to_vec();
-        let mut output = Vec::new();
-        let mut valid = false;
-        
-        if unsafe { ffi::privateKeyFromBytes(&data_vec, &mut output, &mut valid) && valid {
-            Ok(PrivateKey { bytes: output, compressed })
+        let inner = ffi::privateKeyFromData(data);
+        if ffi::privateKeyIsValid(&inner) {
+            Ok(PrivateKey { inner })
         } else {
-            Err(error("Invalid private key bytes"))
+            Err(EquityError("Invalid private key data".to_string()))
         }
     }
 
-    /// Create a private key from WIF (Wallet Import Format) string
-    pub fn from_wif(wif: &str) -> Result<Self> {
-        let mut output = Vec::new();
-        let mut valid = false;
-        let mut compressed = false;
-        
-        if unsafe { ffi::privateKeyFromString(wif, &mut output, &mut valid, &mut compressed) && valid {
-            Ok(PrivateKey { bytes: output, compressed })
+    /// Create a private key from a string (WIF or mini-key format)
+    pub fn from_string(s: &str) -> Result<Self> {
+        let inner = ffi::privateKeyFromString(s);
+        if ffi::privateKeyIsValid(&inner) {
+            Ok(PrivateKey { inner })
         } else {
-            Err(error(&format!("Invalid WIF private key: {}", wif)))
+            Err(EquityError("Invalid private key string".to_string()))
         }
     }
 
-    /// Get the raw bytes of the private key
-    pub fn bytes(&self) -> &[u8] {
-        &self.bytes
+    /// Get the private key as raw bytes
+    pub fn value(&self) -> Vec<u8> {
+        ffi::privateKeyValue(&self.inner)
     }
 
-    /// Check if this is a compressed private key
-    pub fn is_compressed(&self) -> bool {
-        self.compressed
-    }
-
-    /// Convert to WIF (Wallet Import Format) string
-    pub fn to_wif(&self, network: Network) -> Result<String> {
-        let mut output = String::new();
-        if unsafe { ffi::privateKeyToString(&self.bytes, self.compressed, network.into(), &mut output) } {
-            Ok(output)
-        } else {
-            Err(error("Failed to convert private key to WIF"))
-        }
-    }
-
-    /// Validate the private key
+    /// Check if the private key is valid
     pub fn is_valid(&self) -> bool {
-        unsafe { ffi::privateKeyIsValid(&self.bytes)
+        ffi::privateKeyIsValid(&self.inner)
     }
 
-    /// Generate the corresponding public key
-    pub fn public_key(&self) -> Result<crate::public_key::PublicKey> {
-        crate::public_key::PublicKey::from_private_key(self)
+    /// Check if the private key is set to compressed format
+    pub fn is_compressed(&self) -> bool {
+        ffi::privateKeyIsCompressed(&self.inner)
+    }
+
+    /// Set the compressed flag for the private key
+    pub fn set_compressed(&mut self, compressed: bool) {
+        ffi::privateKeySetCompressed(&mut self.inner, compressed);
+    }
+
+    /// Convert the private key to WIF (Wallet Import Format)
+    pub fn to_wif(&self, version: u32) -> String {
+        ffi::privateKeyToWif(&self.inner, version)
+    }
+
+    /// Convert the private key to hexadecimal format
+    pub fn to_hex(&self) -> String {
+        ffi::privateKeyToHex(&self.inner)
     }
 }
 
-impl std::str::FromStr for PrivateKey {
-    type Err = crate::EquityError;
-
-    fn from_str(s: &str) -> Result<Self> {
-        Self::from_wif(s)
-    }
-}
-
-impl std::fmt::Display for PrivateKey {
+impl std::fmt::Debug for PrivateKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.to_wif(Network::Mainnet) } {
-            Ok(wif) => write!(f, "{}", wif),
-            Err(_) => write!(f, "Invalid PrivateKey"),
-        }
+        f.debug_struct("PrivateKey")
+            .field("valid", &self.is_valid())
+            .field("compressed", &self.is_compressed())
+            .finish()
     }
 }
 
@@ -91,32 +79,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_private_key_from_bytes() } {
-        // Test with a sample 32-byte private key
-        let test_bytes = [1u8; 32];
-        let private_key = PrivateKey::from_bytes(&test_bytes, true);
+    fn test_private_key_from_data() {
+        // Example 32-byte private key
+        let key_data = [1u8; 32];
+        let private_key = PrivateKey::from_data(&key_data);
         
-        match private_key {
-            Ok(key) => {
-                println!("Created private key from bytes");
-                assert!(key.is_compressed());
-                assert!(key.is_valid());
-            }
-            Err(e) => println!("Failed to create private key: {}", e),
+        if let Ok(pk) = private_key {
+            assert!(pk.is_valid());
+            assert_eq!(pk.value().len(), 32);
         }
     }
 
     #[test]
-    fn test_invalid_private_key_length() } {
+    fn test_invalid_private_key_length() {
+        let short_data = [1u8; 16]; // Too short
+        let result = PrivateKey::from_data(&short_data);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_private_key_length() {
         let invalid_bytes = [1u8; 31]; // Wrong length
         let result = PrivateKey::from_bytes(&invalid_bytes, true);
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_private_key_display() } {
+    fn test_private_key_display() {
         let test_bytes = [1u8; 32];
-        if let Ok(key) = PrivateKey::from_bytes(&test_bytes, true) } {
+        if let Ok(key) = PrivateKey::from_bytes(&test_bytes, true) {
             let display_str = format!("{}", key);
             println!("Private key display: {}", display_str);
         }

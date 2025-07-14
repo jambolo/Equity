@@ -9,7 +9,6 @@ members = [
     "libs/network",
     "libs/p2p",
     "libs/utility",
-    "libs/validation",
 ]
 
 [workspace.package]

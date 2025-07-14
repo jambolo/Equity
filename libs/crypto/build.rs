@@ -15,6 +15,7 @@ fn main() {
         .include("../../")
         .include("src")
         .include("/usr/local/include")
+        .include("C:/Users/John/Projects/3rdParty/wolfssl/include")  // Try include subdirectory
         .flag_if_supported("-std=c++17")
         .flag_if_supported("-Wno-unused-parameter")
         .compile("crypto");
@@ -24,5 +25,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/crypto_wrapper.h");
     println!("cargo:rerun-if-changed=../../crypto/");
     println!("cargo:rustc-link-search=native=/usr/local/lib");
+    println!("cargo:rustc-link-search=native=C:/Users/John/Projects/3rdParty/wolfssl/lib");  // Add WolfSSL lib search path
+    println!("cargo:rustc-link-search=native=C:/Users/John/Projects/3rdParty/wolfssl");  // Also try root directory
     println!("cargo:rustc-link-lib=wolfssl");
 }

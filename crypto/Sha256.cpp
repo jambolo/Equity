@@ -1,5 +1,9 @@
 #include "Sha256.h"
 
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/settings.h>
+#include <wolfssl/wolfcrypt/sha256.h>
+
 #include <algorithm>
 #include <cassert>
 
@@ -19,6 +23,12 @@ Sha256Hash sha256(std::vector<uint8_t> const & input)
 Sha256Hash sha256(uint8_t const * input, size_t length)
 {
     Sha256Hash hash = {};
+    
+    wc_Sha256 sha;
+    wc_InitSha256(&sha);
+    wc_Sha256Update(&sha, input, static_cast<word32>(length));
+    wc_Sha256Final(&sha, hash.data());
+    
     return hash;
 }
 

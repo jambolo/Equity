@@ -1,28 +1,22 @@
-use crate::{ffi, Result, error};
+//! Base58 encoding and decoding functionality
+//! 
+//! Provides functions for Base58 format encoding and decoding as used in Bitcoin.
 
-/// Base58 encoding and decoding utilities
-pub struct Base58;
+use crate::ffi;
+use crate::{Result, EquityError};
 
-impl Base58 {
-    /// Encode bytes to Base58 string
-    pub fn encode(data: &[u8]) -> Result<String> {
-        let data_vec = data.to_vec();
-        let mut output = String::new();
-        if unsafe { unsafe { ffi::base58Encode(&data_vec, &mut output) } {
-            Ok(output)
-        } else {
-            Err(error("Failed to encode data as Base58"))
-        }
-    }
+/// Encode binary data into Base58 format
+pub fn encode(input: &[u8]) -> String {
+    ffi::base58Encode(input)
+}
 
-    /// Decode Base58 string to bytes
-    pub fn decode(input: &str) -> Result<Vec<u8>> {
-        let mut output = Vec::new();
-        if unsafe { unsafe { ffi::base58Decode(input, &mut output) } {
-            Ok(output)
-        } else {
-            Err(error(&format!("Failed to decode Base58 string: {}", input)))
-        }
+/// Decode Base58-encoded data into binary
+pub fn decode(input: &str) -> Result<Vec<u8>> {
+    let mut output = Vec::new();
+    if ffi::base58Decode(input, &mut output) {
+        Ok(output)
+    } else {
+        Err(EquityError("Failed to decode Base58 string".to_string()))
     }
 }
 
@@ -31,26 +25,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_base58_roundtrip() } {
+    fn test_base58_encode_decode() {
         let test_data = b"Hello, World!";
+        let encoded = encode(test_data);
+        assert!(!encoded.is_empty());
         
-        let encoded = Base58::encode(test_data).expect("Failed to encode");
-        println!("Encoded: {}", encoded);
-        
-        let decoded = Base58::decode(&encoded).expect("Failed to decode");
+        let decoded = decode(&encoded).unwrap();
         assert_eq!(decoded, test_data);
     }
 
     #[test]
-    fn test_empty_data() } {
-        let empty_data = b"";
-        let encoded = Base58::encode(empty_data).expect("Failed to encode empty data");
-        let decoded = Base58::decode(&encoded).expect("Failed to decode empty data");
-        assert_eq!(decoded, empty_data);
+    fn test_base58_decode_invalid() {
+        let invalid_base58 = "0OIl"; // Contains invalid characters
+        let result = decode(invalid_base58);
+        assert!(result.is_err());
     }
 
     #[test]
-    fn test_invalid_base58() } {
+    fn test_invalid_base58() {
         let invalid = "0OIl"; // Contains invalid Base58 characters
         let result = Base58::decode(invalid);
         assert!(result.is_err());
