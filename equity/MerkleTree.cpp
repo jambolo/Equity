@@ -37,7 +37,7 @@ std::vector<uint8_t> concatenate(Crypto::Sha256Hash const & left, Crypto::Sha256
 
 } // anonymous namespace
 
-namespace Utility
+namespace Equity
 {
 
 MerkleTree::MerkleTree(Crypto::Sha256HashList const & hashes)
@@ -147,4 +147,4 @@ bool MerkleTree::verify(Crypto::Sha256Hash const &     hash,
     return result == root;
 }
 
-} // namespace Utility
+} // namespace Equity

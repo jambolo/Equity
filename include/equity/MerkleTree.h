@@ -3,9 +3,9 @@
 #include "crypto/Sha256.h"
 #include <vector>
 
-namespace Utility
+namespace Equity
 {
-//! @addtogroup UtilityGroup
+//! @addtogroup EquityGroup
 //!@{
 
 //! A Merkle Tree implementation with all the idiosyncracies specific to Bitcoin
@@ -51,4 +51,4 @@ private:
 };
 
 //!@}
-} // namespace Utility
+} // namespace Equity

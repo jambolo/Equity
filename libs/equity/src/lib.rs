@@ -20,7 +20,6 @@ mod ffi {
     }
 }
 
-// Add new equity wrapper modules
 pub mod configuration;
 pub mod mnemonic;
 

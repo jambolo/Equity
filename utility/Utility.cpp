@@ -1,7 +1,5 @@
 #include "Utility.h"
 
-#include "p2p/Serialize.h"
-
 #include <algorithm>
 
 static char itox(int i)

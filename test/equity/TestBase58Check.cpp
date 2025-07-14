@@ -3,6 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstdint>
+
 using namespace Equity;
 using namespace Utility;
 

@@ -289,7 +289,7 @@ Mnemonic::Mnemonic(uint8_t const * entropy, size_t size, Language language /* = 
     : language_(language)
 {
     // The number of bits in the entropy must be a multiple of 32. There can be at most 256 * 32 bits in the entropy
-    if ((size % BYTES_PER_CHECK_BIT) != 0 || size > Crypto::SHA256_HASH_SIZE * 8 * BYTES_PER_CHECK_BIT)
+    if ((size % BYTES_PER_CHECK_BIT) != 0 || size > 256 * 8 * BYTES_PER_CHECK_BIT)
     {
         valid_ = false;
         return;

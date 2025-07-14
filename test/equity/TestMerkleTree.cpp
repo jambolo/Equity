@@ -1,8 +1,8 @@
-#include "utility/MerkleTree.h"
+#include "equity/MerkleTree.h"
 
 #include <gtest/gtest.h>
 
-using namespace Utility;
+using namespace Equity;
 
 namespace
 {

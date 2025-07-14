@@ -1,6 +1,5 @@
 #pragma once
 
-#include <crypto/Sha256.h>
 #include <cstdint>
 #include <string>
 #include <vector>

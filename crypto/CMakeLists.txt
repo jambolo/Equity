@@ -1,5 +1,4 @@
 set(SOURCES
-    CppUtility.h
     Ecc.cpp
     Ecc.h
     Hmac.cpp

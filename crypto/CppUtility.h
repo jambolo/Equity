@@ -1,7 +1,0 @@
-#pragma once
-
-#if !defined(CRYPTO_CPPUTILITY_H_INCLUDED)
-#define CRYPTO_CPPUTILITY_H_INCLUDED
-
-
-#endif // !defined(CRYPTO_CPPUTILITY_H_INCLUDED)

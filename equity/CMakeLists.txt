@@ -5,6 +5,7 @@ set(SOURCES
     Block.cpp
     Configuration.cpp
     Instruction.cpp
+    MerkleTree.cpp
     Mnemonic.cpp
     PrivateKey.cpp
     PublicKey.cpp
@@ -26,6 +27,7 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/include/equity/Block.h
     ${PROJECT_SOURCE_DIR}/include/equity/Configuration.h
     ${PROJECT_SOURCE_DIR}/include/equity/Instruction.h
+    ${PROJECT_SOURCE_DIR}/include/equity/MerkleTree.h
     ${PROJECT_SOURCE_DIR}/include/equity/Mnemonic.h
     ${PROJECT_SOURCE_DIR}/include/equity/PrivateKey.h
     ${PROJECT_SOURCE_DIR}/include/equity/PublicKey.h

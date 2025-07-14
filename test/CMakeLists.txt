@@ -53,7 +53,7 @@ foreach(FILE ${NETWORK_TESTS})
 endforeach()
 
 file(GLOB P2P_TESTS
-    ${CMAKE_CURRENT_SOURCE_DIR}/utility/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/p2p/*.cpp
 )
 source_group(p2p FILES ${P2P_TESTS})
 

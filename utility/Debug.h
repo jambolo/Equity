@@ -10,7 +10,7 @@
 //!
 //! In a Debug build, an assertion is thrown to indicate that the code has not yet been implemented. In a Release
 //! build, nothing happens.
-#define NOT_YET_IMPLEMENTED() assert(!" was called but is not implemented.")
+#define NOT_YET_IMPLEMENTED() assert(!" Function was called but is not implemented.")
 //! An assertion is thrown in a Debug build.
 //!
 //! In a Debug build, an assertion is thrown to indicate that the code should never be executed. In a Release build,

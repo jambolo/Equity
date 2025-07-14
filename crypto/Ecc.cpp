@@ -1,6 +1,5 @@
 #include "Ecc.h"
 
-#include "CppUtility.h"
 #include "Sha256.h"
 
 #include <wolfssl/options.h>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Serialize.h"
+
 #include <cstdint>
 #include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
