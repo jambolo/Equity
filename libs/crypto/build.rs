@@ -28,4 +28,12 @@ fn main() {
     println!("cargo:rustc-link-search=native=C:/Users/John/Projects/3rdParty/wolfssl/lib");  // Add WolfSSL lib search path
     println!("cargo:rustc-link-search=native=C:/Users/John/Projects/3rdParty/wolfssl");  // Also try root directory
     println!("cargo:rustc-link-lib=wolfssl");
+    
+    // Link Windows CryptoAPI library that wolfssl requires
+    #[cfg(target_os = "windows")]
+    {
+        println!("cargo:rustc-link-lib=advapi32");
+        println!("cargo:rustc-link-lib=user32");
+        println!("cargo:rustc-link-lib=ws2_32");
+    }
 }

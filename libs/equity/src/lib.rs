@@ -238,33 +238,3 @@ mod tests {
         assert!(is_valid);
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_configuration() {
-        let network_id = ffi::configurationGetNetworkId();
-        let address_version = ffi::configurationGetAddressVersion();
-        let private_key_version = ffi::configurationGetPrivateKeyVersion();
-        
-        println!("Network ID: {}", network_id);
-        println!("Address Version: {}", address_version);
-        println!("Private Key Version: {}", private_key_version);
-    }
-
-    #[test] 
-    fn test_mnemonic_generation() {
-        let mut output = String::new();
-        let success = ffi::mnemonicGenerate(128, &mut output);
-        
-        assert!(success);
-        assert!(!output.is_empty());
-        println!("Generated mnemonic: {}", output);
-        
-        // Validate the generated mnemonic
-        let is_valid = ffi::mnemonicValidate(&output);
-        assert!(is_valid);
-    }
-}

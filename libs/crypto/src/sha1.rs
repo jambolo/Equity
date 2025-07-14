@@ -27,29 +27,68 @@ pub fn sha1_vec(input: &[u8]) -> Vec<u8> {
 mod tests {
     use super::*;
 
+    // Test cases ported from TestSha1.cpp
+    struct Sha1TestCase {
+        input: &'static str,
+        expected: [u8; SHA1_HASH_SIZE],
+    }
+
+    const SHA1_CASES: &[Sha1TestCase] = &[
+        Sha1TestCase {
+            input: "",
+            expected: [0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32, 0x55, 0xbf, 0xef, 0x95, 0x60, 0x18, 0x90, 0xaf, 0xd8, 0x07, 0x09],
+        },
+        Sha1TestCase {
+            input: "a",
+            expected: [0x86, 0xf7, 0xe4, 0x37, 0xfa, 0xa5, 0xa7, 0xfc, 0xe1, 0x5d, 0x1d, 0xdc, 0xb9, 0xea, 0xea, 0xea, 0x37, 0x76, 0x67, 0xb8],
+        },
+        Sha1TestCase {
+            input: "abc",
+            expected: [0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e, 0x25, 0x71, 0x78, 0x50, 0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d],
+        },
+        Sha1TestCase {
+            input: "message digest",
+            expected: [0xc1, 0x22, 0x52, 0xce, 0xda, 0x8b, 0xe8, 0x99, 0x4d, 0x5f, 0xa0, 0x29, 0x0a, 0x47, 0x23, 0x1c, 0x1d, 0x16, 0xaa, 0xe3],
+        },
+        Sha1TestCase {
+            input: "abcdefghijklmnopqrstuvwxyz",
+            expected: [0x32, 0xd1, 0x0c, 0x7b, 0x8c, 0xf9, 0x65, 0x70, 0xca, 0x04, 0xce, 0x37, 0xf2, 0xa1, 0x9d, 0x84, 0x24, 0x0d, 0x3a, 0x89],
+        },
+        Sha1TestCase {
+            input: "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+            expected: [0x84, 0x98, 0x3e, 0x44, 0x1c, 0x3b, 0xd2, 0x6e, 0xba, 0xae, 0x4a, 0xa1, 0xf9, 0x51, 0x29, 0xe5, 0xe5, 0x46, 0x70, 0xf1],
+        },
+        Sha1TestCase {
+            input: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+            expected: [0x76, 0x1c, 0x45, 0x7b, 0xf7, 0x3b, 0x14, 0xd2, 0x7e, 0x9e, 0x92, 0x65, 0xc4, 0x6f, 0x4b, 0x4d, 0xda, 0x11, 0xf9, 0x40],
+        },
+        Sha1TestCase {
+            input: "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+            expected: [0x50, 0xab, 0xf5, 0x70, 0x6a, 0x15, 0x09, 0x90, 0xa0, 0x8b, 0x2c, 0x5e, 0xa4, 0x0f, 0xa0, 0xe5, 0x85, 0x55, 0x47, 0x32],
+        },
+    ];
+
     #[test]
-    fn test_sha1_basic() {
-        let input = b"hello world";
-        let hash = sha1(input);
-        
-        // SHA-1 should always produce 20 bytes
-        assert_eq!(hash.len(), SHA1_HASH_SIZE);
-        
-        // Test vector version
-        let hash_vec = sha1_vec(input);
-        assert_eq!(hash_vec.len(), SHA1_HASH_SIZE);
-        
-        // Both should produce the same result
-        assert_eq!(hash.to_vec(), hash_vec);
+    fn test_sha1_ptr() {
+        for case in SHA1_CASES {
+            let result = sha1(case.input.as_bytes());
+            assert_eq!(result, case.expected, "SHA1 test failed for input: '{}'", case.input);
+        }
     }
 
     #[test]
-    fn test_empty_input() {
-        let empty: &[u8] = &[];
-        let hash = sha1(empty);
-        assert_eq!(hash.len(), SHA1_HASH_SIZE);
-        
-        let hash_vec = sha1_vec(empty);
-        assert_eq!(hash_vec.len(), SHA1_HASH_SIZE);
+    fn test_sha1_vector() {
+        for case in SHA1_CASES {
+            let result = sha1_vec(case.input.as_bytes());
+            assert_eq!(result, case.expected.to_vec(), "SHA1 vector test failed for input: '{}'", case.input);
+        }
+    }
+
+    #[test]
+    fn test_sha1_array() {
+        let input = [b'a', b'b', b'c'];
+        let expected = [0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e, 0x25, 0x71, 0x78, 0x50, 0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d];
+        let result = sha1(&input);
+        assert_eq!(result, expected);
     }
 }

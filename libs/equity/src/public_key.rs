@@ -115,7 +115,7 @@ mod tests {
     #[test]
     fn test_invalid_public_key_bytes() {
         let invalid_bytes = [0u8; 10]; // Too short for a valid public key
-        let result = PublicKey::from_bytes(&invalid_bytes);
+        let result = PublicKey::from_data(&invalid_bytes);
         println!("Invalid key result: {:?}", result);
         // This might succeed if the C++ implementation is lenient
     }

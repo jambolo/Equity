@@ -18,15 +18,112 @@ pub fn hmac_sha512(key: &[u8], message: &[u8]) -> HmacSha512 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    struct HmacSha512TestCase {
+        key: &'static str,
+        message: &'static str,
+        expected: [u8; 64],
+    }
+    
+    const HMAC_SHA512_CASES: &[HmacSha512TestCase] = &[
+        // Test case 1: Short key and message from TestHmac.cpp
+        HmacSha512TestCase {
+            key: "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+            message: "4869205468657265",
+            expected: [
+                0x87, 0xaa, 0x7c, 0xde, 0xa5, 0xef, 0x61, 0x9d, 0x4f, 0xf0, 0xb4, 0x24, 0x1a, 0x1d, 0x6c, 0xb0,
+                0x23, 0x79, 0xf4, 0xe2, 0xce, 0x4e, 0xc2, 0x78, 0x7a, 0xd0, 0xb3, 0x05, 0x45, 0xe1, 0x7c, 0xde,
+                0xda, 0xa8, 0x33, 0xb7, 0xd6, 0xb8, 0xa7, 0x02, 0x03, 0x8b, 0x27, 0x4e, 0xae, 0xa3, 0xf4, 0xe4,
+                0xbe, 0x9d, 0x91, 0x4e, 0xeb, 0x61, 0xf1, 0x70, 0x2e, 0x69, 0x6c, 0x20, 0x3a, 0x12, 0x68, 0x54
+            ],
+        },
+        // Test case 2: "Jefe" key with "what do ya want for nothing?"
+        HmacSha512TestCase {
+            key: "4a656665",
+            message: "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
+            expected: [
+                0x16, 0x4b, 0x7a, 0x7b, 0xfc, 0xf8, 0x19, 0xe2, 0xe3, 0x95, 0xfb, 0xe7, 0x3b, 0x56, 0xe0, 0xa3,
+                0x87, 0xbd, 0x64, 0x22, 0x2e, 0x83, 0x1f, 0xd6, 0x10, 0x27, 0x0c, 0xd7, 0xea, 0x25, 0x05, 0x54,
+                0x97, 0x58, 0xbf, 0x75, 0xc0, 0x5a, 0x99, 0x4a, 0x6d, 0x03, 0x4f, 0x65, 0xf8, 0xf0, 0xe6, 0xfd,
+                0xca, 0xea, 0xb1, 0xa3, 0x4d, 0x4a, 0x6b, 0x4b, 0x63, 0x6e, 0x07, 0x0a, 0x38, 0xbc, 0xe7, 0x37
+            ],
+        },
+        // Test case 3: 50 bytes of 0xdd with 25-byte 0xaa key
+        HmacSha512TestCase {
+            key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            message: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            expected: [
+                0xfa, 0x73, 0xb0, 0x08, 0x9d, 0x56, 0xa2, 0x84, 0xef, 0xb0, 0xf0, 0x75, 0x6c, 0x89, 0x0b, 0xe9,
+                0xb1, 0xb5, 0xdb, 0xdd, 0x8e, 0xe8, 0x1a, 0x36, 0x55, 0xf8, 0x3e, 0x33, 0xb2, 0x27, 0x9d, 0x39,
+                0xbf, 0x3e, 0x84, 0x82, 0x79, 0xa7, 0x22, 0xc8, 0x06, 0xb4, 0x85, 0xa4, 0x7e, 0x67, 0xc8, 0x07,
+                0xb9, 0x46, 0xa3, 0x37, 0xbe, 0xe8, 0x94, 0x26, 0x74, 0x27, 0x88, 0x59, 0xe1, 0x32, 0x92, 0xfb
+            ],
+        },
+        // Test case 4: Pattern with 0xcdcd repeating
+        HmacSha512TestCase {
+            key: "0102030405060708090a0b0c0d0e0f10111213141516171819",
+            message: "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            expected: [
+                0xb0, 0xba, 0x46, 0x56, 0x37, 0x45, 0x8c, 0x69, 0x90, 0xe5, 0xa8, 0xc5, 0xf6, 0x1d, 0x4a, 0xf7,
+                0xe5, 0x76, 0xd9, 0x7f, 0xf9, 0x4b, 0x87, 0x2d, 0xe7, 0x6f, 0x80, 0x50, 0x36, 0x1e, 0xe3, 0xdb,
+                0xa9, 0x1c, 0xa5, 0xc1, 0x1a, 0xa2, 0x5e, 0xb4, 0xd6, 0x79, 0x27, 0x5c, 0xc5, 0x78, 0x80, 0x63,
+                0xa5, 0xf1, 0x97, 0x41, 0x12, 0x0c, 0x4f, 0x2d, 0xe2, 0xad, 0xeb, 0xeb, 0x10, 0xa2, 0x98, 0xdd
+            ],
+        },
+        // Test case 5: Large key larger than block size - Hash Key First
+        HmacSha512TestCase {
+            key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            message: "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374",
+            expected: [
+                0x80, 0xb2, 0x42, 0x63, 0xc7, 0xc1, 0xa3, 0xeb, 0xb7, 0x14, 0x93, 0xc1, 0xdd, 0x7b, 0xe8, 0xb4,
+                0x9b, 0x46, 0xd1, 0xf4, 0x1b, 0x4a, 0xee, 0xc1, 0x12, 0x1b, 0x01, 0x37, 0x83, 0xf8, 0xf3, 0x52,
+                0x6b, 0x56, 0xd0, 0x37, 0xe0, 0x5f, 0x25, 0x98, 0xbd, 0x0f, 0xd2, 0x21, 0x5d, 0x6a, 0x1e, 0x52,
+                0x95, 0xe6, 0x4f, 0x73, 0xf6, 0x3f, 0x0a, 0xec, 0x8b, 0x91, 0x5a, 0x98, 0x5d, 0x78, 0x65, 0x98
+            ],
+        },
+        // Test case 6: Large key and large data
+        HmacSha512TestCase {
+            key: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            message: "5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e",
+            expected: [
+                0xe3, 0x7b, 0x6a, 0x77, 0x5d, 0xc8, 0x7d, 0xba, 0xa4, 0xdf, 0xa9, 0xf9, 0x6e, 0x5e, 0x3f, 0xfd,
+                0xde, 0xbd, 0x71, 0xf8, 0x86, 0x72, 0x89, 0x86, 0x5d, 0xf5, 0xa3, 0x2d, 0x20, 0xcd, 0xc9, 0x44,
+                0xb6, 0x02, 0x2c, 0xac, 0x3c, 0x49, 0x82, 0xb1, 0x0d, 0x5e, 0xeb, 0x55, 0xc3, 0xe4, 0xde, 0x15,
+                0x13, 0x46, 0x76, 0xfb, 0x6d, 0xe0, 0x44, 0x60, 0x65, 0xc9, 0x74, 0x40, 0xfa, 0x8c, 0x6a, 0x58
+            ],
+        },
+    ];
+    
+    fn hex_decode(hex: &str) -> Vec<u8> {
+        (0..hex.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+            .collect()
+    }
 
     #[test]
-    fn test_hmac_sha512_basic() {
-        let key = b"secret_key";
-        let message = b"hello world";
-        let hmac = hmac_sha512(key, message);
+    fn test_hmac_sha512_comprehensive() {
+        for (i, case) in HMAC_SHA512_CASES.iter().enumerate() {
+            let key = hex_decode(case.key);
+            let message = hex_decode(case.message);
+            let result = hmac_sha512(&key, &message);
+            
+            assert_eq!(
+                result, case.expected,
+                "HMAC-SHA512 test case {} failed: key={}, message={}",
+                i + 1, case.key, case.message
+            );
+        }
+    }
+
+    #[test]
+    fn test_hmac_sha512_output_size() {
+        let key = b"test_key";
+        let message = b"test_message";
+        let result = hmac_sha512(key, message);
         
-        // HMAC-SHA512 should always produce 64 bytes
-        assert_eq!(hmac.len(), HMAC_SHA512_SIZE);
+        // HMAC-SHA512 should always produce exactly 64 bytes
+        assert_eq!(result.len(), HMAC_SHA512_SIZE);
     }
 
     #[test]
@@ -46,26 +143,5 @@ mod tests {
         // Test with both empty
         let hmac3 = hmac_sha512(empty, empty);
         assert_eq!(hmac3.len(), HMAC_SHA512_SIZE);
-    }
-
-    #[test]
-    fn test_hmac_sha512_deterministic() {
-        let key = b"test_key";
-        let message = b"test_message";
-        
-        // Same inputs should produce same output
-        let hmac1 = hmac_sha512(key, message);
-        let hmac2 = hmac_sha512(key, message);
-        assert_eq!(hmac1, hmac2);
-        
-        // Different key should produce different output
-        let different_key = b"different_key";
-        let hmac3 = hmac_sha512(different_key, message);
-        assert_ne!(hmac1, hmac3);
-        
-        // Different message should produce different output
-        let different_message = b"different_message";
-        let hmac4 = hmac_sha512(key, different_message);
-        assert_ne!(hmac1, hmac4);
     }
 }

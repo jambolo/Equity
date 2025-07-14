@@ -32,22 +32,61 @@ pub fn get_bytes_vec(size: usize) -> Vec<u8> {
 mod tests {
     use super::*;
 
+    const SIZE: usize = 256;
+    const SAFE_SIZE: usize = SIZE / 2 - 1; // Make it odd to catch alignment assumptions
+
     #[test]
     fn test_random_status() {
-        // Just test that the function can be called
+        // Test based on TestRandom.cpp - just verify function can be called
         let _status = status();
         // Don't assert the result since it depends on the RNG state
     }
 
     #[test]
+    fn test_add_entropy() {
+        // Test based on TestRandom.cpp - verify function can be called
+        let entropy_data = b"some entropy data";
+        add_entropy(entropy_data, 8.0);
+        // Function should not panic
+    }
+
+    #[test]
     fn test_get_bytes() {
-        let size = 32;
-        let bytes = get_bytes(size);
-        assert_eq!(bytes.len(), size);
+        // Test based on TestRandom.cpp
+        let mut buffer1 = vec![0u8; SIZE];
+        buffer1.fill(0);
         
-        // Test vector version
-        let bytes_vec = get_bytes_vec(size);
-        assert_eq!(bytes_vec.len(), size);
+        let random_bytes1 = get_bytes(SAFE_SIZE);
+        buffer1[..SAFE_SIZE].copy_from_slice(&random_bytes1);
+        
+        // Ensure that too many bytes were not generated (remaining bytes should be zero)
+        let zeros = vec![0u8; SIZE - SAFE_SIZE];
+        assert_eq!(&buffer1[SAFE_SIZE..], &zeros[..]);
+        
+        let mut buffer2 = vec![0u8; SIZE];
+        buffer2.fill(0);
+        
+        let random_bytes2 = get_bytes(SAFE_SIZE);
+        buffer2[..SAFE_SIZE].copy_from_slice(&random_bytes2);
+        
+        // Ensure that the bytes vary between calls (extremely likely for good RNG)
+        assert_ne!(&buffer1[..SAFE_SIZE], &buffer2[..SAFE_SIZE]);
+        
+        // Ensure that too few bytes were not generated (at least one should be non-zero)
+        assert!(buffer1[SAFE_SIZE - 1] != 0 || buffer2[SAFE_SIZE - 1] != 0);
+    }
+
+    #[test]
+    fn test_get_bytes_vec() {
+        let size = 32;
+        let bytes1 = get_bytes_vec(size);
+        let bytes2 = get_bytes_vec(size);
+        
+        assert_eq!(bytes1.len(), size);
+        assert_eq!(bytes2.len(), size);
+        
+        // Two calls should produce different results
+        assert_ne!(bytes1, bytes2);
     }
 
     #[test]
@@ -62,23 +101,21 @@ mod tests {
     }
 
     #[test]
-    fn test_add_entropy() {
-        let entropy_data = b"some entropy data";
-        let entropy_value = 8.0; // bits of entropy
-        
-        // This should not panic
-        add_entropy(entropy_data, entropy_value);
-    }
-
-    #[test]
     fn test_randomness() {
         // Test that consecutive calls produce different results
         let bytes1 = get_bytes(32);
         let bytes2 = get_bytes(32);
         
-        // While theoretically possible to be equal, it's extremely unlikely
-        // for a good RNG with 32 bytes of output
-        // Note: We don't assert inequality since it depends on RNG implementation
-        let _ = (bytes1, bytes2);
+        // Basic sanity checks for randomness
+        assert_eq!(bytes1.len(), 32);
+        assert_eq!(bytes2.len(), 32);
+        
+        // Should not be all zeros (extremely unlikely)
+        assert!(bytes1.iter().any(|&x| x != 0));
+        assert!(bytes2.iter().any(|&x| x != 0));
+        
+        // Should not be all the same value (extremely unlikely)
+        let first_byte1 = bytes1[0];
+        assert!(bytes1.iter().any(|&x| x != first_byte1));
     }
 }
