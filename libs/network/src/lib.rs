@@ -2,6 +2,7 @@
 
 #[cxx::bridge]
 mod ffi {
+    #[allow(dead_code)]
     unsafe extern "C++" {
         include!("network_wrapper.h");
 
@@ -105,7 +106,6 @@ pub use address::*;
 pub use configuration::*;
 pub use inventory::*;
 pub use message::*;
-pub use messages::*;
 
 #[cfg(test)]
 mod tests {

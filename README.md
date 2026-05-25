@@ -1,4 +1,5 @@
 # Equity
+
 Bitcoin protocol library and related applications
 
 Learning by doing. The plan is to implement a Bitcoin node from scratch. This is the library that will be used to build all the applications.
@@ -13,6 +14,7 @@ Learning by doing. The plan is to implement a Bitcoin node from scratch. This is
 * **validation**: Validates transactions and blocks
 
 ## Applications/tests
+
 * **bits**: Converts a target value in decimal compact form to hex, 256-bit, and difficulty.
 * **equity-test**: Unit tests for the equity library
 * **list-prefixes**: Lists Base5Check address ranges of all version codes.

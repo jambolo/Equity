@@ -3,7 +3,6 @@
 //! Provides functionality for creating and working with Bitcoin Merkle trees.
 
 use crate::ffi;
-use crate::{Result, EquityError};
 
 /// Bitcoin Merkle tree utilities
 pub struct MerkleTree;

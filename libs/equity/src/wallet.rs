@@ -5,7 +5,7 @@
 use crate::address::Address;
 use crate::private_key::PrivateKey;
 use crate::public_key::PublicKey;
-use crate::{Result, EquityError, Network};
+use crate::{Result, Network};
 
 /// A wallet entry containing a key pair and associated address
 #[derive(Debug)]

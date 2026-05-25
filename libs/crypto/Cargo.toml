@@ -3,6 +3,10 @@ name = "crypto"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = ["cxx-bridge"]
+cxx-bridge = []
+
 [dependencies]
 serde.workspace = true
 anyhow.workspace = true

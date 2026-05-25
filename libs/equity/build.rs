@@ -1,51 +1,79 @@
-use std::env;
-use std::path::PathBuf;
-
 fn main() {
-    // Get the path to the project root
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let manifest_path = PathBuf::from(&manifest_dir);
-    let project_root = manifest_path.parent().unwrap().parent().unwrap();
-    
-    // Check if we have the actual C++ Equity library built (not just headers)
-    let equity_lib_file = project_root.join("build").join("Debug").join("equity.lib");
-    let equity_lib_file_alt = project_root.join("build").join("equity").join("Debug").join("equity.lib");
-    let has_built_library = equity_lib_file.exists() || equity_lib_file_alt.exists();
-    
-    // Also check if headers exist
-    let equity_header = project_root.join("equity").join("Address.cpp");
-    let has_headers = equity_header.exists();
-    
-    // Only do full C++ build if we have both headers AND built libraries
-    if !has_built_library || !has_headers {
-        println!("cargo:warning=Equity C++ library not built yet, using Rust-only implementation");
-        return;
-    }
-    
-    // Headers and libraries exist - do full build
-    println!("cargo:warning=Building Equity bridge with C++ libraries");
-    
-    // Check if we have a cxx bridge in lib.rs before trying to build it
-    let lib_rs_path = PathBuf::from(&manifest_dir).join("src").join("lib.rs");
-    if let Ok(content) = std::fs::read_to_string(&lib_rs_path) {
-        if content.contains("#[cxx::bridge]") {
-            cxx_build::bridge("src/lib.rs")
-                .file("src/equity_wrapper.cpp")
-                .include(project_root.join("equity"))
-                .include(project_root.join("include"))
-                .include(project_root.join("crypto"))
-                .include(project_root.join("utility"))
-                .include(project_root.join("network"))
-                .include(project_root.join("p2p"))
-                .include(project_root)
-                .flag_if_supported("-std=c++17")
-                .flag_if_supported("-Wno-unused-parameter")
-                .compile("equity");
-        }
-    }
-
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-changed=src/equity_wrapper.cpp");
     println!("cargo:rerun-if-changed=src/equity_wrapper.h");
     println!("cargo:rerun-if-changed=../../equity/");
+
+    if std::env::var("CARGO_FEATURE_CXX_BRIDGE").is_err() {
+        return;
+    }
+
+    if !std::path::Path::new("../../equity").exists() {
+        println!("cargo:warning=Equity C++ sources not found, using Rust-only implementation");
+        return;
+    }
+
+    let nlohmann = std::env::var("NLOHMANN_ROOT").unwrap_or_else(|_| {
+        "C:/Users/John/Projects/3rdParty/nlohmann_json/include".to_string()
+    });
+    let wolfssl = std::env::var("WOLFSSL_ROOT")
+        .unwrap_or_else(|_| "C:/Users/John/Projects/3rdParty/wolfssl".to_string());
+
+    println!("cargo:warning=Building Equity bridge from C++ sources");
+
+    cxx_build::bridge("src/lib.rs")
+        .file("../../equity/Address.cpp")
+        .file("../../equity/Base58.cpp")
+        .file("../../equity/Base58Check.cpp")
+        .file("../../equity/Block.cpp")
+        .file("../../equity/Configuration.cpp")
+        .file("../../equity/Instruction.cpp")
+        .file("../../equity/MerkleTree.cpp")
+        .file("../../equity/Mnemonic.cpp")
+        .file("../../equity/PrivateKey.cpp")
+        .file("../../equity/PublicKey.cpp")
+        .file("../../equity/Script.cpp")
+        .file("../../equity/ScriptEngine.cpp")
+        .file("../../equity/Target.cpp")
+        .file("../../equity/Transaction.cpp")
+        .file("../../equity/Txid.cpp")
+        .file("../../equity/Validator.cpp")
+        .file("../../equity/Wallet.cpp")
+        // Crypto C++ sources (equity C++ code calls into these directly)
+        .file("../../crypto/Ecc.cpp")
+        .file("../../crypto/Ripemd.cpp")
+        .file("../../crypto/Sha256.cpp")
+        .file("../../crypto/Sha512.cpp")
+        .file("../../crypto/Sha1.cpp")
+        .file("../../crypto/Hmac.cpp")
+        .file("../../crypto/Pbkdf2.cpp")
+        .file("../../crypto/Random.cpp")
+        // Utility C++ sources (equity C++ code calls into these directly)
+        .file("../../utility/Utility.cpp")
+        .file("../../utility/Endian.cpp")
+        .file("src/equity_wrapper.cpp")
+        .include("../../equity")
+        .include("../../include")
+        .include("../../include/equity")
+        .include("../../crypto")
+        .include("../../utility")
+        .include("../../network")
+        .include("../../p2p")
+        .include("../../")
+        .include("src")
+        .include(&nlohmann)
+        .include(format!("{wolfssl}/include"))
+        .flag_if_supported("-std=c++17")
+        .flag_if_supported("-Wno-unused-parameter")
+        .flag_if_supported("/EHsc")
+        .compile("equity_bridge");
+
+    println!("cargo:rustc-link-search=native={wolfssl}/lib");
+    println!("cargo:rustc-link-search=native={wolfssl}");
+    println!("cargo:rustc-link-lib=wolfssl");
+    if cfg!(target_os = "windows") {
+        println!("cargo:rustc-link-lib=advapi32");
+        println!("cargo:rustc-link-lib=user32");
+        println!("cargo:rustc-link-lib=ws2_32");
+    }
 }

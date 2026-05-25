@@ -4,12 +4,11 @@
 
 use crate::ffi::{self, BlockCpp, BlockHeaderCpp};
 use crate::transaction::Transaction;
-use crate::{Result, EquityError};
-use cxx::UniquePtr;
+use crate::Result;
 
 /// A Bitcoin block
 pub struct Block {
-    inner: UniquePtr<BlockCpp>,
+    inner: BlockCpp,
 }
 
 /// A Bitcoin block header
@@ -50,11 +49,7 @@ impl Block {
     /// Get a specific transaction by index
     pub fn get_transaction(&self, index: usize) -> Option<Transaction> {
         if index < self.transaction_count() {
-            let inner = ffi::blockGetTransaction(&self.inner, index);
-            // We need to wrap this in our Transaction type
-            // Note: This is a simplified approach - in practice you might need
-            // to serialize and deserialize to maintain consistency
-            Some(Transaction::from_ffi(inner))
+            Some(Transaction::from_ffi(ffi::blockGetTransaction(&self.inner, index)))
         } else {
             None
         }

@@ -1,7 +1,7 @@
 //! Bitcoin protocol specific message implementations
 
 use crate::ffi;
-use crate::{Address, InventoryId, InventoryType};
+use crate::{Address, InventoryId};
 
 /// Version message for Bitcoin protocol handshake
 #[derive(Debug, Clone)]
@@ -369,6 +369,7 @@ impl InventoryMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::InventoryType;
 
     #[test]
     fn test_version_message_creation() {

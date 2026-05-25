@@ -4,11 +4,10 @@
 
 use crate::ffi::{self, TransactionCpp, TransactionInputCpp, TransactionOutputCpp};
 use crate::{Result, EquityError};
-use cxx::UniquePtr;
 
 /// A Bitcoin transaction
 pub struct Transaction {
-    inner: UniquePtr<TransactionCpp>,
+    inner: TransactionCpp,
 }
 
 /// A Bitcoin transaction input
@@ -97,9 +96,7 @@ impl Transaction {
         }
     }
 
-    /// Internal method to create from FFI type
-    /// This is a workaround for the type system
-    pub(crate) fn from_ffi(inner: UniquePtr<crate::ffi::TransactionCpp>) -> Self {
+    pub(crate) fn from_ffi(inner: crate::ffi::TransactionCpp) -> Self {
         Transaction { inner }
     }
 }

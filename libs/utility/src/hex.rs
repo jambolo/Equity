@@ -62,8 +62,8 @@ impl Hex {
     /// The caller must ensure that `data` points to valid memory of at least `length` bytes
     pub unsafe fn encode_ptr(data: *const u8, length: usize) -> Result<String, &'static str> {
         let mut output = String::new();
-        
-        if ffi::utilityToHexPtr(data, length, &mut output) {
+
+        if unsafe { ffi::utilityToHexPtr(data, length, &mut output) } {
             Ok(output)
         } else {
             Err("Failed to encode pointer to hex")
@@ -76,8 +76,8 @@ impl Hex {
     /// The caller must ensure that `hex` points to valid memory of at least `length` bytes
     pub unsafe fn decode_ptr(hex: *const i8, length: usize) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::new();
-        
-        if ffi::utilityFromHexPtr(hex, length, &mut output) {
+
+        if unsafe { ffi::utilityFromHexPtr(hex, length, &mut output) } {
             Ok(output)
         } else {
             Err("Failed to decode pointer from hex")
@@ -90,8 +90,8 @@ impl Hex {
     /// The caller must ensure that `data` points to valid memory of at least `length` bytes
     pub unsafe fn encode_reversed_ptr(data: *const u8, length: usize) -> Result<String, &'static str> {
         let mut output = String::new();
-        
-        if ffi::utilityToHexRPtr(data, length, &mut output) {
+
+        if unsafe { ffi::utilityToHexRPtr(data, length, &mut output) } {
             Ok(output)
         } else {
             Err("Failed to encode pointer to reversed hex")
@@ -104,8 +104,8 @@ impl Hex {
     /// The caller must ensure that `hex` points to valid memory of at least `length` bytes
     pub unsafe fn decode_reversed_ptr(hex: *const i8, length: usize) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::new();
-        
-        if ffi::utilityFromHexRPtr(hex, length, &mut output) {
+
+        if unsafe { ffi::utilityFromHexRPtr(hex, length, &mut output) } {
             Ok(output)
         } else {
             Err("Failed to decode pointer from reversed hex")

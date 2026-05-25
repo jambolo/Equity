@@ -4,7 +4,6 @@
 
 use crate::ffi::{self, AddressCpp};
 use crate::{Result, EquityError, Network};
-use std::str::FromStr;
 
 /// A Bitcoin address
 pub struct Address {

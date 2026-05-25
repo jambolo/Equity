@@ -3,7 +3,7 @@
 //! Provides functionality for creating, validating, and converting Bitcoin private keys.
 
 use crate::ffi::{self, PrivateKeyCpp};
-use crate::{Result, EquityError, Network};
+use crate::{Result, EquityError};
 
 /// A Bitcoin private key
 pub struct PrivateKey {
