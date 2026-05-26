@@ -42,12 +42,13 @@ This document provides a step-by-step guide for migrating the project from C++ t
 ### Network and P2P
 
 - [x] Recreate network message types and serialization using Rust structs and enums. *(Pure-Rust `network` crate: `Header`, `Address`, `InventoryId`, `Message` enum with 22 variants, `WireMessage` envelope with double-SHA256 checksum; cxx bridge removed.)*
+- [x] Port `p2p` C++ tree (`Message`, `Serialize`, `Peer`) to pure Rust. *(`libs/p2p/src/lib.rs` exposes `Message`, var-int/var-string ser/deser; legacy `p2p/` deleted along with `p2p_wrapper.{cpp,h}`.)*
 - [ ] Provide asynchronous networking with `tokio` or similar crates.
 
 ## 5. Port Applications and Tests
 
-- [ ] Translate `bits`, `list-prefixes`, and `view-transaction` to Rust binaries.
-- [ ] Migrate the contents of the `test/` directory to Rust's testing framework.
+- [ ] Translate `bits`, `list-prefixes`, and `view-transaction` to Rust binaries. *(Legacy C++ entry points deleted; Rust stubs in `apps/` still hello-world.)*
+- [x] Migrate the contents of the `test/` directory to Rust's testing framework. *(All gtest cases either ported to inline `#[cfg(test)]` modules or deleted; `test/` tree removed.)*
 
 ## 6. Interoperability and Compatibility
 
@@ -61,5 +62,6 @@ This document provides a step-by-step guide for migrating the project from C++ t
 
 ## 8. Cleanup and Release
 
-- [ ] Remove obsolete C++ files once all functionality has been ported.
+- [x] Remove obsolete C++ files once all functionality has been ported. *(All C++ deleted: legacy trees, root entry points, gtest suite, `*_wrapper.{cpp,h}` shims, and `utility/`.)*
+- [x] Port remaining `utility/` C++ and `crypto_wrapper.cpp` (random) to pure Rust, then drop `cxx`/`cxx-build`. *(Endian via Rust intrinsics, hex via `hex` crate, random via `getrandom`; cxx/cxx-build deps removed from every Cargo.toml; no build.rs anywhere.)*
 - [ ] Tag a release marking the first fully Rust-based version of the project.

@@ -1,241 +1,54 @@
-//! P2P (Peer-to-Peer) functionality
+//! Pure-Rust port of the legacy C++ `P2p` namespace.
 //!
-//! This library provides Rust bindings for the P2P C++ library
+//! Covers wire-format helpers shared by the network and equity crates:
+//! - Bitcoin CompactSize (variable-length integer) and variable-length string
+//! - A minimal `Message` envelope (command + payload), matching the legacy `P2p::Message`
 
-// Basic struct definitions that match the C++ interface
-#[derive(Clone, Debug)]
-pub struct MessageHeaderCpp {
-    pub magic: u32,
-    pub type_name: String,
-    pub length: u32,
-    pub checksum: u32,
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Message {
+    pub command: String,
+    pub payload: Vec<u8>,
 }
 
-#[derive(Clone, Debug)]
+impl Message {
+    pub fn new(command: impl Into<String>, payload: impl Into<Vec<u8>>) -> Self {
+        Self {
+            command: command.into(),
+            payload: payload.into(),
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        self.payload.len()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VarIntResult {
     pub value: u64,
     pub bytes_read: usize,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VarStringResult {
     pub value: String,
     pub bytes_read: usize,
 }
 
-pub struct MessageCpp {
-    pub message_type: String,
-    pub payload: Vec<u8>,
-}
-
-pub struct PeerCpp {
-    pub address: String,
-    pub status: i32,
-    pub services: u64,
-    pub protocol_version: u32,
-    pub user_agent: String,
-    pub start_height: u32,
-    pub last_seen: u64,
-    pub connection_time: u64,
-    pub bytes_sent: u64,
-    pub bytes_received: u64,
-    pub messages_sent: u64,
-    pub messages_received: u64,
-}
-
-// These would be the high-level Rust API functions
-impl MessageCpp {
-    pub fn new(message_type: &str, payload: &[u8]) -> Self {
-        Self {
-            message_type: message_type.to_string(),
-            payload: payload.to_vec(),
-        }
-    }
-
-    pub fn get_type(&self) -> &str {
-        &self.message_type
-    }
-
-    pub fn get_payload(&self) -> &[u8] {
-        &self.payload
-    }
-
-    pub fn get_size(&self) -> usize {
-        self.payload.len()
-    }
-
-    pub fn to_json(&self) -> String {
-        format!(
-            "{{\"type\":\"{}\",\"size\":{}}}",
-            self.message_type,
-            self.payload.len()
-        )
-    }
-}
-
-impl PeerCpp {
-    pub fn new(address: &str) -> Self {
-        Self {
-            address: address.to_string(),
-            status: 0,
-            services: 0,
-            protocol_version: 0,
-            user_agent: String::new(),
-            start_height: 0,
-            last_seen: 0,
-            connection_time: 0,
-            bytes_sent: 0,
-            bytes_received: 0,
-            messages_sent: 0,
-            messages_received: 0,
-        }
-    }
-
-    pub fn get_address(&self) -> &str {
-        &self.address
-    }
-
-    pub fn get_connection_status(&self) -> i32 {
-        self.status
-    }
-
-    pub fn get_services(&self) -> u64 {
-        self.services
-    }
-
-    pub fn set_services(&mut self, services: u64) {
-        self.services = services;
-    }
-
-    pub fn get_protocol_version(&self) -> u32 {
-        self.protocol_version
-    }
-
-    pub fn set_protocol_version(&mut self, version: u32) {
-        self.protocol_version = version;
-    }
-
-    pub fn get_user_agent(&self) -> &str {
-        &self.user_agent
-    }
-
-    pub fn set_user_agent(&mut self, user_agent: &str) {
-        self.user_agent = user_agent.to_string();
-    }
-
-    pub fn get_start_height(&self) -> u32 {
-        self.start_height
-    }
-
-    pub fn set_start_height(&mut self, height: u32) {
-        self.start_height = height;
-    }
-
-    pub fn get_last_seen(&self) -> u64 {
-        self.last_seen
-    }
-
-    pub fn set_last_seen(&mut self, timestamp: u64) {
-        self.last_seen = timestamp;
-    }
-
-    pub fn get_connection_time(&self) -> u64 {
-        self.connection_time
-    }
-
-    pub fn connect(&mut self) -> bool {
-        self.status = 2; // connected
-        true
-    }
-
-    pub fn disconnect(&mut self) {
-        self.status = 0; // disconnected
-    }
-
-    pub fn send_message(&mut self, message: &MessageCpp) -> bool {
-        if self.status == 2 {
-            // connected
-            self.bytes_sent += message.payload.len() as u64;
-            self.messages_sent += 1;
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn has_pending_messages(&self) -> bool {
-        false // stub
-    }
-
-    pub fn receive_message(&mut self) -> Option<MessageCpp> {
-        None // stub
-    }
-
-    pub fn get_bytes_sent(&self) -> u64 {
-        self.bytes_sent
-    }
-
-    pub fn get_bytes_received(&self) -> u64 {
-        self.bytes_received
-    }
-
-    pub fn get_messages_sent(&self) -> u64 {
-        self.messages_sent
-    }
-
-    pub fn get_messages_received(&self) -> u64 {
-        self.messages_received
-    }
-
-    pub fn to_json(&self) -> String {
-        format!(
-            "{{\"address\":\"{}\",\"status\":{},\"services\":{}}}",
-            self.address, self.status, self.services
-        )
-    }
-}
-
-// Serialization functions
-pub fn serialize_u16(value: u16) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
-pub fn serialize_u32(value: u32) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
-pub fn serialize_u64(value: u64) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
-pub fn serialize_i16(value: i16) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
-pub fn serialize_i32(value: i32) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
-pub fn serialize_i64(value: i64) -> Vec<u8> {
-    value.to_le_bytes().to_vec()
-}
-
 pub fn serialize_var_int(value: u64) -> Vec<u8> {
     let mut data = Vec::new();
-
     if value < 0xFD {
         data.push(value as u8);
     } else if value <= 0xFFFF {
         data.push(0xFD);
         data.extend_from_slice(&(value as u16).to_le_bytes());
-    } else if value <= 0xFFFFFFFF {
+    } else if value <= 0xFFFF_FFFF {
         data.push(0xFE);
         data.extend_from_slice(&(value as u32).to_le_bytes());
     } else {
         data.push(0xFF);
         data.extend_from_slice(&value.to_le_bytes());
     }
-
     data
 }
 
@@ -245,126 +58,56 @@ pub fn serialize_var_string(value: &str) -> Vec<u8> {
     data
 }
 
-pub fn deserialize_u16(data: &[u8]) -> Option<u16> {
-    if data.len() >= 2 {
-        Some(u16::from_le_bytes([data[0], data[1]]))
-    } else {
-        None
-    }
-}
-
-pub fn deserialize_u32(data: &[u8]) -> Option<u32> {
-    if data.len() >= 4 {
-        Some(u32::from_le_bytes([data[0], data[1], data[2], data[3]]))
-    } else {
-        None
-    }
-}
-
-pub fn deserialize_u64(data: &[u8]) -> Option<u64> {
-    if data.len() >= 8 {
-        Some(u64::from_le_bytes([
-            data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-        ]))
-    } else {
-        None
-    }
-}
-
 pub fn deserialize_var_int(data: &[u8]) -> VarIntResult {
-    if data.is_empty() {
-        return VarIntResult {
-            value: 0,
-            bytes_read: 0,
-        };
-    }
-
-    let first_byte = data[0];
-
-    if first_byte < 0xFD {
-        VarIntResult {
-            value: first_byte as u64,
+    let fail = VarIntResult {
+        value: 0,
+        bytes_read: 0,
+    };
+    let Some(&first) = data.first() else {
+        return fail;
+    };
+    match first {
+        0..=0xFC => VarIntResult {
+            value: first as u64,
             bytes_read: 1,
-        }
-    } else if first_byte == 0xFD {
-        if data.len() >= 3 {
-            let value = u16::from_le_bytes([data[1], data[2]]) as u64;
-            VarIntResult {
-                value,
-                bytes_read: 3,
-            }
-        } else {
-            VarIntResult {
-                value: 0,
-                bytes_read: 0,
-            }
-        }
-    } else if first_byte == 0xFE {
-        if data.len() >= 5 {
-            let value = u32::from_le_bytes([data[1], data[2], data[3], data[4]]) as u64;
-            VarIntResult {
-                value,
-                bytes_read: 5,
-            }
-        } else {
-            VarIntResult {
-                value: 0,
-                bytes_read: 0,
-            }
-        }
-    } else if first_byte == 0xFF {
-        if data.len() >= 9 {
-            let value = u64::from_le_bytes([
+        },
+        0xFD if data.len() >= 3 => VarIntResult {
+            value: u16::from_le_bytes([data[1], data[2]]) as u64,
+            bytes_read: 3,
+        },
+        0xFE if data.len() >= 5 => VarIntResult {
+            value: u32::from_le_bytes([data[1], data[2], data[3], data[4]]) as u64,
+            bytes_read: 5,
+        },
+        0xFF if data.len() >= 9 => VarIntResult {
+            value: u64::from_le_bytes([
                 data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8],
-            ]);
-            VarIntResult {
-                value,
-                bytes_read: 9,
-            }
-        } else {
-            VarIntResult {
-                value: 0,
-                bytes_read: 0,
-            }
-        }
-    } else {
-        VarIntResult {
-            value: 0,
-            bytes_read: 0,
-        }
+            ]),
+            bytes_read: 9,
+        },
+        _ => fail,
     }
 }
 
 pub fn deserialize_var_string(data: &[u8]) -> VarStringResult {
-    let length_result = deserialize_var_int(data);
-    if length_result.bytes_read == 0 {
-        return VarStringResult {
-            value: String::new(),
-            bytes_read: 0,
-        };
+    let fail = VarStringResult {
+        value: String::new(),
+        bytes_read: 0,
+    };
+    let length = deserialize_var_int(data);
+    if length.bytes_read == 0 {
+        return fail;
     }
-
-    let string_length = length_result.value as usize;
-    let total_bytes_needed = length_result.bytes_read + string_length;
-
-    if data.len() >= total_bytes_needed {
-        let string_bytes = &data[length_result.bytes_read..total_bytes_needed];
-        if let Ok(string_value) = String::from_utf8(string_bytes.to_vec()) {
-            VarStringResult {
-                value: string_value,
-                bytes_read: total_bytes_needed,
-            }
-        } else {
-            VarStringResult {
-                value: String::new(),
-                bytes_read: 0,
-            }
-        }
-    } else {
-        VarStringResult {
-            value: String::new(),
-            bytes_read: 0,
-        }
+    let total = length.bytes_read + length.value as usize;
+    if data.len() < total {
+        return fail;
+    }
+    match String::from_utf8(data[length.bytes_read..total].to_vec()) {
+        Ok(value) => VarStringResult {
+            value,
+            bytes_read: total,
+        },
+        Err(_) => fail,
     }
 }
 
@@ -373,77 +116,54 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_message_creation() {
-        let message = MessageCpp::new("version", b"test payload");
-        assert_eq!(message.get_type(), "version");
-        assert_eq!(message.get_payload(), b"test payload");
-        assert_eq!(message.get_size(), 12);
+    fn var_int_roundtrip() {
+        for &v in &[
+            0u64,
+            1,
+            0xFC,
+            0xFD,
+            0xFFFF,
+            0x1_0000,
+            0xFFFF_FFFF,
+            0x1_0000_0000,
+            u64::MAX,
+        ] {
+            let bytes = serialize_var_int(v);
+            let r = deserialize_var_int(&bytes);
+            assert_eq!(r.value, v);
+            assert_eq!(r.bytes_read, bytes.len());
+        }
     }
 
     #[test]
-    fn test_peer_creation() {
-        let mut peer = PeerCpp::new("127.0.0.1:8333");
-        assert_eq!(peer.get_address(), "127.0.0.1:8333");
-        assert_eq!(peer.get_connection_status(), 0); // disconnected
-
-        // Test connection
-        assert!(peer.connect());
-        assert_eq!(peer.get_connection_status(), 2); // connected
-
-        // Test message sending
-        let message = MessageCpp::new("ping", b"");
-        assert!(peer.send_message(&message));
-        assert_eq!(peer.get_messages_sent(), 1);
-
-        peer.disconnect();
-        assert_eq!(peer.get_connection_status(), 0); // disconnected
+    fn var_int_short_buffers() {
+        assert_eq!(deserialize_var_int(&[]).bytes_read, 0);
+        assert_eq!(deserialize_var_int(&[0xFD, 0x00]).bytes_read, 0);
+        assert_eq!(deserialize_var_int(&[0xFE, 0x00, 0x00]).bytes_read, 0);
+        assert_eq!(deserialize_var_int(&[0xFF, 0x00, 0x00, 0x00]).bytes_read, 0);
     }
 
     #[test]
-    fn test_serialization() {
-        // Test basic integer serialization
-        assert_eq!(serialize_u32(0x12345678), vec![0x78, 0x56, 0x34, 0x12]);
-
-        // Test var_int serialization
-        assert_eq!(serialize_var_int(42), vec![42]);
-        assert_eq!(serialize_var_int(253), vec![0xFD, 0xFD, 0x00]);
-
-        // Test var_string serialization
-        let data = serialize_var_string("hello");
-        assert_eq!(data[0], 5); // length
-        assert_eq!(&data[1..], b"hello");
+    fn var_int_encoding() {
+        assert_eq!(serialize_var_int(0), vec![0]);
+        assert_eq!(serialize_var_int(0xFC), vec![0xFC]);
+        assert_eq!(serialize_var_int(0xFD), vec![0xFD, 0xFD, 0x00]);
+        assert_eq!(serialize_var_int(0x1_0000), vec![0xFE, 0x00, 0x00, 0x01, 0x00]);
     }
 
     #[test]
-    fn test_deserialization() {
-        // Test var_int deserialization
-        let result = deserialize_var_int(&[42]);
-        assert_eq!(result.value, 42);
-        assert_eq!(result.bytes_read, 1);
-
-        let result = deserialize_var_int(&[0xFD, 0xFD, 0x00]);
-        assert_eq!(result.value, 253);
-        assert_eq!(result.bytes_read, 3);
-
-        // Test var_string deserialization
-        let data = vec![5, b'h', b'e', b'l', b'l', b'o'];
-        let result = deserialize_var_string(&data);
-        assert_eq!(result.value, "hello");
-        assert_eq!(result.bytes_read, 6);
+    fn var_string_roundtrip() {
+        let s = "hello world";
+        let bytes = serialize_var_string(s);
+        let r = deserialize_var_string(&bytes);
+        assert_eq!(r.value, s);
+        assert_eq!(r.bytes_read, bytes.len());
     }
 
     #[test]
-    fn test_peer_services() {
-        let mut peer = PeerCpp::new("127.0.0.1:8333");
-        assert_eq!(peer.get_services(), 0);
-
-        peer.set_services(0x01); // NODE_NETWORK
-        assert_eq!(peer.get_services(), 0x01);
-
-        peer.set_protocol_version(70015);
-        assert_eq!(peer.get_protocol_version(), 70015);
-
-        peer.set_user_agent("/EquityNode:0.1.0/");
-        assert_eq!(peer.get_user_agent(), "/EquityNode:0.1.0/");
+    fn message_basics() {
+        let m = Message::new("ping", vec![1, 2, 3]);
+        assert_eq!(m.command, "ping");
+        assert_eq!(m.size(), 3);
     }
 }
