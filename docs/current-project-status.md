@@ -22,7 +22,7 @@ Equity/
 
 ## Migration phase
 
-Phase: **equity core is pure Rust**. **159/159 across the workspace, zero aborts, zero failures.** The `equity` crate no longer goes through any cxx bridge — Configuration, Txid, Target, PrivateKey, PublicKey, Address, Mnemonic, MerkleTree, Instruction, Script, ScriptEngine, Transaction, Block are all native Rust modules backed by the existing `crypto` (sha1/sha2/ripemd/hmac/pbkdf2/secp256k1) and `bs58` crates. The `equity_wrapper.{h,cpp}` shim, `cxx` dependency, `cxx-bridge` feature, and `build.rs` C++ compilation have all been removed from `libs/equity`. C++ files under `equity/` are still present in the repo but no longer compiled by any build script; they will be deleted once the `network` C++ message types are ported and no longer reference `Equity::Block` / `Equity::Transaction`.
+Phase: **equity and network cores are pure Rust**. **161/161 across the workspace, zero aborts, zero failures.** Neither the `equity` nor the `network` crate goes through cxx anymore. `network` provides `Header`, `Address`, `InventoryId`, a `Message` enum covering 22 Bitcoin P2P message types, and a `WireMessage` envelope with double-SHA256 checksum — `cxx`/`cxx-build` deps and `network_wrapper.{h,cpp}` are removed. The legacy C++ trees under `network/`, `equity/`, `crypto/`, `p2p/`, `utility/` remain in the repo but are no longer compiled by any Rust crate that has been ported. They will be deleted once `crypto`/`utility`/`p2p` finish their own pure-Rust migrations.
 
 Recent session changes (uncommitted):
 
@@ -43,7 +43,7 @@ Recent session changes (uncommitted):
 | utility | OK | 21/21 pass |
 | p2p | OK | 5/5 pass |
 | crypto | OK | 36/36 pass |
-| network | OK | 23/23 pass |
+| network | OK | 25/25 pass |
 | equity | OK | 74/74 pass |
 
 `cargo build --workspace` finishes clean. `cargo test --workspace` is green.

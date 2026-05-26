@@ -41,7 +41,7 @@ This document provides a step-by-step guide for migrating the project from C++ t
 
 ### Network and P2P
 
-- [ ] Recreate network message types and serialization using Rust structs and enums.
+- [x] Recreate network message types and serialization using Rust structs and enums. *(Pure-Rust `network` crate: `Header`, `Address`, `InventoryId`, `Message` enum with 22 variants, `WireMessage` envelope with double-SHA256 checksum; cxx bridge removed.)*
 - [ ] Provide asynchronous networking with `tokio` or similar crates.
 
 ## 5. Port Applications and Tests

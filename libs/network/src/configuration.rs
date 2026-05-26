@@ -1,29 +1,30 @@
-//! Network configuration utilities
+//! Network configuration (magic number and TCP port).
 
-use crate::ffi;
+use crate::header::MAGIC_MAIN;
 
-/// Network configuration settings
-pub struct Configuration;
+#[derive(Debug, Clone, Copy)]
+pub struct Configuration {
+    pub network: u32,
+    pub port: u16,
+}
+
+pub const DEFAULT: Configuration = Configuration {
+    network: MAGIC_MAIN,
+    port: 8333,
+};
 
 impl Configuration {
-    /// Get the network magic number
-    pub fn network() -> u32 {
-        ffi::networkConfigurationGetNetwork()
-    }
-
-    /// Get the network port
-    pub fn port() -> i32 {
-        ffi::networkConfigurationGetPort()
+    pub fn default_mainnet() -> Self {
+        DEFAULT
     }
 }
 
-// Convenience functions
 pub fn get_network() -> u32 {
-    Configuration::network()
+    DEFAULT.network
 }
 
-pub fn get_port() -> i32 {
-    Configuration::port()
+pub fn get_port() -> u16 {
+    DEFAULT.port
 }
 
 #[cfg(test)]
@@ -31,11 +32,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_configuration_access() {
-        let network = get_network();
-        let port = get_port();
-
-        // Just test that we can call these functions
-        println!("Network: {}, Port: {}", network, port);
+    fn mainnet_defaults() {
+        assert_eq!(DEFAULT.network, MAGIC_MAIN);
+        assert_eq!(DEFAULT.port, 8333);
     }
 }

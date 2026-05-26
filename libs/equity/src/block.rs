@@ -57,11 +57,15 @@ impl Block {
 
     pub fn from_data(data: &[u8]) -> Result<Self> {
         let mut stream = data;
-        let header = BlockHeader::deserialize(&mut stream)?;
-        let n = read_var_int(&mut stream)? as usize;
+        Self::deserialize(&mut stream)
+    }
+
+    pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
+        let header = BlockHeader::deserialize(stream)?;
+        let n = read_var_int(stream)? as usize;
         let mut transactions = Vec::with_capacity(n);
         for _ in 0..n {
-            transactions.push(Transaction::deserialize(&mut stream)?);
+            transactions.push(Transaction::deserialize(stream)?);
         }
         Ok(Self { header, transactions })
     }
