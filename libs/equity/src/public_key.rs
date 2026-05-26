@@ -1,72 +1,85 @@
-//! Public key functionality for Bitcoin
-//!
-//! Provides functionality for creating, validating, and converting Bitcoin public keys.
+//! Bitcoin public key — secp256k1 point in ANSI X9.62 (compressed or
+//! uncompressed) form.
 
-use crate::ffi::{self, PublicKeyCpp};
+use crate::private_key::PrivateKey;
 use crate::{EquityError, Result};
+use crypto::ecc;
 
-/// A Bitcoin public key
+pub const COMPRESSED_SIZE: usize = ecc::COMPRESSED_PUBLIC_KEY_SIZE; // 33
+pub const UNCOMPRESSED_SIZE: usize = ecc::UNCOMPRESSED_PUBLIC_KEY_SIZE; // 65
+
+#[derive(Clone)]
 pub struct PublicKey {
-    inner: PublicKeyCpp,
+    value: Vec<u8>,
+    valid: bool,
+    compressed: bool,
 }
 
 impl PublicKey {
-    /// Create a public key from binary data
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        if data.len() != 33 && data.len() != 65 {
-            return Err(EquityError(
-                "Public key data must be 33 (compressed) or 65 (uncompressed) bytes".to_string(),
-            ));
+        if data.len() != COMPRESSED_SIZE && data.len() != UNCOMPRESSED_SIZE {
+            return Err(EquityError(format!(
+                "Public key must be {COMPRESSED_SIZE} or {UNCOMPRESSED_SIZE} bytes"
+            )));
         }
-        let inner = ffi::publicKeyFromData(data);
-        if ffi::publicKeyIsValid(&inner) {
-            Ok(PublicKey { inner })
-        } else {
-            Err(EquityError("Invalid public key data".to_string()))
+        if !ecc::public_key_is_valid(data) {
+            return Err(EquityError("Public key failed ECC validation".to_string()));
         }
+        Ok(Self {
+            value: data.to_vec(),
+            valid: true,
+            compressed: data[0] != 4,
+        })
     }
 
-    /// Create a public key from a private key
-    pub fn from_private_key(private_key_data: &[u8]) -> Result<Self> {
-        if private_key_data.len() != 32 {
-            return Err(EquityError("Private key data must be 32 bytes".to_string()));
+    pub fn from_private_key(pk: &PrivateKey) -> Result<Self> {
+        if !pk.is_valid() {
+            return Err(EquityError("Source private key is invalid".to_string()));
         }
-        let inner = ffi::publicKeyFromPrivateKey(private_key_data);
-        if ffi::publicKeyIsValid(&inner) {
-            Ok(PublicKey { inner })
-        } else {
-            Err(EquityError(
-                "Invalid private key for public key generation".to_string(),
-            ))
-        }
+        let value = ecc::derive_public_key(pk.value_array(), !pk.is_compressed())
+            .map_err(|e| EquityError(e.to_string()))?;
+        Ok(Self {
+            value,
+            valid: true,
+            compressed: pk.is_compressed(),
+        })
     }
 
-    /// Get the public key as raw bytes
+    pub fn from_private_key_bytes(private_key_data: &[u8]) -> Result<Self> {
+        let pk = PrivateKey::from_data(private_key_data)?;
+        Self::from_private_key(&pk)
+    }
+
     pub fn value(&self) -> Vec<u8> {
-        ffi::publicKeyValue(&self.inner)
+        self.value.clone()
     }
 
-    /// Check if the public key is valid
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.value
+    }
+
     pub fn is_valid(&self) -> bool {
-        ffi::publicKeyIsValid(&self.inner)
+        self.valid
     }
 
-    /// Check if the public key is in compressed format
     pub fn is_compressed(&self) -> bool {
-        ffi::publicKeyIsCompressed(&self.inner)
+        self.compressed
     }
 
-    /// Get the size of the public key (33 for compressed, 65 for uncompressed)
     pub fn size(&self) -> usize {
-        if self.is_compressed() { 33 } else { 65 }
+        self.value.len()
+    }
+
+    pub fn to_hex(&self) -> String {
+        hex::encode(&self.value)
     }
 }
 
 impl std::fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PublicKey")
-            .field("valid", &self.is_valid())
-            .field("compressed", &self.is_compressed())
+            .field("valid", &self.valid)
+            .field("compressed", &self.compressed)
             .field("size", &self.size())
             .finish()
     }
@@ -74,7 +87,7 @@ impl std::fmt::Debug for PublicKey {
 
 impl std::fmt::Display for PublicKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", hex::encode(self.value()))
+        write!(f, "{}", self.to_hex())
     }
 }
 
@@ -82,45 +95,54 @@ impl std::fmt::Display for PublicKey {
 mod tests {
     use super::*;
 
+    fn one_key() -> PrivateKey {
+        let mut k = [0u8; 32];
+        k[31] = 1;
+        PrivateKey::from_data(&k).unwrap()
+    }
+
     #[test]
     fn test_public_key_from_private_key() {
-        // Example 32-byte private key
-        let private_key_data = [1u8; 32];
-        let public_key = PublicKey::from_private_key(&private_key_data);
+        let pk = PublicKey::from_private_key(&one_key()).unwrap();
+        assert!(pk.is_valid());
+        assert_eq!(pk.size(), UNCOMPRESSED_SIZE); // uncompressed by default
+        assert!(!pk.is_compressed());
+    }
 
-        if let Ok(pk) = public_key {
-            assert!(pk.is_valid());
-            assert!(pk.size() == 33 || pk.size() == 65);
-        }
+    #[test]
+    fn test_public_key_compressed_derivation() {
+        let mut sk = one_key();
+        sk.set_compressed(true);
+        let pk = PublicKey::from_private_key(&sk).unwrap();
+        assert_eq!(pk.size(), COMPRESSED_SIZE);
+        assert!(pk.is_compressed());
     }
 
     #[test]
     fn test_invalid_public_key_length() {
-        let invalid_data = [1u8; 32]; // Wrong length
-        let result = PublicKey::from_data(&invalid_data);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_compressed_vs_uncompressed() {
-        let private_key_data = [1u8; 32];
-        if let Ok(pk) = PublicKey::from_private_key(&private_key_data) {
-            let size = pk.size();
-            assert!(size == 33 || size == 65);
-
-            if size == 33 {
-                assert!(pk.is_compressed());
-            } else {
-                assert!(!pk.is_compressed());
-            }
-        }
+        assert!(PublicKey::from_data(&[1u8; 32]).is_err());
+        assert!(PublicKey::from_data(&[0u8; 10]).is_err());
     }
 
     #[test]
     fn test_invalid_public_key_bytes() {
-        let invalid_bytes = [0u8; 10]; // Too short for a valid public key
-        let result = PublicKey::from_data(&invalid_bytes);
-        println!("Invalid key result: {:?}", result);
-        // This might succeed if the C++ implementation is lenient
+        // Right length, wrong content
+        let bad = [0u8; COMPRESSED_SIZE];
+        assert!(PublicKey::from_data(&bad).is_err());
+    }
+
+    #[test]
+    fn test_compressed_vs_uncompressed_round_trip() {
+        let sk_bytes = [3u8; 32];
+        let pk_u = PublicKey::from_private_key_bytes(&sk_bytes).unwrap();
+        assert_eq!(pk_u.size(), UNCOMPRESSED_SIZE);
+
+        let mut sk = PrivateKey::from_data(&sk_bytes).unwrap();
+        sk.set_compressed(true);
+        let pk_c = PublicKey::from_private_key(&sk).unwrap();
+        assert_eq!(pk_c.size(), COMPRESSED_SIZE);
+
+        // Compressed and uncompressed must reduce to the same X coordinate
+        assert_eq!(&pk_c.as_bytes()[1..33], &pk_u.as_bytes()[1..33]);
     }
 }

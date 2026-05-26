@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Context
 
-Bitcoin protocol library + CLI apps. Mid-migration C++ → Rust via `cxx` bridges. Hybrid build active: Rust crates link C++ object code through cxx-build. Original C++ tree still present at repo root (`crypto/`, `equity/`, `network/`, `p2p/`, `utility/`, `test/`); legacy `CMakeLists.txt` retained until port complete. `Application` in `docs/project_organization.png` is external — not in this repo.
+Bitcoin protocol library + CLI apps. Mid-migration C++ → Rust via `cxx` bridges. Hybrid build active: Rust crates link C++ object code through cxx-build. Original C++ tree still present at repo root (`crypto/`, `equity/`, `network/`, `p2p/`, `utility/`, `test/`); legacy CMake build removed — Cargo is the only build system. `Application` in `docs/project_organization.png` is external — not in this repo.
 
 See [docs/current-project-status.md](docs/current-project-status.md) for migration phase, build/test matrix, and known blockers. See [docs/rust-migration-issues.md](docs/rust-migration-issues.md) for the migration plan with checkbox state.
 

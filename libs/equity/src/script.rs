@@ -1,58 +1,81 @@
-//! Script functionality for Bitcoin
-//!
-//! Provides functionality for creating, validating, and converting Bitcoin scripts.
+//! Bitcoin script — a parsed sequence of `Instruction`s plus the raw bytes.
 
-use crate::ffi;
+use crate::instruction::{Instruction, DESCRIPTIONS, ScriptParsingError};
 use crate::{EquityError, Result};
 
-/// A Bitcoin script
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Script {
     data: Vec<u8>,
+    instructions: Vec<Instruction>,
+    valid: bool,
 }
 
 impl Script {
-    /// Create a script from binary data
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        let script_data = ffi::scriptFromData(data);
-        if ffi::scriptIsValid(&script_data) {
-            Ok(Script { data: script_data })
-        } else {
-            Err(EquityError("Invalid script data".to_string()))
-        }
+        let mut s = Self {
+            data: data.to_vec(),
+            instructions: Vec::new(),
+            valid: false,
+        };
+        s.valid = s.parse().is_ok();
+        Ok(s)
     }
 
-    /// Create a script from hexadecimal string
-    pub fn from_hex(hex: &str) -> Result<Self> {
-        match hex::decode(hex) {
-            Ok(data) => Self::from_data(&data),
-            Err(_) => Err(EquityError("Invalid hex string".to_string())),
-        }
+    pub fn from_hex(s: &str) -> Result<Self> {
+        let bytes = hex::decode(s).map_err(|e| EquityError(format!("Invalid hex: {e}")))?;
+        Self::from_data(&bytes)
     }
 
-    /// Convert the script to hexadecimal string
-    pub fn to_hex(&self) -> String {
-        ffi::scriptToHex(&self.data)
-    }
-
-    /// Get the raw script data
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
-    /// Check if the script is valid
-    pub fn is_valid(&self) -> bool {
-        ffi::scriptIsValid(&self.data)
+    pub fn instructions(&self) -> &[Instruction] {
+        &self.instructions
     }
 
-    /// Get the length of the script in bytes
+    pub fn is_valid(&self) -> bool {
+        self.valid
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
-    /// Check if the script is empty
-    pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
+    pub fn serialize(&self, out: &mut Vec<u8>) {
+        out.extend_from_slice(&self.data);
+    }
+
+    pub fn to_hex(&self) -> String {
+        hex::encode(&self.data)
+    }
+
+    pub fn to_source(&self) -> String {
+        let mut parts = Vec::new();
+        for ins in &self.instructions {
+            if (0x01..=0x4f).contains(&ins.op()) {
+                parts.push(hex::encode(ins.data()));
+            } else {
+                parts.push(DESCRIPTIONS[ins.op() as usize].name.to_string());
+            }
+        }
+        parts.join(" ")
+    }
+
+    fn parse(&mut self) -> std::result::Result<(), ScriptParsingError> {
+        self.instructions.clear();
+        let mut cursor = &self.data[..];
+        let start = self.data.as_ptr();
+        while !cursor.is_empty() {
+            let location = unsafe { cursor.as_ptr().offset_from(start) } as usize;
+            let ins = Instruction::parse(&mut cursor, location)?;
+            self.instructions.push(ins);
+        }
+        Ok(())
     }
 }
 
@@ -75,30 +98,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_empty_script() {
-        let empty_data = vec![];
-        let script = Script::from_data(&empty_data);
-
-        match script {
-            Ok(s) => {
-                assert!(s.is_empty());
-                assert_eq!(s.len(), 0);
-            }
-            Err(_) => {
-                // Empty scripts might be considered invalid
-            }
-        }
+    fn test_empty_script_is_valid_and_empty() {
+        let s = Script::from_data(&[]).unwrap();
+        assert!(s.is_valid());
+        assert!(s.is_empty());
+        assert!(s.instructions().is_empty());
     }
 
     #[test]
-    fn test_script_hex_conversion() {
-        let test_data = vec![0x76, 0xa9, 0x14]; // OP_DUP OP_HASH160 PUSH(20)
-        if let Ok(script) = Script::from_data(&test_data) {
-            let hex = script.to_hex();
-            assert!(!hex.is_empty());
+    fn test_p2pkh_script_round_trip() {
+        // OP_DUP OP_HASH160 PUSH(20) <20 bytes> OP_EQUALVERIFY OP_CHECKSIG
+        let mut bytes = vec![0x76, 0xa9, 0x14];
+        bytes.extend_from_slice(&[0u8; 20]);
+        bytes.extend_from_slice(&[0x88, 0xac]);
+        let s = Script::from_data(&bytes).unwrap();
+        assert!(s.is_valid());
+        assert_eq!(s.instructions().len(), 5);
+        assert_eq!(s.instructions()[0].op(), 0x76);
+        assert_eq!(s.instructions()[2].data().len(), 20);
+        assert_eq!(s.to_hex().len(), bytes.len() * 2);
+    }
 
-            let parsed = Script::from_hex(&hex);
-            assert!(parsed.is_ok());
-        }
+    #[test]
+    fn test_invalid_op_marks_script_invalid() {
+        let bytes = [0xBA]; // unassigned opcode
+        let s = Script::from_data(&bytes).unwrap();
+        assert!(!s.is_valid());
+    }
+
+    #[test]
+    fn test_hex_round_trip() {
+        let bytes = [0x51u8, 0x52, 0x93]; // OP_1 OP_2 OP_ADD
+        let s = Script::from_hex(&hex::encode(bytes)).unwrap();
+        assert_eq!(s.data(), bytes);
+        assert!(s.is_valid());
     }
 }

@@ -21,8 +21,8 @@ This document provides a step-by-step guide for migrating the project from C++ t
 ## 3. Integrate the Build System and CI
 
 - [x] Update CI scripts to use `cargo build` and `cargo test`.
-- [ ] Keep existing CMake builds behind a `legacy` feature while the transition is ongoing.
-- [ ] Remove CMake once all components compile as Rust crates.
+- [x] Keep existing CMake builds behind a `legacy` feature while the transition is ongoing. (Skipped — went straight to removal.)
+- [x] Remove CMake once all components compile as Rust crates.
 
 ## 4. Port Core Libraries
 
@@ -37,7 +37,7 @@ This document provides a step-by-step guide for migrating the project from C++ t
 
 ### Equity Core
 
-- [ ] Implement Bitcoin protocol logic in Rust, replacing C++ templates with idiomatic generics and ownership patterns.
+- [x] Implement Bitcoin protocol logic in Rust, replacing C++ templates with idiomatic generics and ownership patterns. *(Configuration, Txid, Target, PrivateKey, PublicKey, Address, Mnemonic, MerkleTree, Instruction, Script, ScriptEngine, Transaction, Block now pure Rust; cxx bridge surface removed from `equity` crate.)*
 
 ### Network and P2P
 

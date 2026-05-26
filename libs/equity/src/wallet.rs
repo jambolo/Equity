@@ -33,9 +33,8 @@ impl Wallet {
 
     /// Add a private key to the wallet
     pub fn add_private_key(&mut self, private_key: PrivateKey) -> Result<usize> {
-        let public_key_data = private_key.value();
-        let public_key = PublicKey::from_private_key(&public_key_data)?;
-        let address = Address::from_public_key(&public_key.value())?;
+        let public_key = PublicKey::from_private_key(&private_key)?;
+        let address = Address::from_public_key(&public_key)?;
 
         let entry = WalletEntry {
             private_key,

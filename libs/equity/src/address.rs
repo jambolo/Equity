@@ -1,64 +1,66 @@
-//! Address module for Bitcoin addresses
-//!
-//! Provides functionality for creating, validating, and converting Bitcoin addresses.
+//! Bitcoin Pay-to-Public-Key-Hash address — 20-byte RIPEMD-160(SHA-256(pubkey)).
 
-use crate::ffi::{self, AddressCpp};
-use crate::{EquityError, Network, Result};
+use crate::public_key::PublicKey;
+use crate::{EquityError, Network, Result, base58_check, configuration::Configuration};
+use crypto::{ripemd, sha256};
 
-/// A Bitcoin address
+pub const ADDRESS_SIZE: usize = ripemd::RIPEMD160_HASH_SIZE; // 20
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct Address {
-    inner: AddressCpp,
+    value: [u8; ADDRESS_SIZE],
+    valid: bool,
 }
 
 impl Address {
-    /// Create an address from a Base58Check string
     pub fn from_string(s: &str) -> Result<Self> {
-        let inner = ffi::addressFromString(s);
-        if ffi::addressIsValid(&inner) {
-            Ok(Address { inner })
-        } else {
-            Err(EquityError("Invalid address string".to_string()))
-        }
+        let (decoded, _version) = base58_check::decode(s)?;
+        Self::from_data(&decoded)
     }
 
-    /// Create an address from binary data
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        if data.len() != 20 {
-            return Err(EquityError("Address data must be 20 bytes".to_string()));
+        if data.len() != ADDRESS_SIZE {
+            return Err(EquityError(format!(
+                "Address data must be {ADDRESS_SIZE} bytes"
+            )));
         }
-        let inner = ffi::addressFromData(data);
-        if ffi::addressIsValid(&inner) {
-            Ok(Address { inner })
-        } else {
-            Err(EquityError("Invalid address data".to_string()))
-        }
+        let mut value = [0u8; ADDRESS_SIZE];
+        value.copy_from_slice(data);
+        Ok(Self { value, valid: true })
     }
 
-    /// Create an address from a public key
-    pub fn from_public_key(pubkey_data: &[u8]) -> Result<Self> {
-        let inner = ffi::addressFromPublicKey(pubkey_data);
-        if ffi::addressIsValid(&inner) {
-            Ok(Address { inner })
-        } else {
-            Err(EquityError(
-                "Invalid public key for address generation".to_string(),
-            ))
+    pub fn from_public_key(public_key: &PublicKey) -> Result<Self> {
+        if !public_key.is_valid() {
+            return Err(EquityError("Invalid public key".to_string()));
         }
+        let sha = sha256::sha256(public_key.as_bytes());
+        let value = ripemd::ripemd160(&sha);
+        Ok(Self { value, valid: true })
     }
 
-    /// Convert the address to a Base58Check string
+    pub fn from_public_key_bytes(pubkey_data: &[u8]) -> Result<Self> {
+        let pk = PublicKey::from_data(pubkey_data)?;
+        Self::from_public_key(&pk)
+    }
+
     pub fn to_string(&self, network: Network) -> String {
-        ffi::addressToString(&self.inner, network.into())
+        let version = match network {
+            Network::Mainnet => Configuration::ADDRESS_VERSION as u32,
+            Network::Testnet | Network::Regtest => 0x6F,
+        };
+        base58_check::encode(&self.value, version)
     }
 
-    /// Get the address as raw bytes
     pub fn value(&self) -> Vec<u8> {
-        ffi::addressValue(&self.inner)
+        self.value.to_vec()
     }
 
-    /// Check if the address is valid
+    pub fn as_bytes(&self) -> &[u8; ADDRESS_SIZE] {
+        &self.value
+    }
+
     pub fn is_valid(&self) -> bool {
-        ffi::addressIsValid(&self.inner)
+        self.valid
     }
 }
 
@@ -71,14 +73,14 @@ impl std::fmt::Display for Address {
 impl std::fmt::Debug for Address {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Address")
-            .field("value", &hex::encode(self.value()))
-            .field("valid", &self.is_valid())
+            .field("value", &hex::encode(self.value))
+            .field("valid", &self.valid)
             .finish()
     }
 }
 
 impl std::str::FromStr for Address {
-    type Err = crate::EquityError;
+    type Err = EquityError;
 
     fn from_str(s: &str) -> Result<Self> {
         Self::from_string(s)
@@ -90,22 +92,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_address_validation() {
-        // Test with a known invalid address
-        let invalid_addr = Address::from_string("invalid");
-        assert!(invalid_addr.is_err());
+    fn test_address_validation_rejects_garbage() {
+        assert!(Address::from_string("invalid").is_err());
     }
 
     #[test]
-    fn test_address_display() {
-        // Create a dummy address for testing display
-        // Create a test address from a valid string instead
-        let test_result = Address::from_string("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
-        // This may fail if the C++ implementation is not available
-        if let Ok(addr) = test_result {
-            println!("Address created successfully: {}", addr);
-        } else {
-            println!("Address creation failed (C++ implementation not available)");
-        }
+    fn test_address_roundtrip_known_vector() {
+        // 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa is the satoshi genesis-coinbase address.
+        let s = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+        let addr = Address::from_string(s).unwrap();
+        assert_eq!(addr.to_string(Network::Mainnet), s);
+    }
+
+    #[test]
+    fn test_address_from_public_key_bytes_matches_hash160() {
+        let sk_bytes = [3u8; 32];
+        let pk = PublicKey::from_private_key_bytes(&sk_bytes).unwrap();
+        let addr = Address::from_public_key(&pk).unwrap();
+        let expected = ripemd::ripemd160(&sha256::sha256(pk.as_bytes()));
+        assert_eq!(addr.as_bytes(), &expected);
+    }
+
+    #[test]
+    fn test_address_display_uses_mainnet_version() {
+        let addr = Address::from_data(&[0u8; ADDRESS_SIZE]).unwrap();
+        assert!(addr.to_string(Network::Mainnet).starts_with('1'));
     }
 }

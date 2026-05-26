@@ -1,61 +1,82 @@
-//! Transaction ID functionality for Bitcoin
+//! Transaction ID (TXID) — 32-byte SHA-256d hash of a transaction.
 //!
-//! Provides functionality for creating, validating, and converting Bitcoin transaction IDs.
+//! Bitcoin stores and displays a TXID big-endian, but serializes it little-endian
+//! in network/disk formats. This type keeps the hash internally in big-endian
+//! (display) order; `serialize` and the byte-slice constructor handle the flip.
 
-use crate::ffi;
 use crate::{EquityError, Result};
 
-/// A Bitcoin transaction ID (TXID)
+pub const TXID_SIZE: usize = 32;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Txid {
-    hash: Vec<u8>,
+    hash: [u8; TXID_SIZE],
 }
 
 impl Txid {
-    /// Create a TXID from binary hash data
+    /// Construct directly from a 32-byte big-endian (display-order) hash.
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        if data.len() != 32 {
-            return Err(EquityError("TXID hash must be 32 bytes".to_string()));
+        if data.len() != TXID_SIZE {
+            return Err(EquityError(format!(
+                "TXID hash must be {TXID_SIZE} bytes"
+            )));
         }
-        let hash = ffi::txidFromData(data);
-        Ok(Txid { hash })
+        let mut hash = [0u8; TXID_SIZE];
+        hash.copy_from_slice(data);
+        Ok(Self { hash })
     }
 
-    /// Create a TXID from JSON string
+    /// Read a TXID from a wire-format little-endian byte stream and advance the
+    /// cursor by 32 bytes. Returns `Err` if fewer than 32 bytes are available.
+    pub fn deserialize(input: &mut &[u8]) -> Result<Self> {
+        if input.len() < TXID_SIZE {
+            return Err(EquityError("Not enough bytes for TXID".to_string()));
+        }
+        let (head, rest) = input.split_at(TXID_SIZE);
+        let mut hash = [0u8; TXID_SIZE];
+        hash.copy_from_slice(head);
+        hash.reverse();
+        *input = rest;
+        Ok(Self { hash })
+    }
+
+    /// Parse a JSON hex string (big-endian display order) into a Txid.
     pub fn from_json(json: &str) -> Result<Self> {
-        let hash = ffi::txidFromJson(json);
-        if hash.len() == 32 {
-            Ok(Txid { hash })
-        } else {
-            Err(EquityError("Invalid TXID JSON".to_string()))
+        let s = json.trim().trim_matches('"');
+        if s.len() != TXID_SIZE * 2 {
+            return Err(EquityError(format!(
+                "TXID hex string must be {} characters",
+                TXID_SIZE * 2
+            )));
         }
+        let bytes = hex::decode(s).map_err(|e| EquityError(format!("Invalid hex: {e}")))?;
+        Self::from_data(&bytes)
     }
 
-    /// Convert the TXID to JSON string
+    /// Render as a JSON string literal (with surrounding quotes), display-order hex.
     pub fn to_json(&self) -> String {
-        ffi::txidToJson(&self.hash)
+        format!("\"{}\"", self.to_hex_be())
     }
 
-    /// Serialize the TXID to binary data
+    /// Wire-format serialization: 32 bytes, little-endian.
     pub fn serialize(&self) -> Vec<u8> {
-        ffi::txidSerialize(&self.hash)
+        let mut out = self.hash.to_vec();
+        out.reverse();
+        out
     }
 
-    /// Get the raw hash bytes
     pub fn hash(&self) -> &[u8] {
         &self.hash
     }
 
-    /// Convert to hexadecimal string (little-endian)
+    /// Hex of the raw internal big-endian bytes (i.e. display order).
     pub fn to_hex(&self) -> String {
-        hex::encode(&self.hash)
+        hex::encode(self.hash)
     }
 
-    /// Convert to hexadecimal string (big-endian, typical display format)
+    /// Same as `to_hex` since internal storage is already big-endian.
     pub fn to_hex_be(&self) -> String {
-        let mut reversed = self.hash.clone();
-        reversed.reverse();
-        hex::encode(reversed)
+        hex::encode(self.hash)
     }
 }
 
@@ -69,23 +90,7 @@ impl std::str::FromStr for Txid {
     type Err = EquityError;
 
     fn from_str(s: &str) -> Result<Self> {
-        if s.len() != 64 {
-            return Err(EquityError(
-                "TXID hex string must be 64 characters".to_string(),
-            ));
-        }
-
-        match hex::decode(s) {
-            Ok(mut bytes) => {
-                if bytes.len() != 32 {
-                    return Err(EquityError("TXID must be 32 bytes".to_string()));
-                }
-                // Reverse for little-endian internal representation
-                bytes.reverse();
-                Self::from_data(&bytes)
-            }
-            Err(_) => Err(EquityError("Invalid hex string".to_string())),
-        }
+        Self::from_json(s)
     }
 }
 
@@ -102,52 +107,53 @@ mod tests {
     }
 
     #[test]
-    fn test_txid_hex_conversion() {
+    fn test_txid_hex_round_trip_non_palindromic() {
         let hash_data: [u8; 32] = std::array::from_fn(|i| i as u8);
         let txid = Txid::from_data(&hash_data).unwrap();
 
-        let hex_le = txid.to_hex();
         let hex_be = txid.to_hex_be();
-
-        assert_eq!(hex_le.len(), 64);
         assert_eq!(hex_be.len(), 64);
-        assert_ne!(hex_le, hex_be); // non-palindromic input → endianness flip changes the string
+
+        // `serialize` is little-endian — reverse and re-encode should differ from BE.
+        let serialized = txid.serialize();
+        assert_ne!(hex::encode(&serialized), hex_be);
+        let mut reversed = serialized.clone();
+        reversed.reverse();
+        assert_eq!(hex::encode(reversed), hex_be);
     }
 
     #[test]
     fn test_txid_from_hex_string() {
         let hex_string = "0101010101010101010101010101010101010101010101010101010101010101";
-        let txid = hex_string.parse::<Txid>().unwrap();
+        let txid: Txid = hex_string.parse().unwrap();
         assert_eq!(txid.to_hex_be(), hex_string);
     }
 
     #[test]
     fn test_invalid_txid_length() {
-        let short_data = [1u8; 16];
-        let result = Txid::from_data(&short_data);
-        assert!(result.is_err());
+        assert!(Txid::from_data(&[1u8; 16]).is_err());
+        assert!(Txid::from_data(&[1u8; 33]).is_err());
     }
 
     #[test]
-    fn test_txid_creation() {
-        let test_bytes = [0xFFu8; 32];
-        let txid = Txid::from_data(&test_bytes).expect("Failed to create txid");
-        println!("Txid created: {}", txid);
+    fn test_deserialize_reverses_endianness() {
+        // Wire-format little-endian: input is the reverse of display order.
+        let display: [u8; 32] = std::array::from_fn(|i| i as u8);
+        let mut wire: [u8; 32] = display;
+        wire.reverse();
+
+        let mut cursor = &wire[..];
+        let txid = Txid::deserialize(&mut cursor).unwrap();
+        assert!(cursor.is_empty());
+        assert_eq!(txid.hash(), &display);
     }
 
     #[test]
-    fn test_txid_hex_formatting() {
-        let test_bytes = [0xABu8; 32];
-        let txid = Txid::from_data(&test_bytes).expect("Failed to create txid");
-
-        println!("Txid display: {}", txid);
-        // Note: Custom hex formatting would need to be implemented
-    }
-
-    #[test]
-    fn test_txid_validation() {
-        let test_bytes = [1u8; 32];
-        let txid = Txid::from_data(&test_bytes).expect("Failed to create txid");
-        assert_eq!(txid.hash().len(), 32);
+    fn test_json_roundtrip() {
+        let bytes: [u8; 32] = std::array::from_fn(|i| (i as u8).wrapping_mul(7));
+        let txid = Txid::from_data(&bytes).unwrap();
+        let j = txid.to_json();
+        let back = Txid::from_json(&j).unwrap();
+        assert_eq!(txid, back);
     }
 }

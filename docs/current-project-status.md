@@ -11,7 +11,6 @@ Bitcoin protocol library + CLI apps. Mid-migration C++ → Rust via `cxx` bridge
 ```text
 Equity/
 ├── Cargo.toml           # workspace: libs/{crypto,equity,network,p2p,utility} + apps/{bits,list-prefixes,view-transactions}
-├── CMakeLists.txt       # legacy C++ build (still present)
 ├── crypto/  equity/  network/  p2p/  utility/   # C++ sources
 ├── libs/<name>/src/     # Rust crate + <name>_wrapper.{h,cpp} cxx shim
 ├── apps/<name>/src/main.rs   # CLI stubs (hello-world only)
@@ -23,7 +22,7 @@ Equity/
 
 ## Migration phase
 
-Phase: all hybrid tests pass. **128/128 across the workspace, zero aborts, zero failures.** WolfSSL fully dropped — all crypto primitives are pure Rust (`sha1`, `sha2`, `ripemd`, `hmac`, `pbkdf2`, `secp256k1`, `bs58` crates + `std::random_device` for entropy). The remaining C++ surface is non-crypto (equity address/transaction/block/script/mnemonic/merkle-tree, network message parsing) and is wrapped by cxx bridges that work end-to-end.
+Phase: **equity core is pure Rust**. **159/159 across the workspace, zero aborts, zero failures.** The `equity` crate no longer goes through any cxx bridge — Configuration, Txid, Target, PrivateKey, PublicKey, Address, Mnemonic, MerkleTree, Instruction, Script, ScriptEngine, Transaction, Block are all native Rust modules backed by the existing `crypto` (sha1/sha2/ripemd/hmac/pbkdf2/secp256k1) and `bs58` crates. The `equity_wrapper.{h,cpp}` shim, `cxx` dependency, `cxx-bridge` feature, and `build.rs` C++ compilation have all been removed from `libs/equity`. C++ files under `equity/` are still present in the repo but no longer compiled by any build script; they will be deleted once the `network` C++ message types are ported and no longer reference `Equity::Block` / `Equity::Transaction`.
 
 Recent session changes (uncommitted):
 
@@ -45,7 +44,7 @@ Recent session changes (uncommitted):
 | p2p | OK | 5/5 pass |
 | crypto | OK | 36/36 pass |
 | network | OK | 23/23 pass |
-| equity | OK | 43/43 pass |
+| equity | OK | 74/74 pass |
 
 `cargo build --workspace` finishes clean. `cargo test --workspace` is green.
 

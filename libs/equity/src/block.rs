@@ -1,108 +1,131 @@
-//! Block functionality for Bitcoin
-//!
-//! Provides functionality for creating, validating, and converting Bitcoin blocks.
+//! Bitcoin block — header (80 bytes) + variable-length transaction list.
 
-use crate::Result;
-use crate::ffi::{self, BlockCpp, BlockHeaderCpp};
 use crate::transaction::Transaction;
+use crate::{EquityError, Result};
+use p2p::{deserialize_var_int, serialize_var_int};
 
-/// A Bitcoin block
-pub struct Block {
-    inner: BlockCpp,
-}
+pub const HASH_SIZE: usize = 32;
 
-/// A Bitcoin block header
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlockHeader {
-    inner: BlockHeaderCpp,
+    pub version: i32,
+    pub previous_block: [u8; HASH_SIZE],
+    pub merkle_root: [u8; HASH_SIZE],
+    pub timestamp: u32,
+    pub target: u32,
+    pub nonce: u32,
 }
 
-impl Block {
-    /// Create a block from binary data
-    pub fn from_data(data: &[u8]) -> Result<Self> {
-        let inner = ffi::blockFromData(data);
-        // Note: We can't validate directly since we don't have a validation function
-        // The C++ constructor should handle validation
-        Ok(Block { inner })
-    }
-
-    /// Convert the block to JSON string
-    pub fn to_json(&self) -> String {
-        ffi::blockToJson(&self.inner)
-    }
-
-    /// Serialize the block to binary data
-    pub fn serialize(&self) -> Vec<u8> {
-        ffi::blockSerialize(&self.inner)
-    }
-
-    /// Get the block header
-    pub fn header(&self) -> BlockHeader {
-        let inner = ffi::blockGetHeader(&self.inner);
-        BlockHeader { inner }
-    }
-
-    /// Get the number of transactions in the block
-    pub fn transaction_count(&self) -> usize {
-        ffi::blockTransactionCount(&self.inner)
-    }
-
-    /// Get a specific transaction by index
-    pub fn get_transaction(&self, index: usize) -> Option<Transaction> {
-        if index < self.transaction_count() {
-            Some(Transaction::from_ffi(ffi::blockGetTransaction(
-                &self.inner,
-                index,
-            )))
-        } else {
-            None
-        }
-    }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Block {
+    header: BlockHeader,
+    transactions: Vec<Transaction>,
 }
 
 impl BlockHeader {
-    /// Get the block version
-    pub fn version(&self) -> i32 {
-        self.inner.version
+    pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
+        let version = read_i32_le(stream)?;
+        let previous_block = read_hash(stream)?;
+        let merkle_root = read_hash(stream)?;
+        let timestamp = read_u32_le(stream)?;
+        let target = read_u32_le(stream)?;
+        let nonce = read_u32_le(stream)?;
+        Ok(Self {
+            version,
+            previous_block,
+            merkle_root,
+            timestamp,
+            target,
+            nonce,
+        })
     }
 
-    /// Get the timestamp
-    pub fn timestamp(&self) -> u32 {
-        self.inner.timestamp
-    }
-
-    /// Get the difficulty target
-    pub fn target(&self) -> u32 {
-        self.inner.target
-    }
-
-    /// Get the nonce
-    pub fn nonce(&self) -> u32 {
-        self.inner.nonce
+    pub fn serialize(&self, out: &mut Vec<u8>) {
+        out.extend_from_slice(&self.version.to_le_bytes());
+        out.extend_from_slice(&self.previous_block);
+        out.extend_from_slice(&self.merkle_root);
+        out.extend_from_slice(&self.timestamp.to_le_bytes());
+        out.extend_from_slice(&self.target.to_le_bytes());
+        out.extend_from_slice(&self.nonce.to_le_bytes());
     }
 }
 
-impl std::fmt::Debug for Block {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let header = self.header();
-        f.debug_struct("Block")
-            .field("version", &header.version())
-            .field("timestamp", &header.timestamp())
-            .field("target", &header.target())
-            .field("nonce", &header.nonce())
-            .field("transaction_count", &self.transaction_count())
-            .finish()
+impl Block {
+    pub fn new(header: BlockHeader, transactions: Vec<Transaction>) -> Self {
+        Self { header, transactions }
+    }
+
+    pub fn from_data(data: &[u8]) -> Result<Self> {
+        let mut stream = data;
+        let header = BlockHeader::deserialize(&mut stream)?;
+        let n = read_var_int(&mut stream)? as usize;
+        let mut transactions = Vec::with_capacity(n);
+        for _ in 0..n {
+            transactions.push(Transaction::deserialize(&mut stream)?);
+        }
+        Ok(Self { header, transactions })
+    }
+
+    pub fn serialize(&self) -> Vec<u8> {
+        let mut out = Vec::new();
+        self.header.serialize(&mut out);
+        out.extend_from_slice(&serialize_var_int(self.transactions.len() as u64));
+        for tx in &self.transactions {
+            out.extend_from_slice(&tx.serialize());
+        }
+        out
+    }
+
+    pub fn header(&self) -> &BlockHeader {
+        &self.header
+    }
+
+    pub fn transactions(&self) -> &[Transaction] {
+        &self.transactions
+    }
+
+    pub fn transaction_count(&self) -> usize {
+        self.transactions.len()
+    }
+
+    pub fn get_transaction(&self, i: usize) -> Option<&Transaction> {
+        self.transactions.get(i)
     }
 }
 
-impl std::fmt::Debug for BlockHeader {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BlockHeader")
-            .field("version", &self.version())
-            .field("timestamp", &self.timestamp())
-            .field("target", &self.target())
-            .field("nonce", &self.nonce())
-            .finish()
+fn read_u32_le(stream: &mut &[u8]) -> Result<u32> {
+    if stream.len() < 4 {
+        return Err(EquityError("Truncated u32".to_string()));
     }
+    let (head, rest) = stream.split_at(4);
+    let v = u32::from_le_bytes([head[0], head[1], head[2], head[3]]);
+    *stream = rest;
+    Ok(v)
+}
+
+fn read_i32_le(stream: &mut &[u8]) -> Result<i32> {
+    let u = read_u32_le(stream)?;
+    Ok(u as i32)
+}
+
+fn read_hash(stream: &mut &[u8]) -> Result<[u8; HASH_SIZE]> {
+    if stream.len() < HASH_SIZE {
+        return Err(EquityError("Truncated hash".to_string()));
+    }
+    let (head, rest) = stream.split_at(HASH_SIZE);
+    let mut out = [0u8; HASH_SIZE];
+    out.copy_from_slice(head);
+    *stream = rest;
+    Ok(out)
+}
+
+fn read_var_int(stream: &mut &[u8]) -> Result<u64> {
+    let r = deserialize_var_int(stream);
+    if r.bytes_read == 0 {
+        return Err(EquityError("Truncated varint".to_string()));
+    }
+    *stream = &stream[r.bytes_read..];
+    Ok(r.value)
 }
 
 #[cfg(test)]
@@ -110,21 +133,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_block_creation() {
-        // This test would need actual block data to be meaningful
-        // For now, just test that the module compiles correctly
-        let test_data = vec![0u8; 80]; // Minimal block header size
-        let result = Block::from_data(&test_data);
+    fn test_header_round_trip() {
+        let h = BlockHeader {
+            version: 1,
+            previous_block: [0u8; HASH_SIZE],
+            merkle_root: [0xABu8; HASH_SIZE],
+            timestamp: 1_700_000_000,
+            target: 0x1d00ffff,
+            nonce: 42,
+        };
+        let mut bytes = Vec::new();
+        h.serialize(&mut bytes);
+        assert_eq!(bytes.len(), 80);
+        let mut s = &bytes[..];
+        let parsed = BlockHeader::deserialize(&mut s).unwrap();
+        assert_eq!(parsed, h);
+    }
 
-        // The result depends on the C++ implementation's validation
-        match result {
-            Ok(block) => {
-                // transaction_count() is usize; just make sure the call doesn't panic.
-                let _ = block.transaction_count();
-            }
-            Err(_) => {
-                // Block creation failed (expected for invalid data).
-            }
-        }
+    #[test]
+    fn test_block_empty_transactions_round_trip() {
+        let block = Block::new(
+            BlockHeader {
+                version: 1,
+                previous_block: [0u8; HASH_SIZE],
+                merkle_root: [0u8; HASH_SIZE],
+                timestamp: 0,
+                target: 0x1d00ffff,
+                nonce: 0,
+            },
+            vec![],
+        );
+        let bytes = block.serialize();
+        let parsed = Block::from_data(&bytes).unwrap();
+        assert_eq!(parsed, block);
+    }
+
+    #[test]
+    fn test_truncated_block_rejected() {
+        assert!(Block::from_data(&[0u8; 20]).is_err());
     }
 }
