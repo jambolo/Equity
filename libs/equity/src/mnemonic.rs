@@ -43,7 +43,11 @@ impl Mnemonic {
         let owned: Vec<String> = words.iter().map(|w| w.to_string()).collect();
         let language = determine_language(&owned);
         let valid = validate_words(&owned, language);
-        Self { words: owned, valid, language }
+        Self {
+            words: owned,
+            valid,
+            language,
+        }
     }
 
     /// Build from a whitespace-separated mnemonic sentence.
@@ -65,7 +69,8 @@ impl Mnemonic {
     /// assert!(m.sentence().starts_with("abandon abandon"));
     /// ```
     pub fn from_entropy(entropy: &[u8], language: Language) -> Result<Self> {
-        if !entropy.len().is_multiple_of(BYTES_PER_CHECK_BIT) || entropy.len() > 256 * 8 * BYTES_PER_CHECK_BIT
+        if !entropy.len().is_multiple_of(BYTES_PER_CHECK_BIT)
+            || entropy.len() > 256 * 8 * BYTES_PER_CHECK_BIT
         {
             return Err(EquityError("Invalid entropy length".to_string()));
         }
@@ -95,7 +100,11 @@ impl Mnemonic {
 
         let valid = validate_words(&words, language);
         debug_assert!(valid);
-        Ok(Self { words, valid, language })
+        Ok(Self {
+            words,
+            valid,
+            language,
+        })
     }
 
     /// True if every word is in the dictionary and the count is a multiple of 3.
@@ -127,8 +136,8 @@ impl Mnemonic {
             return Vec::new();
         }
         let mut e = self.checked_entropy();
-        let entropy_bytes = self.words.len() * BITS_PER_WORD / (BYTES_PER_CHECK_BIT * 8 + 1)
-            * BYTES_PER_CHECK_BIT;
+        let entropy_bytes =
+            self.words.len() * BITS_PER_WORD / (BYTES_PER_CHECK_BIT * 8 + 1) * BYTES_PER_CHECK_BIT;
         e.truncate(entropy_bytes);
         e
     }

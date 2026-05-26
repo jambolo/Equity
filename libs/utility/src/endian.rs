@@ -92,10 +92,7 @@ mod tests {
 
     #[test]
     fn test_swap64() {
-        assert_eq!(
-            Endian::swap64(0x123456789abcdef0),
-            0xf0debc9a78563412
-        );
+        assert_eq!(Endian::swap64(0x123456789abcdef0), 0xf0debc9a78563412);
         assert_eq!(
             EndianConvert::swap_bytes(0x123456789abcdef0u64),
             0xf0debc9a78563412

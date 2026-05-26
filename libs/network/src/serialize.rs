@@ -103,7 +103,11 @@ pub fn read_u64(stream: &mut &[u8]) -> Result<u64> {
 /// Borrow `n` bytes from `stream` and advance the cursor. Errors on short input.
 pub fn read_bytes<'a>(stream: &mut &'a [u8], n: usize) -> Result<&'a [u8]> {
     if stream.len() < n {
-        bail!("truncated bytes ({} requested, {} available)", n, stream.len());
+        bail!(
+            "truncated bytes ({} requested, {} available)",
+            n,
+            stream.len()
+        );
     }
     let (head, rest) = stream.split_at(n);
     *stream = rest;
@@ -149,7 +153,16 @@ mod tests {
 
     #[test]
     fn var_int_round_trip() {
-        for v in [0u64, 0xfc, 0xfd, 0xffff, 0x10000, 0xffff_ffff, 0x1_0000_0000, u64::MAX] {
+        for v in [
+            0u64,
+            0xfc,
+            0xfd,
+            0xffff,
+            0x10000,
+            0xffff_ffff,
+            0x1_0000_0000,
+            u64::MAX,
+        ] {
             let mut out = Vec::new();
             write_var_int(&mut out, v);
             let mut s = &out[..];
@@ -186,7 +199,10 @@ mod tests {
         let mut out = Vec::new();
         write_var_bytes(&mut out, &[0xAA, 0xBB, 0xCC, 0xDD]);
         let mut s = &out[..];
-        assert_eq!(read_var_bytes(&mut s).unwrap(), vec![0xAA, 0xBB, 0xCC, 0xDD]);
+        assert_eq!(
+            read_var_bytes(&mut s).unwrap(),
+            vec![0xAA, 0xBB, 0xCC, 0xDD]
+        );
         assert!(s.is_empty());
     }
 

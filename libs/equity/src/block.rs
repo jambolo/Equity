@@ -64,7 +64,10 @@ impl BlockHeader {
 impl Block {
     /// Construct from a header and transaction list.
     pub fn new(header: BlockHeader, transactions: Vec<Transaction>) -> Self {
-        Self { header, transactions }
+        Self {
+            header,
+            transactions,
+        }
     }
 
     /// Parse a full block from an owned byte buffer.
@@ -81,7 +84,10 @@ impl Block {
         for _ in 0..n {
             transactions.push(Transaction::deserialize(stream)?);
         }
-        Ok(Self { header, transactions })
+        Ok(Self {
+            header,
+            transactions,
+        })
     }
 
     /// On-wire bytes of this block (header + varint count + transactions).

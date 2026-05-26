@@ -53,9 +53,7 @@ impl Address {
 
     /// Recover the underlying IPv4 address if this is an IPv4-mapped IPv6 address.
     pub fn ipv4(&self) -> Option<[u8; 4]> {
-        if self.ipv6[10] == 0xff
-            && self.ipv6[11] == 0xff
-            && self.ipv6[..10].iter().all(|&b| b == 0)
+        if self.ipv6[10] == 0xff && self.ipv6[11] == 0xff && self.ipv6[..10].iter().all(|&b| b == 0)
         {
             let mut out = [0u8; 4];
             out.copy_from_slice(&self.ipv6[12..16]);

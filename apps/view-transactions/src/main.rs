@@ -54,7 +54,10 @@ fn dump_pretty(value: &Value) -> String {
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
-    let prog = args.first().map(String::as_str).unwrap_or("view-transactions");
+    let prog = args
+        .first()
+        .map(String::as_str)
+        .unwrap_or("view-transactions");
 
     if args.len() < 2 {
         syntax(prog);

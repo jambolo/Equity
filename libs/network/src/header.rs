@@ -56,7 +56,11 @@ impl Header {
 
     /// Decode the command field as a UTF-8 string up to the first null byte.
     pub fn command_str(&self) -> &str {
-        let end = self.command.iter().position(|&b| b == 0).unwrap_or(COMMAND_SIZE);
+        let end = self
+            .command
+            .iter()
+            .position(|&b| b == 0)
+            .unwrap_or(COMMAND_SIZE);
         std::str::from_utf8(&self.command[..end]).unwrap_or("")
     }
 

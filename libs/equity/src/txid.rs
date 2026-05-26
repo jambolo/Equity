@@ -19,9 +19,7 @@ impl Txid {
     /// Construct directly from a 32-byte big-endian (display-order) hash.
     pub fn from_data(data: &[u8]) -> Result<Self> {
         if data.len() != TXID_SIZE {
-            return Err(EquityError(format!(
-                "TXID hash must be {TXID_SIZE} bytes"
-            )));
+            return Err(EquityError(format!("TXID hash must be {TXID_SIZE} bytes")));
         }
         let mut hash = [0u8; TXID_SIZE];
         hash.copy_from_slice(data);

@@ -3,8 +3,8 @@
 use crate::address::Address;
 use crate::inventory::{HASH_SIZE, InventoryId};
 use crate::serialize::{
-    read_array, read_u32, read_u64, read_u8, read_var_bytes, read_var_int, read_var_string,
-    write_bytes, write_u32, write_u64, write_u8, write_var_bytes, write_var_int, write_var_string,
+    read_array, read_u8, read_u32, read_u64, read_var_bytes, read_var_int, read_var_string,
+    write_bytes, write_u8, write_u32, write_u64, write_var_bytes, write_var_int, write_var_string,
 };
 use anyhow::{Result, bail};
 use equity::block::Block;
@@ -391,8 +391,8 @@ impl BlockMessage {
 
     /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
-        let block = Block::deserialize(stream)
-            .map_err(|e| anyhow::anyhow!("block deserialize: {}", e))?;
+        let block =
+            Block::deserialize(stream).map_err(|e| anyhow::anyhow!("block deserialize: {}", e))?;
         Ok(Self { block })
     }
 }
@@ -842,7 +842,9 @@ mod tests {
 
     #[test]
     fn ping_round_trip() {
-        let m = PingMessage { nonce: 0xCAFE_BABE_DEAD_BEEF };
+        let m = PingMessage {
+            nonce: 0xCAFE_BABE_DEAD_BEEF,
+        };
         let mut bytes = Vec::new();
         m.serialize(&mut bytes);
         assert_eq!(bytes.len(), 8);
@@ -989,7 +991,9 @@ mod tests {
 
     #[test]
     fn pong_round_trip() {
-        let m = PongMessage { nonce: 0xDEAD_BEEF_F00D_BABE };
+        let m = PongMessage {
+            nonce: 0xDEAD_BEEF_F00D_BABE,
+        };
         let mut bytes = Vec::new();
         m.serialize(&mut bytes);
         assert_eq!(bytes.len(), 8);

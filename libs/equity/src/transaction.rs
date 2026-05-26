@@ -8,7 +8,7 @@
 //!   [Output]
 //!   u32 locktime_le
 
-use crate::txid::{Txid, TXID_SIZE};
+use crate::txid::{TXID_SIZE, Txid};
 use crate::{EquityError, Result};
 use p2p::{deserialize_var_int, serialize_var_int};
 
@@ -109,7 +109,9 @@ impl Transaction {
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let version = read_u32_le(stream)?;
         if version != 1 {
-            return Err(EquityError(format!("Unsupported transaction version: {version}")));
+            return Err(EquityError(format!(
+                "Unsupported transaction version: {version}"
+            )));
         }
         let input_count = read_var_int(stream)? as usize;
         let mut inputs = Vec::with_capacity(input_count);

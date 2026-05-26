@@ -1,6 +1,6 @@
 //! Bitcoin script — a parsed sequence of `Instruction`s plus the raw bytes.
 
-use crate::instruction::{Instruction, DESCRIPTIONS, ScriptParsingError};
+use crate::instruction::{DESCRIPTIONS, Instruction, ScriptParsingError};
 use crate::{EquityError, Result};
 
 /// Parsed Bitcoin script — raw bytes plus the decoded instruction list.

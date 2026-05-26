@@ -269,8 +269,7 @@ impl ScriptEngine {
                 }
 
                 // Binary arithmetic / comparison
-                0x93 | 0x94 | 0x9a..=0xa4 =>
-                {
+                0x93 | 0x94 | 0x9a..=0xa4 => {
                     let b = self.main_stack.pop().unwrap();
                     let a = self.main_stack.pop().unwrap();
                     if a.len() > 4 || b.len() > 4 {

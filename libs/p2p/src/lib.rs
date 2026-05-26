@@ -206,7 +206,10 @@ mod tests {
         assert_eq!(serialize_var_int(0), vec![0]);
         assert_eq!(serialize_var_int(0xFC), vec![0xFC]);
         assert_eq!(serialize_var_int(0xFD), vec![0xFD, 0xFD, 0x00]);
-        assert_eq!(serialize_var_int(0x1_0000), vec![0xFE, 0x00, 0x00, 0x01, 0x00]);
+        assert_eq!(
+            serialize_var_int(0x1_0000),
+            vec![0xFE, 0x00, 0x00, 0x01, 0x00]
+        );
     }
 
     #[test]
@@ -256,7 +259,10 @@ mod tests {
         // 0xFFFF still fits 3-byte form.
         assert_eq!(serialize_var_int(0xFFFF), vec![0xFD, 0xFF, 0xFF]);
         // 0x10000 starts 5-byte form.
-        assert_eq!(serialize_var_int(0x10000), vec![0xFE, 0x00, 0x00, 0x01, 0x00]);
+        assert_eq!(
+            serialize_var_int(0x10000),
+            vec![0xFE, 0x00, 0x00, 0x01, 0x00]
+        );
         // u32::MAX still fits 5-byte form.
         assert_eq!(
             serialize_var_int(0xFFFF_FFFF),

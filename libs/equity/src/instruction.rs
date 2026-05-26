@@ -121,7 +121,11 @@ pub struct Description {
 }
 
 const fn d(name: &'static str, min_args: usize, valid: bool) -> Description {
-    Description { name, min_args, valid }
+    Description {
+        name,
+        min_args,
+        valid,
+    }
 }
 
 /// 256-entry opcode descriptor table.
@@ -334,8 +338,7 @@ impl Instruction {
             if stream.len() < 4 {
                 return Err(ScriptParsingError);
             }
-            let count =
-                u32::from_le_bytes([stream[0], stream[1], stream[2], stream[3]]) as usize;
+            let count = u32::from_le_bytes([stream[0], stream[1], stream[2], stream[3]]) as usize;
             *stream = &stream[4..];
             size += 4;
             if stream.len() < count {

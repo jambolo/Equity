@@ -237,7 +237,10 @@ mod tests {
 
     #[test]
     fn test_decode_uppercase() {
-        assert_eq!(Hex::decode("DEADBEEF").unwrap(), vec![0xDE, 0xAD, 0xBE, 0xEF]);
+        assert_eq!(
+            Hex::decode("DEADBEEF").unwrap(),
+            vec![0xDE, 0xAD, 0xBE, 0xEF]
+        );
     }
 
     #[test]
