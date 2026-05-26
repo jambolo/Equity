@@ -9,6 +9,20 @@ fn checksum(data: &[u8]) -> [u8; 4] {
     [second[0], second[1], second[2], second[3]]
 }
 
+/// Encode `input` as Base58Check with a single-byte `version` prefix.
+///
+/// The lower 8 bits of `version` are used as the prefix byte; common values
+/// are `0x00` (mainnet P2PKH), `0x05` (mainnet P2SH), `0x80` (mainnet WIF),
+/// and `0x6F` (testnet P2PKH).
+///
+/// # Examples
+///
+/// ```
+/// use equity::base58_check;
+///
+/// let s = base58_check::encode(&[0u8; 20], 0x00);
+/// assert!(s.starts_with('1'));
+/// ```
 pub fn encode(input: &[u8], version: u32) -> String {
     let mut buf = Vec::with_capacity(1 + input.len() + 4);
     buf.push(version as u8);
@@ -18,6 +32,18 @@ pub fn encode(input: &[u8], version: u32) -> String {
     bs58::encode(buf).into_string()
 }
 
+/// Decode a Base58Check string into `(payload, version)`. Verifies the 4-byte checksum.
+///
+/// # Examples
+///
+/// ```
+/// use equity::base58_check;
+///
+/// let s = base58_check::encode(b"hello", 0x05);
+/// let (payload, version) = base58_check::decode(&s).unwrap();
+/// assert_eq!(payload, b"hello");
+/// assert_eq!(version, 0x05);
+/// ```
 pub fn decode(input: &str) -> Result<(Vec<u8>, u32)> {
     let raw = bs58::decode(input)
         .into_vec()
@@ -111,4 +137,40 @@ mod tests {
             assert_eq!(decoded_version, version);
         }
     }
+
+    #[test]
+    fn test_base58check_p2sh_vector() {
+        // BIP-13 / Bitcoin test vector: version=5 ("3..." mainnet P2SH address).
+        let h160 = [
+            0x74, 0xf2, 0x09, 0xf6, 0xea, 0x90, 0x7e, 0x2e, 0xa4, 0x8f, 0x74, 0xfa, 0xe0, 0x5d,
+            0xd0, 0x6c, 0xae, 0xa1, 0x86, 0x05,
+        ];
+        let s = encode(&h160, 0x05);
+        assert!(s.starts_with('3'));
+        let (back, v) = decode(&s).unwrap();
+        assert_eq!(back, h160);
+        assert_eq!(v, 0x05);
+    }
+
+    #[test]
+    fn test_base58check_decode_too_short() {
+        // Encode something too short to have 1 version + 4 checksum bytes.
+        let s = bs58::encode([0u8; 3]).into_string();
+        assert!(decode(&s).is_err());
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_base58check_round_trip(
+            version in 0u32..256,
+            data in proptest::collection::vec(any::<u8>(), 0..64),
+        ) {
+            let encoded = encode(&data, version);
+            let (decoded, decoded_version) = decode(&encoded).unwrap();
+            proptest::prop_assert_eq!(decoded, data);
+            proptest::prop_assert_eq!(decoded_version, version);
+        }
+    }
+
+    use proptest::prelude::any;
 }

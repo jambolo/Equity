@@ -2,13 +2,17 @@
 
 use sha2::{Digest, Sha512};
 
+/// Length of a SHA-512 digest in bytes.
 pub const SHA512_HASH_SIZE: usize = 64;
+/// Fixed-size SHA-512 digest.
 pub type Sha512Hash = [u8; SHA512_HASH_SIZE];
 
+/// Compute SHA-512(input).
 pub fn sha512(input: &[u8]) -> Sha512Hash {
     Sha512::digest(input).into()
 }
 
+/// `sha512` as a `Vec<u8>`.
 pub fn sha512_vec(input: &[u8]) -> Vec<u8> {
     Sha512::digest(input).to_vec()
 }

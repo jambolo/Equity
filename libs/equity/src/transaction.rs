@@ -12,20 +12,29 @@ use crate::txid::{Txid, TXID_SIZE};
 use crate::{EquityError, Result};
 use p2p::{deserialize_var_int, serialize_var_int};
 
+/// A transaction input — reference to a prior output plus an unlocking script.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Input {
+    /// TXID of the transaction whose output is being spent.
     pub txid: Txid,
+    /// Index of the output within that transaction.
     pub output_index: u32,
+    /// Unlocking ("scriptSig") bytes.
     pub script: Vec<u8>,
+    /// Sequence number (used for RBF / locktime semantics).
     pub sequence: u32,
 }
 
+/// A transaction output — amount plus locking script.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {
+    /// Amount in satoshis.
     pub value: u64,
+    /// Locking ("scriptPubKey") bytes.
     pub script: Vec<u8>,
 }
 
+/// Bitcoin transaction (version 1, non-segwit).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Transaction {
     version: u32,
@@ -36,6 +45,7 @@ pub struct Transaction {
 }
 
 impl Input {
+    /// Parse an input from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let txid = Txid::deserialize(stream)?;
         let output_index = read_u32_le(stream)?;
@@ -49,6 +59,7 @@ impl Input {
         })
     }
 
+    /// Append the on-wire encoding of this input to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.txid.serialize());
         out.extend_from_slice(&self.output_index.to_le_bytes());
@@ -59,12 +70,14 @@ impl Input {
 }
 
 impl Output {
+    /// Parse an output from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let value = read_u64_le(stream)?;
         let script = read_varbytes(stream)?;
         Ok(Self { value, script })
     }
 
+    /// Append the on-wire encoding of this output to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.value.to_le_bytes());
         out.extend_from_slice(&serialize_var_int(self.script.len() as u64));
@@ -73,6 +86,7 @@ impl Output {
 }
 
 impl Transaction {
+    /// Construct from fields. Marks the transaction as valid.
     pub fn new(version: u32, inputs: Vec<Input>, outputs: Vec<Output>, lock_time: u32) -> Self {
         Self {
             version,
@@ -83,11 +97,15 @@ impl Transaction {
         }
     }
 
+    /// Parse a transaction from an owned byte buffer.
     pub fn from_data(data: &[u8]) -> Result<Self> {
         let mut stream = data;
         Self::deserialize(&mut stream)
     }
 
+    /// Parse a transaction from `stream`, advancing the cursor.
+    ///
+    /// Errors on unsupported versions (only version 1 is accepted).
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let version = read_u32_le(stream)?;
         if version != 1 {
@@ -113,6 +131,7 @@ impl Transaction {
         })
     }
 
+    /// On-wire bytes of this transaction.
     pub fn serialize(&self) -> Vec<u8> {
         let mut out = Vec::new();
         out.extend_from_slice(&self.version.to_le_bytes());
@@ -128,38 +147,47 @@ impl Transaction {
         out
     }
 
+    /// Transaction version.
     pub fn version(&self) -> u32 {
         self.version
     }
 
+    /// nLockTime field.
     pub fn lock_time(&self) -> u32 {
         self.lock_time
     }
 
+    /// Borrowed input list.
     pub fn inputs(&self) -> &[Input] {
         &self.inputs
     }
 
+    /// Borrowed output list.
     pub fn outputs(&self) -> &[Output] {
         &self.outputs
     }
 
+    /// Number of inputs.
     pub fn input_count(&self) -> usize {
         self.inputs.len()
     }
 
+    /// Number of outputs.
     pub fn output_count(&self) -> usize {
         self.outputs.len()
     }
 
+    /// Get input by index, or `None` if out of range.
     pub fn get_input(&self, i: usize) -> Option<&Input> {
         self.inputs.get(i)
     }
 
+    /// Get output by index, or `None` if out of range.
     pub fn get_output(&self, i: usize) -> Option<&Output> {
         self.outputs.get(i)
     }
 
+    /// True if this transaction was constructed or parsed successfully.
     pub fn is_valid(&self) -> bool {
         self.valid
     }
@@ -257,6 +285,47 @@ mod tests {
     }
 
     #[test]
+    fn test_multi_input_output_round_trip() {
+        let tx = Transaction::new(
+            1,
+            vec![
+                Input {
+                    txid: dummy_txid(),
+                    output_index: 0,
+                    script: vec![0x51, 0x52],
+                    sequence: 0xfffffffe,
+                },
+                Input {
+                    txid: Txid::from_data(&[0x88u8; 32]).unwrap(),
+                    output_index: 5,
+                    script: vec![],
+                    sequence: 0xffffffff,
+                },
+            ],
+            vec![
+                Output {
+                    value: 1_0000_0000,
+                    script: vec![0x76, 0xa9, 0x14],
+                },
+                Output {
+                    value: 0,
+                    script: vec![0x6a, 0x04, 1, 2, 3, 4],
+                },
+            ],
+            500_000,
+        );
+        let bytes = tx.serialize();
+        assert_eq!(Transaction::from_data(&bytes).unwrap(), tx);
+    }
+
+    #[test]
+    fn test_empty_inputs_outputs_round_trip() {
+        let tx = Transaction::new(1, vec![], vec![], 0);
+        let bytes = tx.serialize();
+        assert_eq!(Transaction::from_data(&bytes).unwrap(), tx);
+    }
+
+    #[test]
     fn test_genesis_coinbase_round_trip() {
         // Bitcoin genesis block coinbase transaction (hand-built).
         // version=1, 1 input (all-zero txid, idx=0xffffffff, scriptSig=4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73),
@@ -270,5 +339,28 @@ mod tests {
         assert_eq!(tx.outputs()[0].value, 50_0000_0000);
         // Round-trip exact bytes.
         assert_eq!(tx.serialize(), bytes);
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_tx_round_trip(
+            n_inputs in 0usize..4,
+            n_outputs in 0usize..4,
+            lock_time: u32,
+        ) {
+            let inputs = (0..n_inputs).map(|i| Input {
+                txid: Txid::from_data(&[i as u8; 32]).unwrap(),
+                output_index: i as u32,
+                script: vec![0x51; i % 5],
+                sequence: 0xffffffff_u32.wrapping_sub(i as u32),
+            }).collect();
+            let outputs = (0..n_outputs).map(|i| Output {
+                value: (i as u64).wrapping_mul(1_0000_0000),
+                script: vec![0x76; i % 3],
+            }).collect();
+            let tx = Transaction::new(1, inputs, outputs, lock_time);
+            let bytes = tx.serialize();
+            proptest::prop_assert_eq!(Transaction::from_data(&bytes).unwrap(), tx);
+        }
     }
 }

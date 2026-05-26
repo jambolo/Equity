@@ -4,8 +4,10 @@ use crate::public_key::PublicKey;
 use crate::{EquityError, Network, Result, base58_check, configuration::Configuration};
 use crypto::{ripemd, sha256};
 
+/// Length of a Bitcoin P2PKH address payload (HASH160).
 pub const ADDRESS_SIZE: usize = ripemd::RIPEMD160_HASH_SIZE; // 20
 
+/// Bitcoin Pay-to-Public-Key-Hash address.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Address {
     value: [u8; ADDRESS_SIZE],
@@ -13,11 +15,21 @@ pub struct Address {
 }
 
 impl Address {
+    /// Parse a Base58Check address string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use equity::address::Address;
+    /// let addr = Address::from_string("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa").unwrap();
+    /// assert!(addr.is_valid());
+    /// ```
     pub fn from_string(s: &str) -> Result<Self> {
         let (decoded, _version) = base58_check::decode(s)?;
         Self::from_data(&decoded)
     }
 
+    /// Construct from a raw 20-byte HASH160 payload.
     pub fn from_data(data: &[u8]) -> Result<Self> {
         if data.len() != ADDRESS_SIZE {
             return Err(EquityError(format!(
@@ -29,6 +41,17 @@ impl Address {
         Ok(Self { value, valid: true })
     }
 
+    /// Derive an address as RIPEMD-160(SHA-256(`public_key`)).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use equity::{address::Address, private_key::PrivateKey, public_key::PublicKey};
+    ///
+    /// let pk = PublicKey::from_private_key(&PrivateKey::from_data(&[1u8; 32]).unwrap()).unwrap();
+    /// let addr = Address::from_public_key(&pk).unwrap();
+    /// assert_eq!(addr.as_bytes().len(), 20);
+    /// ```
     pub fn from_public_key(public_key: &PublicKey) -> Result<Self> {
         if !public_key.is_valid() {
             return Err(EquityError("Invalid public key".to_string()));
@@ -38,11 +61,13 @@ impl Address {
         Ok(Self { value, valid: true })
     }
 
+    /// Derive an address from raw serialized public-key bytes (compressed or uncompressed).
     pub fn from_public_key_bytes(pubkey_data: &[u8]) -> Result<Self> {
         let pk = PublicKey::from_data(pubkey_data)?;
         Self::from_public_key(&pk)
     }
 
+    /// Encode as a Base58Check string using the version byte appropriate for `network`.
     pub fn to_string(&self, network: Network) -> String {
         let version = match network {
             Network::Mainnet => Configuration::ADDRESS_VERSION as u32,
@@ -51,14 +76,17 @@ impl Address {
         base58_check::encode(&self.value, version)
     }
 
+    /// Address payload as an owned `Vec<u8>`.
     pub fn value(&self) -> Vec<u8> {
         self.value.to_vec()
     }
 
+    /// Address payload as a borrowed fixed-size array.
     pub fn as_bytes(&self) -> &[u8; ADDRESS_SIZE] {
         &self.value
     }
 
+    /// True if this address was constructed successfully.
     pub fn is_valid(&self) -> bool {
         self.valid
     }
@@ -117,5 +145,43 @@ mod tests {
     fn test_address_display_uses_mainnet_version() {
         let addr = Address::from_data(&[0u8; ADDRESS_SIZE]).unwrap();
         assert!(addr.to_string(Network::Mainnet).starts_with('1'));
+    }
+
+    #[test]
+    fn test_address_testnet_prefix_differs() {
+        let addr = Address::from_data(&[0u8; ADDRESS_SIZE]).unwrap();
+        let mainnet = addr.to_string(Network::Mainnet);
+        let testnet = addr.to_string(Network::Testnet);
+        assert!(mainnet.starts_with('1'));
+        // testnet uses version 0x6F → 'm' or 'n' prefix
+        assert!(testnet.starts_with('m') || testnet.starts_with('n'));
+    }
+
+    #[test]
+    fn test_address_from_data_rejects_wrong_length() {
+        assert!(Address::from_data(&[0u8; 10]).is_err());
+        assert!(Address::from_data(&[0u8; 21]).is_err());
+    }
+
+    #[test]
+    fn test_address_from_str_round_trip() {
+        let s = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+        let addr: Address = s.parse().unwrap();
+        assert_eq!(addr.to_string(Network::Mainnet), s);
+    }
+
+    #[test]
+    fn test_address_uncompressed_pubkey_round_trip() {
+        // P2PKH from uncompressed key; matches the C++/Rust hashing implementation.
+        let sk = [
+            0x18u8, 0xE1, 0x4A, 0x7B, 0x6A, 0x30, 0x7F, 0x42, 0x6A, 0x94, 0xF8, 0x11, 0x47, 0x01,
+            0xE7, 0xC8, 0xE7, 0x74, 0xE7, 0xF9, 0xA4, 0x7E, 0x2C, 0x20, 0x35, 0xDB, 0x29, 0xA2,
+            0x06, 0x32, 0x17, 0x25,
+        ];
+        let pk = PublicKey::from_private_key_bytes(&sk).unwrap();
+        // Should derive same address by either path.
+        let a1 = Address::from_public_key(&pk).unwrap();
+        let a2 = Address::from_public_key_bytes(pk.as_bytes()).unwrap();
+        assert_eq!(a1.as_bytes(), a2.as_bytes());
     }
 }

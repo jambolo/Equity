@@ -1,5 +1,4 @@
-//! Port of the legacy C++ `list-prefixes` CLI: enumerates Base58Check
-//! encodings of the all-zero and all-FF 20- and 32-byte hashes across every
+//! Enumerates Base58Check encodings of the all-zero and all-FF 20- and 32-byte hashes across every
 //! version byte (0..=255).
 
 use equity::base58_check;

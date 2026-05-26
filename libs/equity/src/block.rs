@@ -4,18 +4,27 @@ use crate::transaction::Transaction;
 use crate::{EquityError, Result};
 use p2p::{deserialize_var_int, serialize_var_int};
 
+/// Length of a block/transaction hash in bytes.
 pub const HASH_SIZE: usize = 32;
 
+/// 80-byte Bitcoin block header.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BlockHeader {
+    /// Block version bits.
     pub version: i32,
+    /// Hash of the previous block header (little-endian on wire).
     pub previous_block: [u8; HASH_SIZE],
+    /// Merkle root of the block's transactions.
     pub merkle_root: [u8; HASH_SIZE],
+    /// Unix timestamp from the miner.
     pub timestamp: u32,
+    /// Compact-form difficulty target (`nBits`).
     pub target: u32,
+    /// Mining nonce.
     pub nonce: u32,
 }
 
+/// Bitcoin block: 80-byte header + transaction list.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Block {
     header: BlockHeader,
@@ -23,6 +32,7 @@ pub struct Block {
 }
 
 impl BlockHeader {
+    /// Parse a header from `stream`, advancing the cursor by 80 bytes.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let version = read_i32_le(stream)?;
         let previous_block = read_hash(stream)?;
@@ -40,6 +50,7 @@ impl BlockHeader {
         })
     }
 
+    /// Append the 80-byte wire encoding of this header to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.version.to_le_bytes());
         out.extend_from_slice(&self.previous_block);
@@ -51,15 +62,18 @@ impl BlockHeader {
 }
 
 impl Block {
+    /// Construct from a header and transaction list.
     pub fn new(header: BlockHeader, transactions: Vec<Transaction>) -> Self {
         Self { header, transactions }
     }
 
+    /// Parse a full block from an owned byte buffer.
     pub fn from_data(data: &[u8]) -> Result<Self> {
         let mut stream = data;
         Self::deserialize(&mut stream)
     }
 
+    /// Parse a full block from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let header = BlockHeader::deserialize(stream)?;
         let n = read_var_int(stream)? as usize;
@@ -70,6 +84,7 @@ impl Block {
         Ok(Self { header, transactions })
     }
 
+    /// On-wire bytes of this block (header + varint count + transactions).
     pub fn serialize(&self) -> Vec<u8> {
         let mut out = Vec::new();
         self.header.serialize(&mut out);
@@ -80,18 +95,22 @@ impl Block {
         out
     }
 
+    /// Borrowed block header.
     pub fn header(&self) -> &BlockHeader {
         &self.header
     }
 
+    /// Borrowed transaction list.
     pub fn transactions(&self) -> &[Transaction] {
         &self.transactions
     }
 
+    /// Number of transactions in the block.
     pub fn transaction_count(&self) -> usize {
         self.transactions.len()
     }
 
+    /// Get transaction by index, or `None` if out of range.
     pub fn get_transaction(&self, i: usize) -> Option<&Transaction> {
         self.transactions.get(i)
     }

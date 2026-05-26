@@ -2,33 +2,71 @@
 
 use sha2::{Digest, Sha256};
 
+/// Length of a SHA-256 digest in bytes.
 pub const SHA256_HASH_SIZE: usize = 32;
+/// Length of the Bitcoin 4-byte checksum.
 pub const CHECKSUM_SIZE: usize = 4;
+/// Fixed-size SHA-256 digest.
 pub type Sha256Hash = [u8; SHA256_HASH_SIZE];
+/// Fixed-size Bitcoin 4-byte checksum.
 pub type Checksum = [u8; CHECKSUM_SIZE];
 
+/// Compute SHA-256(input).
+///
+/// # Examples
+///
+/// ```
+/// use crypto::sha256;
+///
+/// let h = sha256::sha256(b"");
+/// assert_eq!(h[0], 0xe3);
+/// assert_eq!(h.len(), 32);
+/// ```
 pub fn sha256(input: &[u8]) -> Sha256Hash {
     Sha256::digest(input).into()
 }
 
+/// Compute SHA-256(SHA-256(input)) — Bitcoin's "double SHA-256".
+///
+/// # Examples
+///
+/// ```
+/// use crypto::sha256;
+///
+/// let h = sha256::double_sha256(b"");
+/// assert_eq!(h[0..4], [0x5d, 0xf6, 0xe0, 0xe2]);
+/// ```
 pub fn double_sha256(input: &[u8]) -> Sha256Hash {
     let first = Sha256::digest(input);
     Sha256::digest(first).into()
 }
 
+/// First 4 bytes of `double_sha256(input)` — the checksum used by
+/// Base58Check, the P2P wire envelope, and other Bitcoin formats.
+///
+/// # Examples
+///
+/// ```
+/// use crypto::sha256;
+///
+/// assert_eq!(sha256::checksum(b""), [0x5d, 0xf6, 0xe0, 0xe2]);
+/// ```
 pub fn checksum(input: &[u8]) -> Checksum {
     let h = double_sha256(input);
     [h[0], h[1], h[2], h[3]]
 }
 
+/// `sha256` as a `Vec<u8>`.
 pub fn sha256_vec(input: &[u8]) -> Vec<u8> {
     Sha256::digest(input).to_vec()
 }
 
+/// `double_sha256` as a `Vec<u8>`.
 pub fn double_sha256_vec(input: &[u8]) -> Vec<u8> {
     double_sha256(input).to_vec()
 }
 
+/// `checksum` as a `Vec<u8>`.
 pub fn checksum_vec(input: &[u8]) -> Vec<u8> {
     checksum(input).to_vec()
 }

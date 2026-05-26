@@ -1,9 +1,8 @@
 //! BIP-39 mnemonic — 12/15/18/21/24-word seed phrases.
 //!
-//! Layout follows the original C++ implementation: validate() only requires
+//! Validate() only requires
 //! that all words are in the dictionary and the count is a multiple of 3.
-//! Checksum is only enforced when the mnemonic is constructed from entropy
-//! (matching C++'s asymmetric behaviour); seed derivation works on any
+//! Checksum is only enforced when the mnemonic is constructed from entropy; seed derivation works on any
 //! syntactically valid sentence.
 
 use crate::mnemonic_wordlist::ENGLISH_WORDLIST;
@@ -15,8 +14,10 @@ const BYTES_PER_CHECK_BIT: usize = 4; // 32 entropy bits per checksum bit
 const SEED_SIZE: usize = 64;
 const PBKDF2_ROUNDS: i32 = 2048;
 
+/// BIP-39 wordlist language. Only English is supported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Language {
+    /// English BIP-39 wordlist.
     English,
 }
 
@@ -28,6 +29,7 @@ impl Language {
     }
 }
 
+/// BIP-39 mnemonic phrase.
 #[derive(Debug, Clone)]
 pub struct Mnemonic {
     words: Vec<String>,
@@ -36,6 +38,7 @@ pub struct Mnemonic {
 }
 
 impl Mnemonic {
+    /// Build from an explicit word list.
     pub fn from_words(words: &[&str]) -> Self {
         let owned: Vec<String> = words.iter().map(|w| w.to_string()).collect();
         let language = determine_language(&owned);
@@ -43,13 +46,26 @@ impl Mnemonic {
         Self { words: owned, valid, language }
     }
 
+    /// Build from a whitespace-separated mnemonic sentence.
     pub fn from_sentence(sentence: &str) -> Self {
         let words: Vec<&str> = sentence.split_whitespace().collect();
         Self::from_words(&words)
     }
 
+    /// Derive a mnemonic from raw entropy.
+    ///
+    /// `entropy.len()` must be a multiple of 4 (128..=256 bits per BIP-39).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use equity::mnemonic::{Mnemonic, Language};
+    ///
+    /// let m = Mnemonic::from_entropy(&[0u8; 16], Language::English).unwrap();
+    /// assert!(m.sentence().starts_with("abandon abandon"));
+    /// ```
     pub fn from_entropy(entropy: &[u8], language: Language) -> Result<Self> {
-        if entropy.len() % BYTES_PER_CHECK_BIT != 0 || entropy.len() > 256 * 8 * BYTES_PER_CHECK_BIT
+        if !entropy.len().is_multiple_of(BYTES_PER_CHECK_BIT) || entropy.len() > 256 * 8 * BYTES_PER_CHECK_BIT
         {
             return Err(EquityError("Invalid entropy length".to_string()));
         }
@@ -82,14 +98,17 @@ impl Mnemonic {
         Ok(Self { words, valid, language })
     }
 
+    /// True if every word is in the dictionary and the count is a multiple of 3.
     pub fn is_valid(&self) -> bool {
         self.valid
     }
 
+    /// Borrowed word list.
     pub fn words(&self) -> &[String] {
         &self.words
     }
 
+    /// Space-joined sentence form. Empty string when invalid.
     pub fn sentence(&self) -> String {
         if !self.valid {
             return String::new();
@@ -97,10 +116,12 @@ impl Mnemonic {
         self.words.join(" ")
     }
 
+    /// Mnemonic wordlist language.
     pub fn language(&self) -> Language {
         self.language
     }
 
+    /// Recover the underlying entropy by stripping the checksum bits. Empty when invalid.
     pub fn entropy(&self) -> Vec<u8> {
         if !self.valid {
             return Vec::new();
@@ -112,6 +133,20 @@ impl Mnemonic {
         e
     }
 
+    /// Derive a 64-byte BIP-39 seed from the mnemonic and optional `password` (passphrase).
+    ///
+    /// Internally runs PBKDF2-HMAC-SHA-512 with 2048 iterations over the
+    /// sentence and the salt `"mnemonic" + password`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use equity::mnemonic::{Mnemonic, Language};
+    ///
+    /// let m = Mnemonic::from_entropy(&[0u8; 16], Language::English).unwrap();
+    /// let seed = m.seed("TREZOR");
+    /// assert_eq!(seed.len(), 64);
+    /// ```
     pub fn seed(&self, password: &str) -> Vec<u8> {
         if !self.valid {
             return Vec::new();
@@ -127,6 +162,7 @@ impl Mnemonic {
         .unwrap_or_default()
     }
 
+    /// Dictionary words starting with `partial`. Pass `max = 0` for "unlimited".
     pub fn suggestions(&self, partial: &str, max: usize) -> Vec<String> {
         let dictionary = self.language.dictionary();
         let mut out = Vec::new();
@@ -170,7 +206,7 @@ fn validate_words(words: &[String], language: Language) -> bool {
         return false;
     }
     let words_per_group = (BYTES_PER_CHECK_BIT * 8 + 1) / BITS_PER_WORD; // = 3
-    if words.len() % words_per_group != 0 {
+    if !words.len().is_multiple_of(words_per_group) {
         return false;
     }
     are_found(words, language)
@@ -178,24 +214,30 @@ fn validate_words(words: &[String], language: Language) -> bool {
 
 fn are_found(words: &[String], language: Language) -> bool {
     let dictionary = language.dictionary();
-    words.iter().all(|w| dictionary.iter().any(|d| *d == w.as_str()))
+    words.iter().all(|w| dictionary.contains(&w.as_str()))
 }
 
-fn determine_language(words: &[String]) -> Language {
-    if are_found(words, Language::English) {
-        Language::English
-    } else {
-        Language::English // sole supported language; fall back as in C++
-    }
+fn determine_language(_words: &[String]) -> Language {
+    Language::English
 }
 
-// Convenience wrappers for the prior wrapper-style API.
+/// Generate a random mnemonic with `strength` entropy bits (one of 128, 160,
+/// 192, 224, 256).
+///
+/// # Examples
+///
+/// ```
+/// use equity::mnemonic::{generate_mnemonic, validate_mnemonic};
+///
+/// let phrase = generate_mnemonic(128).unwrap();
+/// assert!(validate_mnemonic(&phrase));
+/// ```
 pub fn generate_mnemonic(strength: u32) -> std::result::Result<String, String> {
-    if strength % 8 != 0 {
+    if !strength.is_multiple_of(8) {
         return Err("strength must be byte-aligned".into());
     }
     let bytes = (strength / 8) as usize;
-    if !(16..=32).contains(&bytes) || bytes % 4 != 0 {
+    if !(16..=32).contains(&bytes) || !bytes.is_multiple_of(4) {
         return Err(format!("invalid strength: {strength}"));
     }
     let entropy = crypto::random::get_bytes(bytes);
@@ -203,10 +245,29 @@ pub fn generate_mnemonic(strength: u32) -> std::result::Result<String, String> {
     Ok(m.sentence())
 }
 
+/// True if every whitespace-separated word in `sentence` is in the dictionary
+/// and the word count is a multiple of three.
+///
+/// Note: the BIP-39 checksum is *not* enforced here — only structural
+/// validity. Checksums are verified when a mnemonic is constructed via
+/// [`Mnemonic::from_entropy`].
 pub fn validate_mnemonic(sentence: &str) -> bool {
     Mnemonic::from_sentence(sentence).is_valid()
 }
 
+/// Convenience: derive the BIP-39 seed for `sentence` with the given passphrase.
+///
+/// # Examples
+///
+/// ```
+/// use equity::mnemonic::mnemonic_to_seed;
+///
+/// let seed = mnemonic_to_seed(
+///     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+///     "TREZOR",
+/// ).unwrap();
+/// assert_eq!(seed.len(), 64);
+/// ```
 pub fn mnemonic_to_seed(sentence: &str, passphrase: &str) -> std::result::Result<Vec<u8>, String> {
     let m = Mnemonic::from_sentence(sentence);
     if !m.is_valid() {
@@ -263,5 +324,61 @@ mod tests {
         );
         let s = m.suggestions("aban", 0);
         assert_eq!(s, vec!["abandon".to_string()]);
+    }
+
+    #[test]
+    fn test_word_count_not_multiple_of_three_rejected() {
+        // Two dictionary words — invalid count.
+        assert!(!validate_mnemonic("abandon abandon"));
+    }
+
+    #[test]
+    fn test_unknown_word_rejected() {
+        assert!(!validate_mnemonic(
+            "abandon abandon notaword abandon abandon abandon abandon abandon abandon abandon abandon about"
+        ));
+    }
+
+    #[test]
+    fn test_generate_strengths() {
+        for strength in [128u32, 160, 192, 224, 256] {
+            let phrase = generate_mnemonic(strength).unwrap();
+            let words: Vec<&str> = phrase.split_whitespace().collect();
+            let expected_words = (strength as usize + strength as usize / 32) / 11;
+            assert_eq!(words.len(), expected_words, "strength {strength}");
+            assert!(validate_mnemonic(&phrase));
+        }
+    }
+
+    #[test]
+    fn test_generate_invalid_strength() {
+        assert!(generate_mnemonic(64).is_err());
+        assert!(generate_mnemonic(100).is_err()); // not byte-aligned
+        assert!(generate_mnemonic(140).is_err()); // not %4 bytes
+        assert!(generate_mnemonic(512).is_err()); // > 32 bytes
+    }
+
+    #[test]
+    fn test_known_bip39_seed_with_passphrase() {
+        // BIP-39: 24-word "abandon * 23 art" with passphrase "TREZOR".
+        let entropy = [0u8; 32];
+        let m = Mnemonic::from_entropy(&entropy, Language::English).unwrap();
+        assert!(m.sentence().ends_with(" art"));
+        assert_eq!(m.words().len(), 24);
+        let seed = m.seed("TREZOR");
+        let expected = "bda85446c68413707090a52022edd26a1c9462295029f2e60cd7c4f2bbd3097170af7a4d73245cafa9c3cca8d561a7c3de6f5d4a10be8ed2a5e608d68f92fcc8";
+        assert_eq!(hex::encode(seed), expected);
+    }
+
+    #[test]
+    fn test_invalid_entropy_length() {
+        // Not multiple of 4 bytes.
+        assert!(Mnemonic::from_entropy(&[0u8; 15], Language::English).is_err());
+        assert!(Mnemonic::from_entropy(&[0u8; 17], Language::English).is_err());
+    }
+
+    #[test]
+    fn test_mnemonic_to_seed_invalid_rejected() {
+        assert!(mnemonic_to_seed("nope nope nope", "").is_err());
     }
 }

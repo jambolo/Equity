@@ -1,7 +1,4 @@
-//! Port of the legacy C++ `view-transaction` CLI: decodes a raw Bitcoin
-//! transaction hex string and prints its fields as pretty-printed JSON,
-//! preserving field insertion order (4-space indent) to match the original
-//! `nlohmann::json::dump(4)` output.
+//! Decodes a raw Bitcoin transaction hex string and prints its fields as pretty-printed JSON.
 //!
 //! Usage: `view-transactions <hex>`
 
@@ -31,7 +28,6 @@ fn build_json(tx: &Transaction) -> Value {
         .outputs()
         .iter()
         .map(|o| {
-            // Match legacy `(double)value` serialization.
             json!({
                 "value": o.value as f64,
                 "script": hex::encode(&o.script),

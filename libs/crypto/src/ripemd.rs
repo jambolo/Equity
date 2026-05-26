@@ -2,13 +2,17 @@
 
 use ripemd::{Digest, Ripemd160};
 
+/// Length of a RIPEMD-160 digest in bytes.
 pub const RIPEMD160_HASH_SIZE: usize = 20;
+/// Fixed-size RIPEMD-160 digest.
 pub type Ripemd160Hash = [u8; RIPEMD160_HASH_SIZE];
 
+/// Compute RIPEMD-160(input).
 pub fn ripemd160(input: &[u8]) -> Ripemd160Hash {
     Ripemd160::digest(input).into()
 }
 
+/// `ripemd160` as a `Vec<u8>`.
 pub fn ripemd160_vec(input: &[u8]) -> Vec<u8> {
     Ripemd160::digest(input).to_vec()
 }

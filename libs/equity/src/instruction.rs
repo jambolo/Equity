@@ -1,8 +1,9 @@
 //! Bitcoin script instruction: opcode byte + optional push payload.
 //!
-//! Matches the C++ Instruction class: a flat 256-entry opcode table drives
+//! A flat 256-entry opcode table drives
 //! parsing, serialization, and the engine's `min_args` check.
 
+/// One Bitcoin script instruction: opcode byte plus any push payload.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Instruction {
     op: u8,
@@ -12,6 +13,7 @@ pub struct Instruction {
     valid: bool,
 }
 
+/// Returned when [`Instruction::parse`] encounters malformed bytes.
 #[derive(Debug)]
 pub struct ScriptParsingError;
 
@@ -23,6 +25,7 @@ impl std::fmt::Display for ScriptParsingError {
 
 impl std::error::Error for ScriptParsingError {}
 
+/// Named Bitcoin script opcodes. Numeric value equals the on-wire byte.
 #[allow(non_camel_case_types)]
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]
@@ -106,10 +109,14 @@ pub enum OpCode {
     OP_INVALID = 0xff,
 }
 
+/// Static metadata for one opcode slot.
 #[derive(Debug, Clone, Copy)]
 pub struct Description {
+    /// Display name (e.g. `"DUP"`).
     pub name: &'static str,
+    /// Minimum stack depth the engine requires before executing this opcode.
     pub min_args: usize,
+    /// True if this byte is a defined opcode.
     pub valid: bool,
 }
 
@@ -117,7 +124,7 @@ const fn d(name: &'static str, min_args: usize, valid: bool) -> Description {
     Description { name, min_args, valid }
 }
 
-/// 256-entry opcode descriptor table mirroring `Instruction::DESCRIPTIONS` in C++.
+/// 256-entry opcode descriptor table.
 pub static DESCRIPTIONS: [Description; 256] = build_descriptions();
 
 const fn build_descriptions() -> [Description; 256] {
@@ -244,26 +251,32 @@ const fn build_descriptions() -> [Description; 256] {
 }
 
 impl Instruction {
+    /// Opcode byte.
     pub fn op(&self) -> u8 {
         self.op
     }
 
+    /// Push payload (empty for non-push opcodes).
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
+    /// Byte offset of this instruction within its source script.
     pub fn location(&self) -> usize {
         self.location
     }
 
+    /// Total encoded size in bytes (opcode + length prefix + payload).
     pub fn size(&self) -> usize {
         self.size
     }
 
+    /// True if this instruction was successfully parsed.
     pub fn is_valid(&self) -> bool {
         self.valid
     }
 
+    /// Static metadata for this instruction's opcode.
     pub fn description(&self) -> Description {
         DESCRIPTIONS[self.op as usize]
     }
@@ -345,6 +358,7 @@ impl Instruction {
         })
     }
 
+    /// Append the on-wire encoding of this instruction to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         if !self.valid {
             out.push(OpCode::OP_INVALID as u8);

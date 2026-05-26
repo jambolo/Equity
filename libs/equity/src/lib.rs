@@ -1,7 +1,52 @@
-//! Equity — Bitcoin protocol primitives implemented in pure Rust.
+//! Equity — Bitcoin protocol primitives.
 //!
-//! The crate previously bridged to a C++ implementation through `cxx`; that
-//! surface has been removed and every module now stands on its own.
+//! This crate provides the Bitcoin-core data types and their wire/text
+//! encodings: keys, addresses, scripts, transactions, blocks, the Merkle tree,
+//! difficulty targets, BIP-39 mnemonics, and a minimal wallet.
+//!
+//! ## Module map
+//!
+//! - [`base58`] / [`base58_check`] — Base58 alphabets used by Bitcoin.
+//! - [`private_key`] / [`public_key`] / [`address`] — secp256k1 key material and
+//!   P2PKH derivation.
+//! - [`script`] / [`instruction`] / [`script_engine`] — script parsing and a
+//!   stack-based interpreter (without signature checks).
+//! - [`transaction`] / [`txid`] — transaction structure and ids.
+//! - [`block`] / [`merkle_tree`] / [`target`] — block headers, Merkle trees,
+//!   difficulty.
+//! - [`mnemonic`] — BIP-39 mnemonic generation, validation, and seed derivation.
+//! - [`wallet`] — in-memory bag of `(PrivateKey, PublicKey, Address)` triples.
+//! - [`configuration`] — mainnet defaults (version bytes, network id).
+//!
+//! Most fallible operations return [`Result`] with the crate-local
+//! [`EquityError`].
+//!
+//! # Examples
+//!
+//! Derive a mainnet P2PKH address from a private key:
+//!
+//! ```
+//! use equity::{Network, address::Address, private_key::PrivateKey, public_key::PublicKey};
+//!
+//! let mut k = [0u8; 32];
+//! k[31] = 1;
+//! let sk = PrivateKey::from_data(&k).unwrap();
+//! let pk = PublicKey::from_private_key(&sk).unwrap();
+//! let addr = Address::from_public_key(&pk).unwrap();
+//! assert!(addr.to_string(Network::Mainnet).starts_with('1'));
+//! ```
+//!
+//! Parse a transaction hex:
+//!
+//! ```
+//! use equity::transaction::Transaction;
+//!
+//! // Coinbase of Bitcoin's genesis block.
+//! let hex = "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000";
+//! let bytes = hex::decode(hex).unwrap();
+//! let tx = Transaction::from_data(&bytes).unwrap();
+//! assert_eq!(tx.outputs()[0].value, 50_0000_0000);
+//! ```
 
 pub mod address;
 pub mod base58;
@@ -21,10 +66,14 @@ pub mod transaction;
 pub mod txid;
 pub mod wallet;
 
+/// Bitcoin network selector.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Network {
+    /// Production network.
     Mainnet = 0,
+    /// Public test network.
     Testnet = 1,
+    /// Local regression-test network.
     Regtest = 2,
 }
 
@@ -45,8 +94,12 @@ impl From<Network> for u32 {
     }
 }
 
+/// Error type returned by the equity crate.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EquityError(pub String);
+pub struct EquityError(
+    /// Human-readable message.
+    pub String,
+);
 
 impl std::fmt::Display for EquityError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -56,8 +109,34 @@ impl std::fmt::Display for EquityError {
 
 impl std::error::Error for EquityError {}
 
+/// Crate-local `Result` alias using [`EquityError`].
 pub type Result<T> = std::result::Result<T, EquityError>;
 
+/// Build an [`EquityError`] from a message string.
 pub fn error(msg: &str) -> EquityError {
     EquityError(msg.to_string())
+}
+
+#[cfg(test)]
+mod lib_tests {
+    use super::*;
+
+    #[test]
+    fn network_round_trip() {
+        for n in [Network::Mainnet, Network::Testnet, Network::Regtest] {
+            assert_eq!(Network::from(u32::from(n)), n);
+        }
+    }
+
+    #[test]
+    fn network_unknown_maps_to_mainnet() {
+        assert_eq!(Network::from(999), Network::Mainnet);
+    }
+
+    #[test]
+    fn equity_error_display_and_source() {
+        let e = error("boom");
+        assert_eq!(format!("{e}"), "Equity error: boom");
+        let _: &dyn std::error::Error = &e;
+    }
 }

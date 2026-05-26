@@ -3,9 +3,24 @@
 use hmac::{Hmac, Mac};
 use sha2::Sha512;
 
+/// Length of an HMAC-SHA-512 tag in bytes.
 pub const HMAC_SHA512_SIZE: usize = 64; // 512 bits / 8 = 64 bytes
+/// Fixed-size HMAC-SHA-512 tag.
 pub type HmacSha512 = [u8; HMAC_SHA512_SIZE];
 
+/// Compute HMAC-SHA-512 over `message` keyed by `key`.
+///
+/// Any key length is accepted (the underlying implementation re-hashes keys
+/// longer than the block size).
+///
+/// # Examples
+///
+/// ```
+/// use crypto::hmac::{hmac_sha512, HMAC_SHA512_SIZE};
+///
+/// let tag = hmac_sha512(b"key", b"message");
+/// assert_eq!(tag.len(), HMAC_SHA512_SIZE);
+/// ```
 pub fn hmac_sha512(key: &[u8], message: &[u8]) -> HmacSha512 {
     let mut mac =
         <Hmac<Sha512> as Mac>::new_from_slice(key).expect("HMAC accepts keys of any length");
@@ -24,7 +39,7 @@ mod tests {
     }
 
     const HMAC_SHA512_CASES: &[HmacSha512TestCase] = &[
-        // Test case 1: Short key and message from TestHmac.cpp
+        // Test case 1: Short key and message
         HmacSha512TestCase {
             key: "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
             message: "4869205468657265",

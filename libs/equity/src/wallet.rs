@@ -7,15 +7,28 @@ use crate::private_key::PrivateKey;
 use crate::public_key::PublicKey;
 use crate::{Network, Result};
 
-/// A wallet entry containing a key pair and associated address
+/// One wallet entry: a key pair and its derived P2PKH address.
 #[derive(Debug)]
 pub struct WalletEntry {
+    /// Private key (scalar + compression flag).
     pub private_key: PrivateKey,
+    /// Public key derived from `private_key`.
     pub public_key: PublicKey,
+    /// HASH160 of the public key.
     pub address: Address,
 }
 
-/// A Bitcoin wallet for managing private keys and addresses
+/// In-memory bag of [`WalletEntry`]s tied to a [`Network`].
+///
+/// # Examples
+///
+/// ```
+/// use equity::{Network, wallet::Wallet};
+///
+/// let mut w = Wallet::new(Network::Mainnet);
+/// w.add_private_key_bytes(&[1u8; 32]).unwrap();
+/// assert_eq!(w.len(), 1);
+/// ```
 #[derive(Debug)]
 pub struct Wallet {
     entries: Vec<WalletEntry>,
@@ -23,7 +36,7 @@ pub struct Wallet {
 }
 
 impl Wallet {
-    /// Create a new empty wallet
+    /// Create a new empty wallet bound to `network`.
     pub fn new(network: Network) -> Self {
         Wallet {
             entries: Vec::new(),
@@ -185,5 +198,52 @@ mod tests {
 
         let addresses = wallet.get_addresses();
         assert_eq!(addresses.len(), wallet.len());
+    }
+
+    #[test]
+    fn test_add_private_key_wif() {
+        let mut wallet = Wallet::new(Network::Mainnet);
+        let wif = "5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf";
+        let idx = wallet.add_private_key_wif(wif).unwrap();
+        assert_eq!(idx, 0);
+        assert_eq!(wallet.len(), 1);
+        assert_eq!(wallet.get_entry(0).unwrap().private_key_wif(0x80), wif);
+    }
+
+    #[test]
+    fn test_add_private_key_bytes() {
+        let mut wallet = Wallet::new(Network::Mainnet);
+        let mut key = [0u8; 32];
+        key[31] = 9;
+        let idx = wallet.add_private_key_bytes(&key).unwrap();
+        assert_eq!(idx, 0);
+    }
+
+    #[test]
+    fn test_remove_entry_and_clear() {
+        let mut wallet = Wallet::new(Network::Mainnet);
+        for i in 1..=3u8 {
+            let mut key = [0u8; 32];
+            key[31] = i;
+            wallet.add_private_key_bytes(&key).unwrap();
+        }
+        assert_eq!(wallet.len(), 3);
+        let removed = wallet.remove_entry(1);
+        assert!(removed.is_some());
+        assert_eq!(wallet.len(), 2);
+        assert!(wallet.remove_entry(99).is_none());
+        wallet.clear();
+        assert!(wallet.is_empty());
+    }
+
+    #[test]
+    fn test_find_by_address() {
+        let mut wallet = Wallet::new(Network::Mainnet);
+        let mut key = [0u8; 32];
+        key[31] = 1;
+        wallet.add_private_key_bytes(&key).unwrap();
+        let target = wallet.get_entry(0).unwrap().address.clone();
+        let found = wallet.find_by_address(&target);
+        assert!(found.is_some());
     }
 }

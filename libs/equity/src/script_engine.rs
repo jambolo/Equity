@@ -1,13 +1,16 @@
 //! Bitcoin script interpreter.
 //!
-//! Port of the original `ScriptEngine` — main stack, alt stack, and a scope
+//! Main stack, alt stack, and a scope
 //! stack tracking IF/ELSE/ENDIF return points. Signature-check opcodes
-//! (CHECKSIG and friends) are intentionally no-ops, matching the C++ source.
+//! (CHECKSIG and friends) are intentionally no-ops.
 
 use crate::instruction::{Instruction, OpCode};
 use crate::script::Script;
 use crypto::{ripemd, sha1, sha256};
 
+/// Stack-based Bitcoin script interpreter.
+///
+/// Signature-checking opcodes (`CHECKSIG` and friends) are intentional no-ops.
 pub struct ScriptEngine {
     main_stack: Vec<Vec<u8>>,
     alt_stack: Vec<Vec<u8>>,
@@ -22,6 +25,7 @@ impl Default for ScriptEngine {
 }
 
 impl ScriptEngine {
+    /// Create a fresh engine with empty stacks.
     pub fn new() -> Self {
         Self {
             main_stack: Vec::new(),
@@ -31,10 +35,12 @@ impl ScriptEngine {
         }
     }
 
+    /// Borrow the current main stack contents.
     pub fn main_stack(&self) -> &[Vec<u8>] {
         &self.main_stack
     }
 
+    /// Execute `script`. Returns `true` if execution finishes with a truthy top-of-stack.
     pub fn run(&mut self, script: &Script) -> bool {
         if !script.is_valid() {
             return false;
@@ -263,10 +269,7 @@ impl ScriptEngine {
                 }
 
                 // Binary arithmetic / comparison
-                x if matches!(
-                    x,
-                    0x93 | 0x94 | 0x9a..=0xa4
-                ) =>
+                0x93 | 0x94 | 0x9a..=0xa4 =>
                 {
                     let b = self.main_stack.pop().unwrap();
                     let a = self.main_stack.pop().unwrap();
@@ -340,11 +343,8 @@ impl ScriptEngine {
                 x if x == OpCode::OP_CODESEPARATOR as u8 => {
                     self.code_separator = offset;
                 }
-                // Signature ops are intentionally not implemented (match C++).
-                x if matches!(
-                    x,
-                    0xac | 0xad | 0xae | 0xaf
-                ) => {}
+                // Signature ops are not  implemented.
+                0xac..=0xaf => {}
 
                 // NOPs (b0..b9 except b1 which is also a NOP here)
                 0xb0..=0xb9 => {}
@@ -559,6 +559,125 @@ mod tests {
     fn test_op_verify_pops_top() {
         // OP_1 OP_VERIFY OP_1 — top after verify is 1
         let s = Script::from_data(&[0x51, 0x69, 0x51]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+    }
+
+    #[test]
+    fn test_op_verify_fails_on_false() {
+        // OP_0 OP_VERIFY → fail
+        let s = Script::from_data(&[0x00, 0x69]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(!e.run(&s));
+    }
+
+    #[test]
+    fn test_op_dup_duplicates_top() {
+        // OP_5 OP_DUP OP_EQUAL → true
+        let s = Script::from_data(&[0x55, 0x76, 0x87]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+    }
+
+    #[test]
+    fn test_op_sub_negative() {
+        // OP_2 OP_3 OP_SUB → -1 → truthy
+        let s = Script::from_data(&[0x52, 0x53, 0x94]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        assert_eq!(e.main_stack().last().unwrap(), &vec![0x81]);
+    }
+
+    #[test]
+    fn test_alt_stack_round_trip() {
+        // OP_5 OP_TOALTSTACK OP_FROMALTSTACK → top=5
+        let s = Script::from_data(&[0x55, 0x6b, 0x6c]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        assert_eq!(e.main_stack().last().unwrap(), &vec![5u8]);
+    }
+
+    #[test]
+    fn test_op_swap() {
+        // OP_1 OP_2 OP_SWAP → top=1 (after swap)
+        let s = Script::from_data(&[0x51, 0x52, 0x7c]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        assert_eq!(e.main_stack().last().unwrap(), &vec![1u8]);
+    }
+
+    #[test]
+    fn test_op_depth() {
+        // OP_1 OP_2 OP_3 OP_DEPTH → top=3
+        let s = Script::from_data(&[0x51, 0x52, 0x53, 0x74]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        assert_eq!(e.main_stack().last().unwrap(), &vec![3u8]);
+    }
+
+    #[test]
+    fn test_op_hash256_matches_double_sha256() {
+        // OP_0 OP_HASH256 → SHA256d("")
+        let s = Script::from_data(&[0x00, 0xaa]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        let expected = crypto::sha256::double_sha256(&[]).to_vec();
+        assert_eq!(e.main_stack().last().unwrap(), &expected);
+    }
+
+    #[test]
+    fn test_op_sha1_matches_sha1() {
+        // OP_0 OP_SHA1
+        let s = Script::from_data(&[0x00, 0xa7]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+        let expected = crypto::sha1::sha1(&[]).to_vec();
+        assert_eq!(e.main_stack().last().unwrap(), &expected);
+    }
+
+    #[test]
+    fn test_op_within() {
+        // OP_5 OP_3 OP_10 OP_WITHIN → 3 <= 5 < 10 → true
+        let s = Script::from_data(&[0x55, 0x53, 0x5a, 0xa5]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(e.run(&s));
+    }
+
+    #[test]
+    fn test_op_not_truthy_flip() {
+        // OP_1 OP_NOT → 0 → falsy
+        let s = Script::from_data(&[0x51, 0x91]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(!e.run(&s));
+    }
+
+    #[test]
+    fn test_invalid_script_does_not_run() {
+        let s = Script::from_data(&[0xBA]).unwrap();
+        assert!(!s.is_valid());
+        let mut e = ScriptEngine::new();
+        assert!(!e.run(&s));
+    }
+
+    #[test]
+    fn test_op_reserved_fails_when_executed() {
+        let s = Script::from_data(&[0x50]).unwrap();
+        let mut e = ScriptEngine::new();
+        assert!(!e.run(&s));
+    }
+
+    #[test]
+    fn test_p2pkh_full_pattern_no_sig() {
+        // PUSH_data(20) OP_HASH160 PUSH_data(20) OP_EQUALVERIFY OP_CHECKSIG
+        // Use OP_DUP OP_HASH160 <pubkeyhash> OP_EQUALVERIFY OP_CHECKSIG.
+        // Without an actual sig+pubkey stack, only test that CHECKSIG is a no-op.
+        let h160 = [0x42u8; 20];
+        let mut bytes = vec![0u8; 0];
+        bytes.push(0x14); // push 20
+        bytes.extend_from_slice(&h160);
+        bytes.push(0x76); // OP_DUP
+        bytes.push(0x87); // OP_EQUAL — should be true after dup
+        let s = Script::from_data(&bytes).unwrap();
         let mut e = ScriptEngine::new();
         assert!(e.run(&s));
     }

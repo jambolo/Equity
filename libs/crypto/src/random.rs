@@ -5,12 +5,6 @@
 
 use getrandom::getrandom;
 
-/// Always returns true. Retained for API compatibility with the legacy C++
-/// `Crypto::Random::status()` shim.
-pub fn status() -> bool {
-    true
-}
-
 /// Returns `size` cryptographically-secure random bytes.
 ///
 /// # Panics
@@ -26,7 +20,7 @@ pub fn get_bytes(size: usize) -> Vec<u8> {
 /// No-op kept for API compatibility. The OS RNG handles its own seeding.
 pub fn add_entropy(_buffer: &[u8], _entropy: f64) {}
 
-/// Alias for [`get_bytes`]. Retained because the cxx bridge exposed both.
+/// Alias for [`get_bytes`] kept for API compatibility.
 pub fn get_bytes_vec(size: usize) -> Vec<u8> {
     get_bytes(size)
 }
@@ -37,11 +31,6 @@ mod tests {
 
     const SIZE: usize = 256;
     const SAFE_SIZE: usize = SIZE / 2 - 1;
-
-    #[test]
-    fn test_random_status() {
-        assert!(status());
-    }
 
     #[test]
     fn test_add_entropy() {

@@ -2,13 +2,17 @@
 
 use sha1::{Digest, Sha1};
 
+/// Length of a SHA-1 digest in bytes.
 pub const SHA1_HASH_SIZE: usize = 20;
+/// Fixed-size SHA-1 digest.
 pub type Sha1Hash = [u8; SHA1_HASH_SIZE];
 
+/// Compute SHA-1(input).
 pub fn sha1(input: &[u8]) -> Sha1Hash {
     Sha1::digest(input).into()
 }
 
+/// `sha1` as a `Vec<u8>`.
 pub fn sha1_vec(input: &[u8]) -> Vec<u8> {
     Sha1::digest(input).to_vec()
 }

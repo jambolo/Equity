@@ -6,8 +6,10 @@
 
 use crate::{EquityError, Result};
 
+/// Length of a TXID in bytes.
 pub const TXID_SIZE: usize = 32;
 
+/// Bitcoin transaction id — SHA-256d of the transaction bytes, stored in display order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Txid {
     hash: [u8; TXID_SIZE],
@@ -65,6 +67,7 @@ impl Txid {
         out
     }
 
+    /// Raw 32-byte hash in display (big-endian) order.
     pub fn hash(&self) -> &[u8] {
         &self.hash
     }
@@ -155,5 +158,26 @@ mod tests {
         let j = txid.to_json();
         let back = Txid::from_json(&j).unwrap();
         assert_eq!(txid, back);
+    }
+
+    #[test]
+    fn test_from_json_rejects_bad_length() {
+        assert!(Txid::from_json("\"abcd\"").is_err());
+    }
+
+    #[test]
+    fn test_from_json_rejects_non_hex() {
+        let s = "\"".to_string() + &"z".repeat(64) + "\"";
+        assert!(Txid::from_json(&s).is_err());
+    }
+
+    #[test]
+    fn test_serialize_round_trip_through_deserialize() {
+        let bytes: [u8; 32] = std::array::from_fn(|i| (i as u8).wrapping_mul(13));
+        let txid = Txid::from_data(&bytes).unwrap();
+        let wire = txid.serialize();
+        let mut cur = &wire[..];
+        let parsed = Txid::deserialize(&mut cur).unwrap();
+        assert_eq!(parsed, txid);
     }
 }

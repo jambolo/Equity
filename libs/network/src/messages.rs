@@ -15,23 +15,34 @@ const MAX_FILTER_ADD_SIZE: usize = 520;
 const MAX_FILTER_LOAD_SIZE: usize = 36_000;
 const MAX_FILTER_HASH_FUNCS: u32 = 50;
 
-/// `version`
+/// `version` — initial handshake message.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VersionMessage {
+    /// Protocol version.
     pub version: u32,
+    /// Bitmask of services offered by the sender.
     pub services: u64,
+    /// Unix timestamp.
     pub timestamp: u64,
+    /// Recipient's address as seen by the sender.
     pub to: Address,
+    /// Sender's own address (only meaningful for `version >= 106`).
     pub from: Address,
+    /// Random nonce used to detect self-connections.
     pub nonce: u64,
+    /// Sender's user agent string.
     pub user_agent: String,
+    /// Best block height known to the sender.
     pub height: u32,
+    /// `false` requests no transaction relay (`version >= 70001`).
     pub relay: bool,
 }
 
 impl VersionMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "version";
 
+    /// Append the on-wire encoding of this message to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_u32(out, self.version);
         write_u64(out, self.services);
@@ -48,6 +59,7 @@ impl VersionMessage {
         }
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let version = read_u32(stream)?;
         let services = read_u64(stream)?;
@@ -80,6 +92,7 @@ impl VersionMessage {
         })
     }
 
+    /// JSON representation of this message.
     pub fn to_json(&self) -> Value {
         let mut j = json!({
             "version": self.version,
@@ -132,15 +145,18 @@ fn deserialize_hash_list(stream: &mut &[u8]) -> Result<Vec<[u8; HASH_SIZE]>> {
     Ok(v)
 }
 
-/// `addr`
+/// `addr` — list of known peers.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct AddressMessage {
+    /// Known peer addresses.
     pub addresses: Vec<Address>,
 }
 
 impl AddressMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "addr";
 
+    /// Append the on-wire encoding of this message to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_var_int(out, self.addresses.len() as u64);
         for a in &self.addresses {
@@ -148,6 +164,7 @@ impl AddressMessage {
         }
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let n = read_var_int(stream)? as usize;
         let mut addresses = Vec::with_capacity(n);
@@ -157,6 +174,7 @@ impl AddressMessage {
         Ok(Self { addresses })
     }
 
+    /// JSON representation of this message.
     pub fn to_json(&self) -> Value {
         json!({
             "addresses": self.addresses.iter().map(Address::to_json).collect::<Vec<_>>(),
@@ -164,25 +182,30 @@ impl AddressMessage {
     }
 }
 
-/// `inv`
+/// `inv` — advertise known inventory items.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct InventoryMessage {
+    /// Advertised inventory items.
     pub inventory: Vec<InventoryId>,
 }
 
 impl InventoryMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "inv";
 
+    /// Append the on-wire encoding of this message to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         serialize_inventory_list(&self.inventory, out);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         Ok(Self {
             inventory: deserialize_inventory_list(stream)?,
         })
     }
 
+    /// JSON representation of this message.
     pub fn to_json(&self) -> Value {
         json!({
             "inventory": self.inventory.iter().map(InventoryId::to_json).collect::<Vec<_>>(),
@@ -190,25 +213,30 @@ impl InventoryMessage {
     }
 }
 
-/// `getdata`
+/// `getdata` — request the full contents of inventory items.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct GetDataMessage {
+    /// Items being requested.
     pub inventory: Vec<InventoryId>,
 }
 
 impl GetDataMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "getdata";
 
+    /// Append the on-wire encoding of this message to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         serialize_inventory_list(&self.inventory, out);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         Ok(Self {
             inventory: deserialize_inventory_list(stream)?,
         })
     }
 
+    /// JSON representation of this message.
     pub fn to_json(&self) -> Value {
         json!({
             "inventory": self.inventory.iter().map(InventoryId::to_json).collect::<Vec<_>>(),
@@ -216,25 +244,30 @@ impl GetDataMessage {
     }
 }
 
-/// `notfound`
+/// `notfound` — peer could not supply requested inventory.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct NotFoundMessage {
+    /// Items the peer could not provide.
     pub missing: Vec<InventoryId>,
 }
 
 impl NotFoundMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "notfound";
 
+    /// Append the on-wire encoding of this message to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         serialize_inventory_list(&self.missing, out);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         Ok(Self {
             missing: deserialize_inventory_list(stream)?,
         })
     }
 
+    /// JSON representation of this message.
     pub fn to_json(&self) -> Value {
         json!({
             "missing": self.missing.iter().map(InventoryId::to_json).collect::<Vec<_>>(),
@@ -245,18 +278,23 @@ impl NotFoundMessage {
 /// Common payload for `getblocks` and `getheaders`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LocatorMessage {
+    /// Protocol version of the sender.
     pub version: u32,
+    /// Block locator hashes from tip back toward genesis.
     pub hashes: Vec<[u8; HASH_SIZE]>,
+    /// Hash of the last desired block (zero means "as many as possible").
     pub last: [u8; HASH_SIZE],
 }
 
 impl LocatorMessage {
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_u32(out, self.version);
         serialize_hash_list(&self.hashes, out);
         write_bytes(out, &self.last);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let version = read_u32(stream)?;
         let hashes = deserialize_hash_list(stream)?;
@@ -268,6 +306,7 @@ impl LocatorMessage {
         })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({
             "version": self.version,
@@ -277,31 +316,42 @@ impl LocatorMessage {
     }
 }
 
-/// `getblocks`
+/// `getblocks` — request blocks announced via a locator.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetBlocksMessage(pub LocatorMessage);
+pub struct GetBlocksMessage(
+    /// Locator payload.
+    pub LocatorMessage,
+);
 
 impl GetBlocksMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "getblocks";
 }
 
-/// `getheaders`
+/// `getheaders` — request block headers via a locator.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GetHeadersMessage(pub LocatorMessage);
+pub struct GetHeadersMessage(
+    /// Locator payload.
+    pub LocatorMessage,
+);
 
 impl GetHeadersMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "getheaders";
 }
 
-/// `headers`
+/// `headers` — response to `getheaders` carrying block headers.
 #[derive(Debug, Clone, Default)]
 pub struct HeadersMessage {
+    /// Header-only blocks (transactions list is empty).
     pub blocks: Vec<Block>,
 }
 
 impl HeadersMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "headers";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_var_int(out, self.blocks.len() as u64);
         for b in &self.blocks {
@@ -309,6 +359,7 @@ impl HeadersMessage {
         }
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let n = read_var_int(stream)? as usize;
         let mut blocks = Vec::with_capacity(n);
@@ -322,19 +373,23 @@ impl HeadersMessage {
     }
 }
 
-/// `block`
+/// `block` — a single full block.
 #[derive(Debug, Clone)]
 pub struct BlockMessage {
+    /// Wrapped block.
     pub block: Block,
 }
 
 impl BlockMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "block";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.block.serialize());
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let block = Block::deserialize(stream)
             .map_err(|e| anyhow::anyhow!("block deserialize: {}", e))?;
@@ -342,19 +397,23 @@ impl BlockMessage {
     }
 }
 
-/// `tx`
+/// `tx` — a single transaction.
 #[derive(Debug, Clone)]
 pub struct TransactionMessage {
+    /// Wrapped transaction.
     pub transaction: Transaction,
 }
 
 impl TransactionMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "tx";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.transaction.serialize());
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let transaction = Transaction::deserialize(stream)
             .map_err(|e| anyhow::anyhow!("transaction deserialize: {}", e))?;
@@ -362,66 +421,82 @@ impl TransactionMessage {
     }
 }
 
-/// `ping`
+/// `ping` — keep-alive probe.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PingMessage {
+    /// Random nonce; expected back in the matching `pong`.
     pub nonce: u64,
 }
 
 impl PingMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "ping";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_u64(out, self.nonce);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         Ok(Self {
             nonce: read_u64(stream)?,
         })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({ "nonce": self.nonce })
     }
 }
 
-/// `pong`
+/// `pong` — response to a `ping`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PongMessage {
+    /// Nonce echoed from the matching `ping`.
     pub nonce: u64,
 }
 
 impl PongMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "pong";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_u64(out, self.nonce);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         Ok(Self {
             nonce: read_u64(stream)?,
         })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({ "nonce": self.nonce })
     }
 }
 
-/// `reject`
+/// `reject` — peer rejection of a prior message.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RejectMessage {
+    /// Command name being rejected.
     pub message: String,
+    /// Reject reason code (see Bitcoin Core `RejectCode`).
     pub code: u8,
+    /// Human-readable explanation.
     pub reason: String,
+    /// Optional extra data (e.g. txid for `tx` rejects).
     pub data: Vec<u8>,
 }
 
 impl RejectMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "reject";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_var_string(out, &self.message);
         write_u8(out, self.code);
@@ -429,6 +504,7 @@ impl RejectMessage {
         write_bytes(out, &self.data);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let message = read_var_string(stream)?;
         let code = read_u8(stream)?;
@@ -443,6 +519,7 @@ impl RejectMessage {
         })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({
             "message": self.message,
@@ -453,18 +530,24 @@ impl RejectMessage {
     }
 }
 
-/// `filterload`
+/// `filterload` — install a Bloom filter for SPV-style relay (BIP-37).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FilterLoadMessage {
+    /// Bloom filter bytes.
     pub filter: Vec<u8>,
+    /// Number of hash functions.
     pub n_hash_funcs: u32,
+    /// Random tweak mixed into each hash function.
     pub tweak: u32,
+    /// `BLOOM_UPDATE_*` flag byte.
     pub flags: u8,
 }
 
 impl FilterLoadMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "filterload";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_var_bytes(out, &self.filter);
         write_u32(out, self.n_hash_funcs);
@@ -472,6 +555,7 @@ impl FilterLoadMessage {
         write_u8(out, self.flags);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let filter = read_var_bytes(stream)?;
         if filter.len() > MAX_FILTER_LOAD_SIZE {
@@ -491,6 +575,7 @@ impl FilterLoadMessage {
         })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({
             "filter": hex::encode(&self.filter),
@@ -501,19 +586,23 @@ impl FilterLoadMessage {
     }
 }
 
-/// `filteradd`
+/// `filteradd` — extend the active Bloom filter with one more element.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FilterAddMessage {
+    /// Element to add to the filter.
     pub data: Vec<u8>,
 }
 
 impl FilterAddMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "filteradd";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_var_bytes(out, &self.data);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let data = read_var_bytes(stream)?;
         if data.len() > MAX_FILTER_ADD_SIZE {
@@ -522,23 +611,30 @@ impl FilterAddMessage {
         Ok(Self { data })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({ "data": hex::encode(&self.data) })
     }
 }
 
-/// `merkleblock`
+/// `merkleblock` — partial Merkle proof of transactions matching a Bloom filter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MerkleBlockMessage {
+    /// Block header.
     pub header: equity::block::BlockHeader,
+    /// Total transaction count in the full block.
     pub total_transactions: u32,
+    /// Hashes used to reconstruct the partial Merkle tree.
     pub hashes: Vec<[u8; HASH_SIZE]>,
+    /// Bit flags describing the partial-tree shape.
     pub flags: Vec<u8>,
 }
 
 impl MerkleBlockMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "merkleblock";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         self.header.serialize(out);
         write_u32(out, self.total_transactions);
@@ -546,6 +642,7 @@ impl MerkleBlockMessage {
         write_var_bytes(out, &self.flags);
     }
 
+    /// Parse from `stream`, advancing the cursor.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let header = equity::block::BlockHeader::deserialize(stream)
             .map_err(|e| anyhow::anyhow!("merkleblock header: {}", e))?;
@@ -561,25 +658,30 @@ impl MerkleBlockMessage {
     }
 }
 
-/// `alert`
+/// `alert` — deprecated network-wide alert payload.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct AlertMessage {
+    /// Raw signed alert blob.
     pub message: Vec<u8>,
 }
 
 impl AlertMessage {
+    /// Wire command name.
     pub const COMMAND: &'static str = "alert";
 
+    /// Append the on-wire encoding to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_bytes(out, &self.message);
     }
 
+    /// Parse from `stream`, consuming all remaining bytes.
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let message = stream.to_vec();
         *stream = &stream[stream.len()..];
         Ok(Self { message })
     }
 
+    /// JSON representation.
     pub fn to_json(&self) -> Value {
         json!({ "message": hex::encode(&self.message) })
     }
@@ -588,31 +690,54 @@ impl AlertMessage {
 /// Discriminated enum over every supported Bitcoin message type.
 #[derive(Debug, Clone)]
 pub enum Message {
+    /// `version`
     Version(VersionMessage),
+    /// `verack` — version handshake acknowledgement.
     Verack,
+    /// `addr`
     Addr(AddressMessage),
+    /// `inv`
     Inv(InventoryMessage),
+    /// `getdata`
     GetData(GetDataMessage),
+    /// `notfound`
     NotFound(NotFoundMessage),
+    /// `getblocks`
     GetBlocks(GetBlocksMessage),
+    /// `getheaders`
     GetHeaders(GetHeadersMessage),
+    /// `headers`
     Headers(HeadersMessage),
+    /// `block`
     Block(BlockMessage),
+    /// `tx`
     Tx(TransactionMessage),
+    /// `ping`
     Ping(PingMessage),
+    /// `pong`
     Pong(PongMessage),
+    /// `getaddr` — request peer addresses.
     GetAddr,
+    /// `reject`
     Reject(RejectMessage),
+    /// `filterload`
     FilterLoad(FilterLoadMessage),
+    /// `filteradd`
     FilterAdd(FilterAddMessage),
+    /// `filterclear` — drop the active Bloom filter.
     FilterClear,
+    /// `merkleblock`
     MerkleBlock(MerkleBlockMessage),
+    /// `alert`
     Alert(AlertMessage),
+    /// `sendheaders` — request that future block announcements use `headers`.
     SendHeaders,
+    /// `mempool` — request the peer's mempool TXIDs.
     Mempool,
 }
 
 impl Message {
+    /// Wire command name for this message variant.
     pub fn command(&self) -> &'static str {
         match self {
             Self::Version(_) => VersionMessage::COMMAND,
@@ -640,6 +765,7 @@ impl Message {
         }
     }
 
+    /// Append this message's payload (without the wire header) to `out`.
     pub fn serialize_payload(&self, out: &mut Vec<u8>) {
         match self {
             Self::Version(m) => m.serialize(out),
@@ -667,12 +793,14 @@ impl Message {
         }
     }
 
+    /// Payload bytes for this message as a fresh `Vec`.
     pub fn payload_bytes(&self) -> Vec<u8> {
         let mut out = Vec::new();
         self.serialize_payload(&mut out);
         out
     }
 
+    /// Decode `payload` into the message matching `command`. Errors on unknown commands.
     pub fn deserialize_payload(command: &str, payload: &[u8]) -> Result<Self> {
         let mut s = payload;
         let m = match command {
@@ -820,4 +948,191 @@ mod tests {
         assert!(Message::deserialize_payload("nope", &[]).is_err());
     }
 
+    #[test]
+    fn addr_message_round_trip() {
+        let m = AddressMessage {
+            addresses: vec![
+                Address::from_ipv4(0, 1, [127, 0, 0, 1], 8333),
+                Address::from_ipv4(1, 2, [192, 168, 1, 1], 18333),
+            ],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = AddressMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn getdata_message_round_trip() {
+        let m = GetDataMessage {
+            inventory: vec![InventoryId::transaction([0x33u8; 32])],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = GetDataMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn notfound_message_round_trip() {
+        let m = NotFoundMessage {
+            missing: vec![
+                InventoryId::filtered_block([0x44u8; 32]),
+                InventoryId::block([0x55u8; 32]),
+            ],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = NotFoundMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn pong_round_trip() {
+        let m = PongMessage { nonce: 0xDEAD_BEEF_F00D_BABE };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        assert_eq!(bytes.len(), 8);
+        let parsed = PongMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn filteradd_round_trip() {
+        let m = FilterAddMessage {
+            data: vec![0xAB, 0xCD, 0xEF],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = FilterAddMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn filteradd_rejects_oversize() {
+        let mut bytes = Vec::new();
+        let big = vec![0u8; MAX_FILTER_ADD_SIZE + 1];
+        write_var_bytes(&mut bytes, &big);
+        assert!(FilterAddMessage::deserialize(&mut &bytes[..]).is_err());
+    }
+
+    #[test]
+    fn filterload_rejects_oversize_filter() {
+        let mut bytes = Vec::new();
+        let big = vec![0u8; MAX_FILTER_LOAD_SIZE + 1];
+        write_var_bytes(&mut bytes, &big);
+        write_u32(&mut bytes, 1);
+        write_u32(&mut bytes, 0);
+        write_u8(&mut bytes, 0);
+        assert!(FilterLoadMessage::deserialize(&mut &bytes[..]).is_err());
+    }
+
+    #[test]
+    fn alert_round_trip() {
+        let m = AlertMessage {
+            message: vec![1, 2, 3, 4, 5],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = AlertMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn merkleblock_round_trip() {
+        let header = equity::block::BlockHeader {
+            version: 1,
+            previous_block: [0xAAu8; 32],
+            merkle_root: [0xBBu8; 32],
+            timestamp: 1_700_000_000,
+            target: 0x1d00ffff,
+            nonce: 7,
+        };
+        let m = MerkleBlockMessage {
+            header,
+            total_transactions: 3,
+            hashes: vec![[0x11u8; 32], [0x22u8; 32]],
+            flags: vec![0b0000_0001],
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = MerkleBlockMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(m, parsed);
+    }
+
+    #[test]
+    fn version_pre_106_skips_optional_fields() {
+        let m = VersionMessage {
+            version: 105,
+            services: 0,
+            timestamp: 0,
+            to: Address::from_ipv4(0, 0, [0, 0, 0, 0], 0),
+            from: Address::from_ipv4(0, 0, [0, 0, 0, 0], 0),
+            nonce: 0,
+            user_agent: String::new(),
+            height: 0,
+            relay: true,
+        };
+        let mut bytes = Vec::new();
+        m.serialize(&mut bytes);
+        let parsed = VersionMessage::deserialize(&mut &bytes[..]).unwrap();
+        assert_eq!(parsed.version, 105);
+        assert_eq!(parsed.user_agent, "");
+    }
+
+    #[test]
+    fn message_enum_command_strings() {
+        // Sanity: each variant returns a non-empty unique command name.
+        let variants: Vec<Message> = vec![
+            Message::Verack,
+            Message::GetAddr,
+            Message::FilterClear,
+            Message::SendHeaders,
+            Message::Mempool,
+        ];
+        let mut names = std::collections::HashSet::new();
+        for v in &variants {
+            let c = v.command();
+            assert!(!c.is_empty());
+            assert!(names.insert(c));
+        }
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_ping_round_trip(nonce: u64) {
+            let m = PingMessage { nonce };
+            let mut bytes = Vec::new();
+            m.serialize(&mut bytes);
+            let parsed = PingMessage::deserialize(&mut &bytes[..]).unwrap();
+            proptest::prop_assert_eq!(m, parsed);
+        }
+
+        #[test]
+        fn prop_inv_round_trip(items in proptest::collection::vec(any::<[u8; 32]>(), 0..16)) {
+            let m = InventoryMessage {
+                inventory: items.iter().map(|h| InventoryId::transaction(*h)).collect(),
+            };
+            let mut bytes = Vec::new();
+            m.serialize(&mut bytes);
+            let parsed = InventoryMessage::deserialize(&mut &bytes[..]).unwrap();
+            proptest::prop_assert_eq!(m, parsed);
+        }
+
+        #[test]
+        fn prop_reject_round_trip(
+            message in "[a-z]{1,12}",
+            code: u8,
+            reason in "[ -~]{0,80}",
+            data in proptest::collection::vec(any::<u8>(), 0..32),
+        ) {
+            let m = RejectMessage { message, code, reason, data };
+            let mut bytes = Vec::new();
+            m.serialize(&mut bytes);
+            let parsed = RejectMessage::deserialize(&mut &bytes[..]).unwrap();
+            proptest::prop_assert_eq!(m, parsed);
+        }
+    }
+
+    use proptest::prelude::any;
 }

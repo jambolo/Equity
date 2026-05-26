@@ -1,48 +1,62 @@
 //! Endian conversion utilities.
 
+/// Static facade for endian conversions on `u16`/`u32`/`u64`.
 pub struct Endian;
 
 impl Endian {
+    /// Reverse the byte order of `x`.
     pub fn swap16(x: u16) -> u16 {
         x.swap_bytes()
     }
 
+    /// Reverse the byte order of `x`.
     pub fn swap32(x: u32) -> u32 {
         x.swap_bytes()
     }
 
+    /// Reverse the byte order of `x`.
     pub fn swap64(x: u64) -> u64 {
         x.swap_bytes()
     }
 
+    /// Convert `x` from host byte order to little-endian.
     pub fn to_little16(x: u16) -> u16 {
         x.to_le()
     }
 
+    /// Convert `x` from host byte order to little-endian.
     pub fn to_little32(x: u32) -> u32 {
         x.to_le()
     }
 
+    /// Convert `x` from host byte order to little-endian.
     pub fn to_little64(x: u64) -> u64 {
         x.to_le()
     }
 
+    /// Convert `x` from host byte order to big-endian.
     pub fn to_big16(x: u16) -> u16 {
         x.to_be()
     }
 
+    /// Convert `x` from host byte order to big-endian.
     pub fn to_big32(x: u32) -> u32 {
         x.to_be()
     }
 
+    /// Convert `x` from host byte order to big-endian.
     pub fn to_big64(x: u64) -> u64 {
         x.to_be()
     }
 }
 
+/// Endian-conversion methods implemented on the unsigned integer primitives.
 pub trait EndianConvert {
+    /// Reverse byte order.
     fn swap_bytes(self) -> Self;
+    /// Convert from host byte order to little-endian.
     fn to_little_endian(self) -> Self;
+    /// Convert from host byte order to big-endian.
     fn to_big_endian(self) -> Self;
 }
 

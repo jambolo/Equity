@@ -3,6 +3,7 @@
 use crate::instruction::{Instruction, DESCRIPTIONS, ScriptParsingError};
 use crate::{EquityError, Result};
 
+/// Parsed Bitcoin script — raw bytes plus the decoded instruction list.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Script {
     data: Vec<u8>,
@@ -11,6 +12,7 @@ pub struct Script {
 }
 
 impl Script {
+    /// Build from raw bytes; instructions are parsed eagerly.
     pub fn from_data(data: &[u8]) -> Result<Self> {
         let mut s = Self {
             data: data.to_vec(),
@@ -21,39 +23,48 @@ impl Script {
         Ok(s)
     }
 
+    /// Build from a hex-encoded script.
     pub fn from_hex(s: &str) -> Result<Self> {
         let bytes = hex::decode(s).map_err(|e| EquityError(format!("Invalid hex: {e}")))?;
         Self::from_data(&bytes)
     }
 
+    /// Raw script bytes.
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
+    /// Decoded instructions.
     pub fn instructions(&self) -> &[Instruction] {
         &self.instructions
     }
 
+    /// True if parsing succeeded.
     pub fn is_valid(&self) -> bool {
         self.valid
     }
 
+    /// True if the script has zero bytes.
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
+    /// Length of the raw script bytes.
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
+    /// Append the raw script bytes to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         out.extend_from_slice(&self.data);
     }
 
+    /// Lower-case hex of the raw script bytes.
     pub fn to_hex(&self) -> String {
         hex::encode(&self.data)
     }
 
+    /// Render as human-readable script source (opcode names and push hex).
     pub fn to_source(&self) -> String {
         let mut parts = Vec::new();
         for ins in &self.instructions {

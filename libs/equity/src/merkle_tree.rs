@@ -1,7 +1,7 @@
 //! Bitcoin Merkle tree — array-backed binary tree of SHA-256d hashes with the
 //! Bitcoin-specific oddity that odd-count layers duplicate their last node.
 //!
-//! Layout matches the C++ implementation:
+//! Layout:
 //!   * `tree[1]` is the root (index 0 unused),
 //!   * leaves live at `tree[offset..offset + padded_leaves]`,
 //!   * `offset` is the smallest power of two >= `padded_leaves`.
@@ -48,7 +48,7 @@ impl MerkleTree {
 
         let mut tree = vec![[0u8; HASH_SIZE]; offset];
         tree.extend_from_slice(hashes);
-        if n_leaves % 2 != 0 {
+        if !n_leaves.is_multiple_of(2) {
             tree.push(*tree.last().unwrap());
         }
 
@@ -60,7 +60,7 @@ impl MerkleTree {
                 let right = tree[right_child(i)];
                 tree[i] = sha256::double_sha256(&concat(&left, &right));
             }
-            if n % 2 != 0 && first > ROOT {
+            if !n.is_multiple_of(2) && first > ROOT {
                 tree.push([0u8; HASH_SIZE]);
                 let idx = first + n;
                 if idx >= tree.len() {
@@ -110,7 +110,7 @@ impl MerkleTree {
     pub fn verify(hash: &Hash, mut i: usize, proof: &[Hash], root: &Hash) -> bool {
         let mut result = *hash;
         for sibling in proof {
-            let concatenated = if i % 2 == 0 {
+            let concatenated = if i.is_multiple_of(2) {
                 concat(&result, sibling)
             } else {
                 concat(sibling, &result)
@@ -210,4 +210,50 @@ mod tests {
         assert_eq!(smallest_power_of_two(8), 8);
         assert_eq!(smallest_power_of_two(9), 16);
     }
+
+    #[test]
+    fn test_empty_tree_has_zero_root() {
+        let t = MerkleTree::new(&[]);
+        assert_eq!(t.root(), [0u8; HASH_SIZE]);
+        assert!(t.proof(0).is_empty());
+    }
+
+    #[test]
+    fn test_two_leaves_root_is_concat_hash() {
+        let a = hash_of(1);
+        let b = hash_of(2);
+        let t = MerkleTree::new(&[a, b]);
+        let mut concat = [0u8; HASH_SIZE * 2];
+        concat[..HASH_SIZE].copy_from_slice(&a);
+        concat[HASH_SIZE..].copy_from_slice(&b);
+        assert_eq!(t.root(), crypto::sha256::double_sha256(&concat));
+    }
+
+    #[test]
+    fn test_proof_fails_with_wrong_root() {
+        let leaves: Vec<Hash> = (1..=4u8).map(hash_of).collect();
+        let t = MerkleTree::new(&leaves);
+        let mut bogus = t.root();
+        bogus[0] ^= 0xFF;
+        let proof = t.proof(0);
+        assert!(!MerkleTree::verify(&leaves[0], 0, &proof, &bogus));
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_merkle_proof_round_trip(
+            n in 1usize..16,
+            seed in any::<u8>(),
+        ) {
+            let leaves: Vec<Hash> = (0..n).map(|i| hash_of(seed.wrapping_add(i as u8))).collect();
+            let t = MerkleTree::new(&leaves);
+            let root = t.root();
+            for (i, h) in leaves.iter().enumerate() {
+                let p = t.proof(i);
+                proptest::prop_assert!(MerkleTree::verify(h, i, &p, &root), "leaf {} of {}", i, n);
+            }
+        }
+    }
+
+    use proptest::prelude::any;
 }

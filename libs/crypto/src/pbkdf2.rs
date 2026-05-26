@@ -3,6 +3,18 @@
 use hmac::Hmac;
 use sha2::Sha512;
 
+/// Derive `output_size` bytes via PBKDF2-HMAC-SHA-512 with the given iteration `count`.
+///
+/// Returns `Err` if `count <= 0`.
+///
+/// # Examples
+///
+/// ```
+/// use crypto::pbkdf2::pbkdf2_hmac_sha512;
+///
+/// let key = pbkdf2_hmac_sha512(b"password", b"salt", 1000, 32).unwrap();
+/// assert_eq!(key.len(), 32);
+/// ```
 pub fn pbkdf2_hmac_sha512(
     password: &[u8],
     salt: &[u8],
@@ -18,6 +30,7 @@ pub fn pbkdf2_hmac_sha512(
     Ok(output)
 }
 
+/// Alias for [`pbkdf2_hmac_sha512`] kept for API compatibility.
 pub fn pbkdf2_hmac_sha512_vec(
     password: &[u8],
     salt: &[u8],

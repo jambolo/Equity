@@ -1,5 +1,4 @@
-//! Port of the legacy C++ `bits` CLI: decodes a Bitcoin compact-target value
-//! into its hash and difficulty.
+//! Decodes a Bitcoin compact-target value into its hash and difficulty.
 //!
 //! Usage: `bits <value in decimal>`
 

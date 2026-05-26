@@ -4,9 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Context
 
-Bitcoin protocol library + CLI apps, written in pure Rust. The C++ → Rust migration is complete: no C++ remains in the tree and the build no longer uses `cxx`/`cxx-build`. `Application` in `docs/project_organization.png` is external — not in this repo.
-
-See [docs/current-project-status.md](docs/current-project-status.md) for build/test matrix and remaining work. See [docs/rust-migration-issues.md](docs/rust-migration-issues.md) for the migration plan with checkbox state.
+Bitcoin protocol library + CLI apps, written in Rust. `Application` in `docs/project_organization.png` is external — not in this repo.
 
 ## Workspace Layout
 
@@ -14,8 +12,8 @@ See [docs/current-project-status.md](docs/current-project-status.md) for build/t
 Cargo.toml                              # workspace root
 libs/{crypto,equity,network,p2p,utility}/
     Cargo.toml
-    src/lib.rs                          # pure Rust
-apps/{bits,list-prefixes,view-transactions}/src/main.rs   # CLI stubs (not ported)
+    src/lib.rs
+apps/{bits,list-prefixes,view-transactions}/src/main.rs   # CLI binaries
 ```
 
 Workspace pins: `edition = "2024"`, `resolver = "2"`. Shared deps in `[workspace.dependencies]`: `tokio`, `serde`, `anyhow`, `clap`.
@@ -31,7 +29,7 @@ cargo test --lib -p utility         # single crate's #[test] modules
 cargo test --workspace              # all crates
 ```
 
-No `build.rs`, no C++ toolchain required. `secp256k1-sys` vendors `libsecp256k1`, so no system C crypto library is needed.
+`secp256k1-sys` vendors `libsecp256k1`, so no system C crypto library is needed.
 
 ### Current build/test state
 
@@ -55,12 +53,11 @@ No `build.rs`, no C++ toolchain required. `secp256k1-sys` vendors `libsecp256k1`
 | `network` | Bitcoin P2P message types and envelope (`Header`, `Address`, `InventoryId`, `Message` enum with 22 variants, `WireMessage` with double-SHA256 checksum) |
 | `equity` | Bitcoin core: addresses, keys, scripts, transactions, blocks, merkle tree, mnemonic |
 
-## Migration Conventions
+## Conventions
 
-- Default to porting logic to pure Rust where a quality crate exists (`hmac` + `sha2`, `secp256k1`, `bs58`, `serde_json`, `getrandom`, `hex`).
+- Prefer well-known crates over reimplementing primitives (`hmac` + `sha2`, `secp256k1`, `bs58`, `serde_json`, `getrandom`, `hex`).
 - Tests: inline `#[cfg(test)] mod tests` in the crate that owns the type.
-- Apps in `apps/*` are `clap` hello-world stubs; original C++ entry points have been deleted.
 
 ## Code Style
 
-Standard Rust 2024 idioms. `anyhow::Result` for fallible APIs at crate boundaries; concrete error types only where callers need to discriminate. No `unsafe` outside the FFI export modules. Hex via the `hex` crate, not handrolled.
+Standard Rust 2024 idioms. `anyhow::Result` for fallible APIs at crate boundaries; concrete error types only where callers need to discriminate. No `unsafe`. Hex via the `hex` crate, not handrolled.

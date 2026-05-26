@@ -2,10 +2,33 @@
 
 use crate::{EquityError, Result};
 
+/// Encode `input` as a Bitcoin-alphabet Base58 string.
+///
+/// Each leading zero byte becomes one leading `'1'` character (the Bitcoin
+/// convention for preserving prefix information).
+///
+/// # Examples
+///
+/// ```
+/// use equity::base58;
+///
+/// assert_eq!(base58::encode(&[0u8; 4]), "1111");
+/// ```
 pub fn encode(input: &[u8]) -> String {
     bs58::encode(input).into_string()
 }
 
+/// Decode a Bitcoin-alphabet Base58 string. Errors on characters outside the
+/// alphabet (`0`, `O`, `I`, `l` are not part of the Bitcoin alphabet).
+///
+/// # Examples
+///
+/// ```
+/// use equity::base58;
+///
+/// assert_eq!(base58::decode("1111").unwrap(), vec![0u8; 4]);
+/// assert!(base58::decode("0").is_err());
+/// ```
 pub fn decode(input: &str) -> Result<Vec<u8>> {
     bs58::decode(input)
         .into_vec()
@@ -55,4 +78,24 @@ mod tests {
         assert_eq!(encode(&[]), "");
         assert_eq!(decode("").unwrap(), Vec::<u8>::new());
     }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_base58_round_trip(data in proptest::collection::vec(any::<u8>(), 0..200)) {
+            let s = encode(&data);
+            let back = decode(&s).unwrap();
+            proptest::prop_assert_eq!(back, data);
+        }
+
+        #[test]
+        fn prop_base58_leading_zeros_preserved(zeros in 0usize..16, tail in proptest::collection::vec(any::<u8>(), 0..32)) {
+            let mut input = vec![0u8; zeros];
+            input.extend_from_slice(&tail);
+            let s = encode(&input);
+            let expected_prefix = "1".repeat(zeros);
+            proptest::prop_assert!(s.starts_with(&expected_prefix));
+        }
+    }
+
+    use proptest::prelude::any;
 }

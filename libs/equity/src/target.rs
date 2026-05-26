@@ -8,13 +8,17 @@
 //!
 //! Value = mantissa * 256^(exponent - 3).
 
+/// Size of a 256-bit target hash in bytes.
 pub const TARGET_HASH_SIZE: usize = 32;
+/// Compact form of the difficulty-1 target.
 pub const DIFFICULTY_1_COMPACT: u32 = 0x1d00ffff;
+/// Smallest representable normalized compact target.
 pub const TARGET_0_COMPACT: u32 = 0x0100ffff;
 
 const MANTISSA_MASK: u32 = 0x007f_ffff;
 const EXPONENT_SHIFT: u32 = 24;
 
+/// Hash form of the difficulty-1 target.
 pub const DIFFICULTY_1_HASH: [u8; TARGET_HASH_SIZE] = {
     let mut h = [0u8; TARGET_HASH_SIZE];
     h[4] = 0xFF;
@@ -22,6 +26,7 @@ pub const DIFFICULTY_1_HASH: [u8; TARGET_HASH_SIZE] = {
     h
 };
 
+/// Bitcoin difficulty target, stored as both 32-byte hash and `nBits` compact form.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Target {
     hash: [u8; TARGET_HASH_SIZE],
@@ -29,11 +34,22 @@ pub struct Target {
 }
 
 impl Target {
+    /// Build a target from its 32-byte hash form.
     pub fn from_hash(hash: [u8; TARGET_HASH_SIZE]) -> Self {
         let compact = convert_to_compact(&hash);
         Self { hash, compact }
     }
 
+    /// Build a target from its `nBits` compact form.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use equity::target::{Target, DIFFICULTY_1_COMPACT};
+    ///
+    /// let t = Target::from_compact(DIFFICULTY_1_COMPACT);
+    /// assert!((t.difficulty() - 1.0).abs() < 1e-9);
+    /// ```
     pub fn from_compact(compact: u32) -> Self {
         let hash = convert_to_hash(compact);
         Self {
@@ -42,14 +58,17 @@ impl Target {
         }
     }
 
+    /// Target hash (256-bit, big-endian).
     pub fn hash(&self) -> &[u8; TARGET_HASH_SIZE] {
         &self.hash
     }
 
+    /// Target in `nBits` compact form.
     pub fn compact(&self) -> u32 {
         self.compact
     }
 
+    /// Difficulty relative to difficulty-1.
     pub fn difficulty(&self) -> f64 {
         compact_to_double(DIFFICULTY_1_COMPACT) / compact_to_double(self.compact)
     }
@@ -75,6 +94,7 @@ fn exponent_of(x: u32) -> i32 {
     ((x >> EXPONENT_SHIFT) & 0xff) as i32
 }
 
+/// Convert an `nBits` compact target to its 32-byte hash form.
 pub fn convert_to_hash(compact: u32) -> [u8; TARGET_HASH_SIZE] {
     debug_assert!(compact & 0x0080_0000 == 0, "negative mantissa unsupported");
 
@@ -90,12 +110,12 @@ pub fn convert_to_hash(compact: u32) -> [u8; TARGET_HASH_SIZE] {
     let mut out = [0u8; TARGET_HASH_SIZE];
     let sz = TARGET_HASH_SIZE as i32;
     if exponent >= 3 {
-        out[(sz + 0 - exponent) as usize] = ((mantissa >> 16) & 0xff) as u8;
+        out[(sz - exponent) as usize] = ((mantissa >> 16) & 0xff) as u8;
         out[(sz + 1 - exponent) as usize] = ((mantissa >> 8) & 0xff) as u8;
         out[(sz + 2 - exponent) as usize] = (mantissa & 0xff) as u8;
     } else {
         if exponent >= 1 {
-            out[(sz + 0 - exponent) as usize] = ((mantissa >> 16) & 0xff) as u8;
+            out[(sz - exponent) as usize] = ((mantissa >> 16) & 0xff) as u8;
         }
         if exponent >= 2 {
             out[(sz + 1 - exponent) as usize] = ((mantissa >> 8) & 0xff) as u8;
@@ -104,6 +124,7 @@ pub fn convert_to_hash(compact: u32) -> [u8; TARGET_HASH_SIZE] {
     out
 }
 
+/// Convert a 32-byte target hash to its `nBits` compact form.
 pub fn convert_to_compact(hash: &[u8; TARGET_HASH_SIZE]) -> u32 {
     let zeros = hash.iter().take_while(|b| **b == 0).count();
     if zeros == TARGET_HASH_SIZE {
@@ -172,5 +193,33 @@ mod tests {
         let easier = Target::from_compact(0x1d00ffff);
         let harder = Target::from_compact(0x1b0404cb);
         assert!(harder < easier);
+    }
+
+    #[test]
+    fn test_difficulty_1_hash_matches_constant() {
+        let t = Target::from_compact(DIFFICULTY_1_COMPACT);
+        let mut expected = [0u8; TARGET_HASH_SIZE];
+        expected[4] = 0xFF;
+        expected[5] = 0xFF;
+        assert_eq!(t.hash(), &expected);
+    }
+
+    #[test]
+    fn test_from_hash_round_trip_difficulty_1() {
+        let t = Target::from_hash(DIFFICULTY_1_HASH);
+        assert_eq!(t.compact(), DIFFICULTY_1_COMPACT);
+    }
+
+    proptest::proptest! {
+        #[test]
+        fn prop_compact_round_trip_normalized(
+            mantissa in 0x010000u32..0x800000u32,
+            exponent in 4u32..32u32,
+        ) {
+            let compact = (exponent << EXPONENT_SHIFT) | mantissa;
+            let t = Target::from_compact(compact);
+            let back = convert_to_compact(t.hash());
+            proptest::prop_assert_eq!(back, compact);
+        }
     }
 }

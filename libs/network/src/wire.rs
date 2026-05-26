@@ -7,7 +7,9 @@ use anyhow::{Result, bail};
 /// A framed message: header (24 bytes) followed by the serialized payload.
 #[derive(Debug, Clone)]
 pub struct WireMessage {
+    /// Decoded message header.
     pub header: Header,
+    /// Raw payload bytes following the header.
     pub payload: Vec<u8>,
 }
 
@@ -87,5 +89,35 @@ mod tests {
         assert_eq!(bytes.len(), HEADER_SIZE);
         let decoded = WireMessage::from_bytes(&bytes).unwrap();
         assert!(matches!(decoded.decode().unwrap(), Message::Verack));
+    }
+
+    #[test]
+    fn truncated_header_rejected() {
+        assert!(WireMessage::from_bytes(&[0u8; HEADER_SIZE - 1]).is_err());
+    }
+
+    #[test]
+    fn truncated_payload_rejected() {
+        let msg = Message::Ping(PingMessage { nonce: 9 });
+        let bytes = WireMessage::encode(&msg, MAGIC_MAIN).unwrap().to_bytes();
+        // Drop last payload byte.
+        assert!(WireMessage::from_bytes(&bytes[..bytes.len() - 1]).is_err());
+    }
+
+    #[test]
+    fn all_empty_payload_variants_round_trip() {
+        for m in [
+            Message::Verack,
+            Message::GetAddr,
+            Message::FilterClear,
+            Message::SendHeaders,
+            Message::Mempool,
+        ] {
+            let cmd = m.command();
+            let bytes = WireMessage::encode(&m, MAGIC_MAIN).unwrap().to_bytes();
+            let decoded = WireMessage::from_bytes(&bytes).unwrap();
+            assert_eq!(decoded.header.command_str(), cmd);
+            assert!(decoded.payload.is_empty());
+        }
     }
 }

@@ -1,14 +1,13 @@
 //! Bitcoin network address (30 bytes on the wire).
 //!
-//! Wire layout (matching the legacy C++ implementation):
+//! Wire layout:
 //! ```text
 //! time:     u32 little-endian   ( 4 bytes)
 //! services: u64 little-endian   ( 8 bytes)
 //! ipv6:     [u8; 16] raw        (16 bytes)
 //! port:     u16 little-endian   ( 2 bytes)
 //! ```
-//! The port is stored little-endian for parity with the existing C++ code,
-//! even though strict Bitcoin protocol specifies big-endian.
+//! The port is stored little-endian even though strict Bitcoin protocol specifies big-endian.
 
 use crate::serialize::{
     read_array, read_u16, read_u32, read_u64, write_bytes, write_u16, write_u32, write_u64,
@@ -16,17 +15,24 @@ use crate::serialize::{
 use anyhow::Result;
 use serde_json::json;
 
+/// On-wire size of an `Address`.
 pub const ADDRESS_SIZE: usize = 30;
 
+/// Bitcoin P2P network address (30 bytes on the wire).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Address {
+    /// Unix timestamp (seconds).
     pub time: u32,
+    /// Bitmask of supported services.
     pub services: u64,
+    /// IPv6 address; IPv4 is encoded as an IPv4-mapped IPv6 address.
     pub ipv6: [u8; 16],
+    /// TCP port.
     pub port: u16,
 }
 
 impl Address {
+    /// Construct from raw fields.
     pub fn new(time: u32, services: u64, ipv6: [u8; 16], port: u16) -> Self {
         Self {
             time,
@@ -36,6 +42,7 @@ impl Address {
         }
     }
 
+    /// Construct from an IPv4 address; encodes as an IPv4-mapped IPv6 address.
     pub fn from_ipv4(time: u32, services: u64, ipv4: [u8; 4], port: u16) -> Self {
         let mut ipv6 = [0u8; 16];
         ipv6[10] = 0xff;
@@ -44,6 +51,7 @@ impl Address {
         Self::new(time, services, ipv6, port)
     }
 
+    /// Recover the underlying IPv4 address if this is an IPv4-mapped IPv6 address.
     pub fn ipv4(&self) -> Option<[u8; 4]> {
         if self.ipv6[10] == 0xff
             && self.ipv6[11] == 0xff
@@ -57,6 +65,7 @@ impl Address {
         }
     }
 
+    /// Append the 30-byte wire encoding of this address to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
         write_u32(out, self.time);
         write_u64(out, self.services);
@@ -64,12 +73,14 @@ impl Address {
         write_u16(out, self.port);
     }
 
+    /// On-wire bytes as a fresh `Vec`.
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(ADDRESS_SIZE);
         self.serialize(&mut out);
         out
     }
 
+    /// Parse from `stream`, advancing the cursor by [`ADDRESS_SIZE`].
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
         let time = read_u32(stream)?;
         let services = read_u64(stream)?;
@@ -83,11 +94,13 @@ impl Address {
         })
     }
 
+    /// Convenience wrapper around `deserialize` for an owned buffer.
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
         let mut s = data;
         Self::deserialize(&mut s)
     }
 
+    /// JSON representation of this address.
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "time": self.time,
