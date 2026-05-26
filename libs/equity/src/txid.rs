@@ -1,9 +1,9 @@
 //! Transaction ID functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin transaction IDs.
 
 use crate::ffi;
-use crate::{Result, EquityError};
+use crate::{EquityError, Result};
 
 /// A Bitcoin transaction ID (TXID)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -70,9 +70,11 @@ impl std::str::FromStr for Txid {
 
     fn from_str(s: &str) -> Result<Self> {
         if s.len() != 64 {
-            return Err(EquityError("TXID hex string must be 64 characters".to_string()));
+            return Err(EquityError(
+                "TXID hex string must be 64 characters".to_string(),
+            ));
         }
-        
+
         match hex::decode(s) {
             Ok(mut bytes) => {
                 if bytes.len() != 32 {
@@ -82,7 +84,7 @@ impl std::str::FromStr for Txid {
                 bytes.reverse();
                 Self::from_data(&bytes)
             }
-            Err(_) => Err(EquityError("Invalid hex string".to_string()))
+            Err(_) => Err(EquityError("Invalid hex string".to_string())),
         }
     }
 }
@@ -101,15 +103,15 @@ mod tests {
 
     #[test]
     fn test_txid_hex_conversion() {
-        let hash_data = [1u8; 32];
+        let hash_data: [u8; 32] = std::array::from_fn(|i| i as u8);
         let txid = Txid::from_data(&hash_data).unwrap();
-        
+
         let hex_le = txid.to_hex();
         let hex_be = txid.to_hex_be();
-        
+
         assert_eq!(hex_le.len(), 64);
         assert_eq!(hex_be.len(), 64);
-        assert_ne!(hex_le, hex_be); // Should be different due to endianness
+        assert_ne!(hex_le, hex_be); // non-palindromic input → endianness flip changes the string
     }
 
     #[test]
@@ -137,7 +139,7 @@ mod tests {
     fn test_txid_hex_formatting() {
         let test_bytes = [0xABu8; 32];
         let txid = Txid::from_data(&test_bytes).expect("Failed to create txid");
-        
+
         println!("Txid display: {}", txid);
         // Note: Custom hex formatting would need to be implemented
     }
@@ -146,9 +148,6 @@ mod tests {
     fn test_txid_validation() {
         let test_bytes = [1u8; 32];
         let txid = Txid::from_data(&test_bytes).expect("Failed to create txid");
-        
-        // Test basic properties
-        println!("Txid created successfully");
-        // Note: Validation methods would need to be implemented
+        assert_eq!(txid.hash().len(), 32);
     }
 }

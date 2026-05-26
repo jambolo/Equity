@@ -10,11 +10,11 @@ struct Cli {
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    
+
     if cli.verbose {
         println!("Bits application starting...");
     }
-    
+
     println!("Hello from bits!");
     Ok(())
 }

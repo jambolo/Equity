@@ -1,5 +1,5 @@
 //! P2P (Peer-to-Peer) functionality
-//! 
+//!
 //! This library provides Rust bindings for the P2P C++ library
 
 // Basic struct definitions that match the C++ interface
@@ -65,7 +65,11 @@ impl MessageCpp {
     }
 
     pub fn to_json(&self) -> String {
-        format!("{{\"type\":\"{}\",\"size\":{}}}", self.message_type, self.payload.len())
+        format!(
+            "{{\"type\":\"{}\",\"size\":{}}}",
+            self.message_type,
+            self.payload.len()
+        )
     }
 }
 
@@ -149,7 +153,8 @@ impl PeerCpp {
     }
 
     pub fn send_message(&mut self, message: &MessageCpp) -> bool {
-        if self.status == 2 { // connected
+        if self.status == 2 {
+            // connected
             self.bytes_sent += message.payload.len() as u64;
             self.messages_sent += 1;
             true
@@ -183,8 +188,10 @@ impl PeerCpp {
     }
 
     pub fn to_json(&self) -> String {
-        format!("{{\"address\":\"{}\",\"status\":{},\"services\":{}}}", 
-                self.address, self.status, self.services)
+        format!(
+            "{{\"address\":\"{}\",\"status\":{},\"services\":{}}}",
+            self.address, self.status, self.services
+        )
     }
 }
 
@@ -215,7 +222,7 @@ pub fn serialize_i64(value: i64) -> Vec<u8> {
 
 pub fn serialize_var_int(value: u64) -> Vec<u8> {
     let mut data = Vec::new();
-    
+
     if value < 0xFD {
         data.push(value as u8);
     } else if value <= 0xFFFF {
@@ -228,7 +235,7 @@ pub fn serialize_var_int(value: u64) -> Vec<u8> {
         data.push(0xFF);
         data.extend_from_slice(&value.to_le_bytes());
     }
-    
+
     data
 }
 
@@ -256,7 +263,9 @@ pub fn deserialize_u32(data: &[u8]) -> Option<u32> {
 
 pub fn deserialize_u64(data: &[u8]) -> Option<u64> {
     if data.len() >= 8 {
-        Some(u64::from_le_bytes([data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]]))
+        Some(u64::from_le_bytes([
+            data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
+        ]))
     } else {
         None
     }
@@ -264,57 +273,98 @@ pub fn deserialize_u64(data: &[u8]) -> Option<u64> {
 
 pub fn deserialize_var_int(data: &[u8]) -> VarIntResult {
     if data.is_empty() {
-        return VarIntResult { value: 0, bytes_read: 0 };
+        return VarIntResult {
+            value: 0,
+            bytes_read: 0,
+        };
     }
-    
+
     let first_byte = data[0];
-    
+
     if first_byte < 0xFD {
-        VarIntResult { value: first_byte as u64, bytes_read: 1 }
+        VarIntResult {
+            value: first_byte as u64,
+            bytes_read: 1,
+        }
     } else if first_byte == 0xFD {
         if data.len() >= 3 {
             let value = u16::from_le_bytes([data[1], data[2]]) as u64;
-            VarIntResult { value, bytes_read: 3 }
+            VarIntResult {
+                value,
+                bytes_read: 3,
+            }
         } else {
-            VarIntResult { value: 0, bytes_read: 0 }
+            VarIntResult {
+                value: 0,
+                bytes_read: 0,
+            }
         }
     } else if first_byte == 0xFE {
         if data.len() >= 5 {
             let value = u32::from_le_bytes([data[1], data[2], data[3], data[4]]) as u64;
-            VarIntResult { value, bytes_read: 5 }
+            VarIntResult {
+                value,
+                bytes_read: 5,
+            }
         } else {
-            VarIntResult { value: 0, bytes_read: 0 }
+            VarIntResult {
+                value: 0,
+                bytes_read: 0,
+            }
         }
     } else if first_byte == 0xFF {
         if data.len() >= 9 {
-            let value = u64::from_le_bytes([data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]]);
-            VarIntResult { value, bytes_read: 9 }
+            let value = u64::from_le_bytes([
+                data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8],
+            ]);
+            VarIntResult {
+                value,
+                bytes_read: 9,
+            }
         } else {
-            VarIntResult { value: 0, bytes_read: 0 }
+            VarIntResult {
+                value: 0,
+                bytes_read: 0,
+            }
         }
     } else {
-        VarIntResult { value: 0, bytes_read: 0 }
+        VarIntResult {
+            value: 0,
+            bytes_read: 0,
+        }
     }
 }
 
 pub fn deserialize_var_string(data: &[u8]) -> VarStringResult {
     let length_result = deserialize_var_int(data);
     if length_result.bytes_read == 0 {
-        return VarStringResult { value: String::new(), bytes_read: 0 };
+        return VarStringResult {
+            value: String::new(),
+            bytes_read: 0,
+        };
     }
-    
+
     let string_length = length_result.value as usize;
     let total_bytes_needed = length_result.bytes_read + string_length;
-    
+
     if data.len() >= total_bytes_needed {
         let string_bytes = &data[length_result.bytes_read..total_bytes_needed];
         if let Ok(string_value) = String::from_utf8(string_bytes.to_vec()) {
-            VarStringResult { value: string_value, bytes_read: total_bytes_needed }
+            VarStringResult {
+                value: string_value,
+                bytes_read: total_bytes_needed,
+            }
         } else {
-            VarStringResult { value: String::new(), bytes_read: 0 }
+            VarStringResult {
+                value: String::new(),
+                bytes_read: 0,
+            }
         }
     } else {
-        VarStringResult { value: String::new(), bytes_read: 0 }
+        VarStringResult {
+            value: String::new(),
+            bytes_read: 0,
+        }
     }
 }
 
@@ -335,16 +385,16 @@ mod tests {
         let mut peer = PeerCpp::new("127.0.0.1:8333");
         assert_eq!(peer.get_address(), "127.0.0.1:8333");
         assert_eq!(peer.get_connection_status(), 0); // disconnected
-        
+
         // Test connection
         assert!(peer.connect());
         assert_eq!(peer.get_connection_status(), 2); // connected
-        
+
         // Test message sending
         let message = MessageCpp::new("ping", b"");
         assert!(peer.send_message(&message));
         assert_eq!(peer.get_messages_sent(), 1);
-        
+
         peer.disconnect();
         assert_eq!(peer.get_connection_status(), 0); // disconnected
     }
@@ -353,11 +403,11 @@ mod tests {
     fn test_serialization() {
         // Test basic integer serialization
         assert_eq!(serialize_u32(0x12345678), vec![0x78, 0x56, 0x34, 0x12]);
-        
+
         // Test var_int serialization
         assert_eq!(serialize_var_int(42), vec![42]);
         assert_eq!(serialize_var_int(253), vec![0xFD, 0xFD, 0x00]);
-        
+
         // Test var_string serialization
         let data = serialize_var_string("hello");
         assert_eq!(data[0], 5); // length
@@ -370,11 +420,11 @@ mod tests {
         let result = deserialize_var_int(&[42]);
         assert_eq!(result.value, 42);
         assert_eq!(result.bytes_read, 1);
-        
+
         let result = deserialize_var_int(&[0xFD, 0xFD, 0x00]);
         assert_eq!(result.value, 253);
         assert_eq!(result.bytes_read, 3);
-        
+
         // Test var_string deserialization
         let data = vec![5, b'h', b'e', b'l', b'l', b'o'];
         let result = deserialize_var_string(&data);
@@ -386,13 +436,13 @@ mod tests {
     fn test_peer_services() {
         let mut peer = PeerCpp::new("127.0.0.1:8333");
         assert_eq!(peer.get_services(), 0);
-        
+
         peer.set_services(0x01); // NODE_NETWORK
         assert_eq!(peer.get_services(), 0x01);
-        
+
         peer.set_protocol_version(70015);
         assert_eq!(peer.get_protocol_version(), 70015);
-        
+
         peer.set_user_agent("/EquityNode:0.1.0/");
         assert_eq!(peer.get_user_agent(), "/EquityNode:0.1.0/");
     }

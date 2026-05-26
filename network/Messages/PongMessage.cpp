@@ -2,6 +2,7 @@
 
 #include "p2p/Serialize.h"
 #include "utility/Endian.h"
+#include <nlohmann/json.hpp>
 
 using namespace Network;
 using namespace Utility;
@@ -23,4 +24,9 @@ PongMessage::PongMessage(uint8_t const * & in, size_t & size)
 void PongMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(Endian::little(nonce_), out);
+}
+
+nlohmann::json PongMessage::toJson() const
+{
+    return { {"nonce", nonce_} };
 }

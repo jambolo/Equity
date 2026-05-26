@@ -1,10 +1,10 @@
 //! Block functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin blocks.
 
+use crate::Result;
 use crate::ffi::{self, BlockCpp, BlockHeaderCpp};
 use crate::transaction::Transaction;
-use crate::Result;
 
 /// A Bitcoin block
 pub struct Block {
@@ -49,7 +49,10 @@ impl Block {
     /// Get a specific transaction by index
     pub fn get_transaction(&self, index: usize) -> Option<Transaction> {
         if index < self.transaction_count() {
-            Some(Transaction::from_ffi(ffi::blockGetTransaction(&self.inner, index)))
+            Some(Transaction::from_ffi(ffi::blockGetTransaction(
+                &self.inner,
+                index,
+            )))
         } else {
             None
         }
@@ -112,15 +115,15 @@ mod tests {
         // For now, just test that the module compiles correctly
         let test_data = vec![0u8; 80]; // Minimal block header size
         let result = Block::from_data(&test_data);
-        
+
         // The result depends on the C++ implementation's validation
         match result {
             Ok(block) => {
-                println!("Block created successfully");
-                assert!(block.transaction_count() >= 0);
+                // transaction_count() is usize; just make sure the call doesn't panic.
+                let _ = block.transaction_count();
             }
             Err(_) => {
-                println!("Block creation failed (expected for invalid data)");
+                // Block creation failed (expected for invalid data).
             }
         }
     }

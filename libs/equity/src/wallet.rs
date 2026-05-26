@@ -1,11 +1,11 @@
 //! Wallet functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for managing Bitcoin wallets and key pairs.
 
 use crate::address::Address;
 use crate::private_key::PrivateKey;
 use crate::public_key::PublicKey;
-use crate::{Result, Network};
+use crate::{Network, Result};
 
 /// A wallet entry containing a key pair and associated address
 #[derive(Debug)]
@@ -36,13 +36,13 @@ impl Wallet {
         let public_key_data = private_key.value();
         let public_key = PublicKey::from_private_key(&public_key_data)?;
         let address = Address::from_public_key(&public_key.value())?;
-        
+
         let entry = WalletEntry {
             private_key,
             public_key,
             address,
         };
-        
+
         self.entries.push(entry);
         Ok(self.entries.len() - 1)
     }
@@ -89,7 +89,8 @@ impl Wallet {
 
     /// Get all addresses in the wallet
     pub fn get_addresses(&self) -> Vec<String> {
-        self.entries.iter()
+        self.entries
+            .iter()
             .map(|entry| entry.address.to_string(self.network))
             .collect()
     }
@@ -147,16 +148,16 @@ mod tests {
     fn test_add_private_key() {
         let mut wallet = Wallet::new(Network::Testnet);
         let key_data = [1u8; 32];
-        
+
         if let Ok(private_key) = PrivateKey::from_data(&key_data) {
             let result = wallet.add_private_key(private_key);
-            
+
             match result {
                 Ok(index) => {
                     assert_eq!(index, 0);
                     assert_eq!(wallet.len(), 1);
                     assert!(!wallet.is_empty());
-                    
+
                     let entry = wallet.get_entry(0).unwrap();
                     assert!(entry.private_key.is_valid());
                     assert!(entry.public_key.is_valid());
@@ -172,17 +173,17 @@ mod tests {
     #[test]
     fn test_wallet_addresses() {
         let mut wallet = Wallet::new(Network::Mainnet);
-        
+
         // Try to add a few test keys
         for i in 1..=3 {
             let mut key_data = [0u8; 32];
             key_data[31] = i as u8;
-            
+
             if let Ok(private_key) = PrivateKey::from_data(&key_data) {
                 let _ = wallet.add_private_key(private_key);
             }
         }
-        
+
         let addresses = wallet.get_addresses();
         assert_eq!(addresses.len(), wallet.len());
     }

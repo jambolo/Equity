@@ -24,3 +24,8 @@ void PingMessage::serialize(std::vector<uint8_t> & out) const
 {
     P2p::serialize(Endian::little(nonce_), out);
 }
+
+nlohmann::json PingMessage::toJson() const
+{
+    return { {"nonce", nonce_} };
+}

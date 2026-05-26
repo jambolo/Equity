@@ -5,59 +5,19 @@ mod ffi {
     unsafe extern "C++" {
         include!("crypto_wrapper.h");
 
-        // ECC functions
-        unsafe fn eccPublicKeyIsValid(k: *const u8, size: usize) -> bool;
-        unsafe fn eccPrivateKeyIsValid(k: *const u8, size: usize) -> bool;
-        
-        // NEW: ECC advanced functions
-        unsafe fn eccDerivePublicKey(privateKey: *const u8, publicKey: &mut Vec<u8>, uncompressed: bool) -> bool;
-        unsafe fn eccSign(message: *const u8, messageSize: usize, privateKey: *const u8, signature: &mut Vec<u8>) -> bool;
-        unsafe fn eccVerify(message: *const u8, messageSize: usize, publicKey: &Vec<u8>, signature: &Vec<u8>) -> bool;
-
-        // Hashing functions (raw pointer versions)
-        unsafe fn sha1(input: *const u8, length: usize, output: *mut u8);
-        unsafe fn sha256(input: *const u8, length: usize, output: *mut u8);
-        unsafe fn doubleSha256(input: *const u8, length: usize, output: *mut u8);
-        unsafe fn checksum(input: *const u8, length: usize, output: *mut u8);
-        unsafe fn sha512(input: *const u8, length: usize, output: *mut u8);
-        unsafe fn ripemd160(input: *const u8, length: usize, output: *mut u8);
-
-        // NEW: Vector-based hashing functions
-        fn sha1Vector(input: &Vec<u8>, output: &mut Vec<u8>);
-        fn sha256Vector(input: &Vec<u8>, output: &mut Vec<u8>);
-        fn doubleSha256Vector(input: &Vec<u8>, output: &mut Vec<u8>);
-        fn checksumVector(input: &Vec<u8>, output: &mut Vec<u8>);
-        fn sha512Vector(input: &Vec<u8>, output: &mut Vec<u8>);
-        fn ripemd160Vector(input: &Vec<u8>, output: &mut Vec<u8>);
-
-        // HMAC function
-        unsafe fn hmacSha512(key: *const u8, keySize: usize, message: *const u8, messageSize: usize, output: *mut u8);
-
-        // PBKDF2 functions
-        unsafe fn pbkdf2HmacSha512(
-            password: *const u8,
-            passwordSize: usize,
-            salt: *const u8,
-            saltSize: usize,
-            count: i32,
-            outputSize: usize,
-            output: *mut u8,
-        ) -> bool;
-        
-        // NEW: Vector-based PBKDF2
-        fn pbkdf2HmacSha512Vector(password: &Vec<u8>, salt: &Vec<u8>, count: i32, outputSize: usize, output: &mut Vec<u8>) -> bool;
-
-        // Random functions
+        // Random functions (only random remains on the C++ path)
         fn randomStatus() -> bool;
         unsafe fn randomGetBytes(buffer: *mut u8, size: usize);
         unsafe fn randomAddEntropy(buffer: *const u8, size: usize, entropy: f64);
-        
+
         // NEW: Vector-based random function
         fn randomGetBytesVector(size: usize, output: &mut Vec<u8>);
     }
 }
 
 pub mod ecc;
+pub mod ecc_ffi;
+pub mod hash_ffi;
 pub mod hmac;
 pub mod pbkdf2;
 pub mod random;
@@ -84,7 +44,7 @@ mod tests {
     fn test_sha256_basic() {
         let input = b"hello world";
         let hash = sha256(input);
-        
+
         // SHA-256 of "hello world" is a fixed value
         assert_eq!(hash.len(), 32);
         // Note: The actual implementation might return zeros if not fully implemented

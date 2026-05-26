@@ -1,32 +1,29 @@
+// Thin shim over the Rust `pbkdf2`+`hmac`+`sha2` crates (see libs/crypto/src/hash_ffi.rs).
+
 #include "Pbkdf2.h"
 
-#include <wolfssl/options.h>
-#include <wolfssl/wolfcrypt/settings.h>
-#include <wolfssl/wolfcrypt/pwdbased.h>
-#include <wolfssl/wolfcrypt/sha512.h>
-
-#include <cassert>
+#include <cstddef>
 #include <cstdint>
 
-namespace Crypto
+extern "C" bool crypto_pbkdf2_hmac_sha512(uint8_t const * password,
+                                          size_t          password_size,
+                                          uint8_t const * salt,
+                                          size_t          salt_size,
+                                          int             count,
+                                          uint8_t *       out,
+                                          size_t          out_capacity);
+
+std::vector<uint8_t> Crypto::pbkdf2HmacSha512(uint8_t const * password,
+                                              size_t          passwordSize,
+                                              uint8_t const * salt,
+                                              size_t          saltSize,
+                                              int             count,
+                                              size_t          size)
 {
-
-std::vector<uint8_t> pbkdf2HmacSha512(uint8_t const * password, size_t passwordSize,
-                                      uint8_t const * salt, size_t saltSize,
-                                      int count,
-                                      size_t size)
-{
-    assert(count > 0);
-    assert(size > 0);
-
-    int rc;
-    std::vector<uint8_t> key(WC_SHA512_DIGEST_SIZE);
-
-    rc = wc_PBKDF2(&key[0], password, (word32)passwordSize, salt, (word32)saltSize, count, WC_SHA512_DIGEST_SIZE, WC_SHA512);
-    if (!rc)
+    std::vector<uint8_t> out(size);
+    if (!crypto_pbkdf2_hmac_sha512(password, passwordSize, salt, saltSize, count, out.data(), size))
+    {
         return std::vector<uint8_t>();
-
-    return key;
+    }
+    return out;
 }
-
-} // namespace Crypto

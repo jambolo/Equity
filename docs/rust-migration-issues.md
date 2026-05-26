@@ -20,7 +20,7 @@ This document provides a step-by-step guide for migrating the project from C++ t
 
 ## 3. Integrate the Build System and CI
 
-- [ ] Update CI scripts to use `cargo build` and `cargo test`.
+- [x] Update CI scripts to use `cargo build` and `cargo test`.
 - [ ] Keep existing CMake builds behind a `legacy` feature while the transition is ongoing.
 - [ ] Remove CMake once all components compile as Rust crates.
 
@@ -28,8 +28,8 @@ This document provides a step-by-step guide for migrating the project from C++ t
 
 ### Crypto
 
-- [ ] Rewrite cryptographic functions in Rust using crates like `openssl` or `ring`.
-- [ ] Ensure unit tests match the behavior of the original C++ code.
+- [x] Rewrite cryptographic functions in Rust using crates like `openssl` or `ring`.
+- [x] Ensure unit tests match the behavior of the original C++ code.
 
 ### Utility
 

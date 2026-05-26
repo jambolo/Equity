@@ -11,6 +11,12 @@ cxx-bridge = []
 serde.workspace = true
 anyhow.workspace = true
 cxx = "1.0"
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+ripemd = "0.1"
+pbkdf2 = { version = "0.12", default-features = false }
+secp256k1 = { version = "0.30", features = ["std", "global-context"] }
 
 [build-dependencies]
 cxx-build = "1.0"

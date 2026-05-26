@@ -81,14 +81,6 @@ mod ffi {
         fn publicKeyIsValid(pubkey: &PublicKeyCpp) -> bool;
         fn publicKeyIsCompressed(pubkey: &PublicKeyCpp) -> bool;
 
-        // Base58
-        fn base58Encode(input: &[u8]) -> String;
-        fn base58Decode(input: &str, output: &mut Vec<u8>) -> bool;
-
-        // Base58Check
-        fn base58CheckEncode(input: &[u8], version: u32) -> String;
-        fn base58CheckDecode(input: &str, output: &mut Vec<u8>, version: &mut u32) -> bool;
-
         // Transaction
         fn transactionFromJson(json: &str) -> TransactionCpp;
         fn transactionFromData(data: &[u8]) -> TransactionCpp;
@@ -135,15 +127,46 @@ mod ffi {
         fn merkleTreeCreate(hashes: &[u8], hash_count: usize) -> Vec<u8>;
         fn merkleTreeGetRoot(tree_data: &[u8]) -> Vec<u8>;
         fn merkleTreeGetProof(tree_data: &[u8], index: usize) -> MerkleProofCpp;
-        fn merkleTreeVerify(hash: &[u8], index: usize, proof_data: &[u8], proof_count: usize, root: &[u8]) -> bool;
+        fn merkleTreeVerify(
+            hash: &[u8],
+            index: usize,
+            proof_data: &[u8],
+            proof_count: usize,
+            root: &[u8],
+        ) -> bool;
     }
 }
+
+// Force the linker to keep `crypto::ecc_ffi` + `crypto::hash_ffi` `extern "C"`
+// exports — the C++ shims in equity_bridge.lib (Ecc.cpp, Sha1.cpp, Sha512.cpp,
+// Ripemd.cpp, Pbkdf2.cpp) call into them, but rustc otherwise DCEs rlib-level
+// `#[used]` statics when pulled through a transitive dep.
+#[allow(clippy::missing_transmute_annotations)]
+type ExternFn = unsafe extern "C" fn();
+#[allow(clippy::missing_transmute_annotations)]
+#[used]
+static _CRYPTO_FFI_LINK_FORCE: [ExternFn; 13] = [
+    unsafe { std::mem::transmute(crypto::ecc_ffi::crypto_ecc_public_key_is_valid as *const ()) },
+    unsafe { std::mem::transmute(crypto::ecc_ffi::crypto_ecc_private_key_is_valid as *const ()) },
+    unsafe { std::mem::transmute(crypto::ecc_ffi::crypto_ecc_derive_public_key as *const ()) },
+    unsafe { std::mem::transmute(crypto::ecc_ffi::crypto_ecc_sign as *const ()) },
+    unsafe { std::mem::transmute(crypto::ecc_ffi::crypto_ecc_verify as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_sha1 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_sha256 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_double_sha256 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_checksum as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_sha512 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_ripemd160 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_hmac_sha512 as *const ()) },
+    unsafe { std::mem::transmute(crypto::hash_ffi::crypto_pbkdf2_hmac_sha512 as *const ()) },
+];
 
 pub mod address;
 pub mod base58;
 pub mod base58_check;
 pub mod block;
 pub mod configuration;
+pub mod merkle_tree;
 pub mod mnemonic;
 pub mod private_key;
 pub mod public_key;
@@ -152,7 +175,6 @@ pub mod target;
 pub mod transaction;
 pub mod txid;
 pub mod wallet;
-pub mod merkle_tree;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Network {

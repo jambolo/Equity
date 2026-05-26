@@ -1,9 +1,9 @@
 //! Public key functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin public keys.
 
 use crate::ffi::{self, PublicKeyCpp};
-use crate::{Result, EquityError};
+use crate::{EquityError, Result};
 
 /// A Bitcoin public key
 pub struct PublicKey {
@@ -14,7 +14,9 @@ impl PublicKey {
     /// Create a public key from binary data
     pub fn from_data(data: &[u8]) -> Result<Self> {
         if data.len() != 33 && data.len() != 65 {
-            return Err(EquityError("Public key data must be 33 (compressed) or 65 (uncompressed) bytes".to_string()));
+            return Err(EquityError(
+                "Public key data must be 33 (compressed) or 65 (uncompressed) bytes".to_string(),
+            ));
         }
         let inner = ffi::publicKeyFromData(data);
         if ffi::publicKeyIsValid(&inner) {
@@ -33,7 +35,9 @@ impl PublicKey {
         if ffi::publicKeyIsValid(&inner) {
             Ok(PublicKey { inner })
         } else {
-            Err(EquityError("Invalid private key for public key generation".to_string()))
+            Err(EquityError(
+                "Invalid private key for public key generation".to_string(),
+            ))
         }
     }
 
@@ -83,7 +87,7 @@ mod tests {
         // Example 32-byte private key
         let private_key_data = [1u8; 32];
         let public_key = PublicKey::from_private_key(&private_key_data);
-        
+
         if let Ok(pk) = public_key {
             assert!(pk.is_valid());
             assert!(pk.size() == 33 || pk.size() == 65);
@@ -103,7 +107,7 @@ mod tests {
         if let Ok(pk) = PublicKey::from_private_key(&private_key_data) {
             let size = pk.size();
             assert!(size == 33 || size == 65);
-            
+
             if size == 33 {
                 assert!(pk.is_compressed());
             } else {

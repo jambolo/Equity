@@ -13,6 +13,8 @@
 #include "equity/Mnemonic.h"
 #include "equity/Configuration.h"
 #include <memory>
+#include <random>
+#include <sstream>
 #include <stdexcept>
 
 namespace {
@@ -155,46 +157,6 @@ rust::Vec<uint8_t> publicKeyValue(const PublicKeyCpp& pubkey) {
 bool publicKeyIsValid(const PublicKeyCpp& pubkey) { return pubkey.valid; }
 bool publicKeyIsCompressed(const PublicKeyCpp& pubkey) { return pubkey.compressed; }
 
-rust::String base58Encode(rust::Slice<const uint8_t> input) {
-    try {
-        std::vector<uint8_t> data(input.begin(), input.end());
-        return Equity::Base58::encode(data);
-    } catch (...) { return ""; }
-}
-
-bool base58Decode(rust::Str input, rust::Vec<uint8_t>& output) {
-    try {
-        std::vector<uint8_t> result;
-        bool success = Equity::Base58::decode(std::string(input), result);
-        if (success) {
-            output.clear();
-            for (auto b : result) output.push_back(b);
-        }
-        return success;
-    } catch (...) { return false; }
-}
-
-rust::String base58CheckEncode(rust::Slice<const uint8_t> input, uint32_t version) {
-    try {
-        std::vector<uint8_t> data(input.begin(), input.end());
-        return Equity::Base58Check::encode(data, version);
-    } catch (...) { return ""; }
-}
-
-bool base58CheckDecode(rust::Str input, rust::Vec<uint8_t>& output, uint32_t& version) {
-    try {
-        std::vector<uint8_t> result;
-        unsigned int ver;
-        bool success = Equity::Base58Check::decode(std::string(input), result, ver);
-        if (success) {
-            output.clear();
-            for (auto b : result) output.push_back(b);
-            version = ver;
-        }
-        return success;
-    } catch (...) { return false; }
-}
-
 TransactionCpp transactionFromJson(rust::Str json) { return TransactionCpp{ 1, 0, true }; }
 TransactionCpp transactionFromData(rust::Slice<const uint8_t> data) { return TransactionCpp{ 1, 0, true }; }
 rust::String transactionToJson(const TransactionCpp& tx) { return "{}"; }
@@ -227,15 +189,58 @@ rust::Vec<uint8_t> txidSerialize(rust::Slice<const uint8_t> hash) {
     return result;
 }
 
-bool mnemonicGenerate(uint32_t strength, rust::String& output) {
-    output = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
-    return true;
+namespace {
+
+Equity::Mnemonic::WordList splitWords(std::string const & s) {
+    Equity::Mnemonic::WordList out;
+    std::istringstream is(s);
+    std::string w;
+    while (is >> w) out.push_back(std::move(w));
+    return out;
 }
-bool mnemonicValidate(rust::Str mnemonic) { return true; }
+
+} // namespace
+
+bool mnemonicGenerate(uint32_t strength, rust::String& output) {
+    try {
+        // BIP-39: strength is in bits; entropy size is strength/8 (must be multiple of 4).
+        if (strength % 8 != 0) return false;
+        size_t bytes = strength / 8;
+        if (bytes < 16 || bytes > 32 || (bytes % 4) != 0) return false;
+
+        std::vector<uint8_t> entropy(bytes);
+        std::random_device rd;
+        for (size_t i = 0; i < bytes; i += sizeof(uint32_t)) {
+            uint32_t v = rd();
+            size_t n = std::min(sizeof(uint32_t), bytes - i);
+            std::memcpy(entropy.data() + i, &v, n);
+        }
+
+        Equity::Mnemonic m(entropy);
+        if (!m.isValid()) return false;
+        output = rust::String(m.sentence());
+        return true;
+    } catch (...) { return false; }
+}
+
+bool mnemonicValidate(rust::Str mnemonic) {
+    try {
+        Equity::Mnemonic m(splitWords(std::string(mnemonic)));
+        return m.isValid();
+    } catch (...) { return false; }
+}
+
 bool mnemonicToSeed(rust::Str mnemonic, rust::Str passphrase, rust::Vec<uint8_t>& seed) {
-    seed.clear();
-    for (int i = 0; i < 64; ++i) seed.push_back(i % 256);
-    return true;
+    try {
+        Equity::Mnemonic m(splitWords(std::string(mnemonic)));
+        if (!m.isValid()) return false;
+        std::string pw(passphrase);
+        std::vector<uint8_t> result = m.seed(pw.c_str());
+        seed.clear();
+        seed.reserve(result.size());
+        for (uint8_t b : result) seed.push_back(b);
+        return true;
+    } catch (...) { return false; }
 }
 
 rust::Vec<uint8_t> scriptFromData(rust::Slice<const uint8_t> data) {
@@ -262,23 +267,90 @@ rust::Vec<uint8_t> targetFromCompact(uint32_t compact) {
 uint32_t targetToCompact(rust::Slice<const uint8_t> target) { return 0x1d00ffff; }
 double targetGetDifficulty(rust::Slice<const uint8_t> target) { return 1.0; }
 
-rust::Vec<uint8_t> merkleTreeCreate(rust::Slice<const uint8_t> hashes, size_t hash_count) {
+namespace {
+
+constexpr size_t MERKLE_HASH_SIZE = 32;
+
+// `tree_data` stores the leaf hashes verbatim, concatenated. Each GetRoot/GetProof
+// call reconstructs an Equity::MerkleTree from those leaves.
+Crypto::Sha256HashList parseMerkleLeaves(rust::Slice<const uint8_t> tree_data) {
+    Crypto::Sha256HashList leaves;
+    size_t n = tree_data.size() / MERKLE_HASH_SIZE;
+    leaves.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        Crypto::Sha256Hash h{};
+        for (size_t j = 0; j < MERKLE_HASH_SIZE; ++j) {
+            h[j] = tree_data[i * MERKLE_HASH_SIZE + j];
+        }
+        leaves.push_back(h);
+    }
+    return leaves;
+}
+
+rust::Vec<uint8_t> hashToRustVec(Crypto::Sha256Hash const & h) {
+    rust::Vec<uint8_t> out;
+    out.reserve(MERKLE_HASH_SIZE);
+    for (uint8_t b : h) out.push_back(b);
+    return out;
+}
+
+} // namespace
+
+rust::Vec<uint8_t> merkleTreeCreate(rust::Slice<const uint8_t> hashes, size_t /*hash_count*/) {
+    // Opaque blob: just the leaves, concatenated.
     rust::Vec<uint8_t> result;
+    result.reserve(hashes.size());
     for (auto b : hashes) result.push_back(b);
     return result;
 }
+
 rust::Vec<uint8_t> merkleTreeGetRoot(rust::Slice<const uint8_t> tree_data) {
-    rust::Vec<uint8_t> result;
-    size_t len = tree_data.size() < 32 ? tree_data.size() : 32;
-    for (size_t i = 0; i < len; ++i) result.push_back(tree_data[i]);
-    return result;
+    try {
+        auto leaves = parseMerkleLeaves(tree_data);
+        if (leaves.empty()) return rust::Vec<uint8_t>();
+        Equity::MerkleTree tree(leaves);
+        return hashToRustVec(tree.root());
+    } catch (...) { return rust::Vec<uint8_t>(); }
 }
+
 MerkleProofCpp merkleTreeGetProof(rust::Slice<const uint8_t> tree_data, size_t index) {
-    MerkleProofCpp proof;
-    proof.proof_count = 0;
-    return proof;
+    MerkleProofCpp out;
+    out.proof_count = 0;
+    try {
+        auto leaves = parseMerkleLeaves(tree_data);
+        if (index >= leaves.size()) return out;
+        Equity::MerkleTree tree(leaves);
+        auto proof = tree.proof(index);
+        out.proof_count = proof.size();
+        out.proof_hashes.reserve(proof.size() * MERKLE_HASH_SIZE);
+        for (auto const & h : proof) {
+            for (uint8_t b : h) out.proof_hashes.push_back(b);
+        }
+    } catch (...) {}
+    return out;
 }
-bool merkleTreeVerify(rust::Slice<const uint8_t> hash, size_t index, rust::Slice<const uint8_t> proof_data, size_t proof_count, rust::Slice<const uint8_t> root) {
-    if (hash.size() != root.size()) return false;
-    return std::equal(hash.begin(), hash.end(), root.begin());
+
+bool merkleTreeVerify(rust::Slice<const uint8_t> hash,
+                      size_t                     index,
+                      rust::Slice<const uint8_t> proof_data,
+                      size_t                     proof_count,
+                      rust::Slice<const uint8_t> root) {
+    try {
+        if (hash.size() != MERKLE_HASH_SIZE || root.size() != MERKLE_HASH_SIZE) return false;
+        if (proof_data.size() < proof_count * MERKLE_HASH_SIZE) return false;
+
+        Crypto::Sha256Hash h{}, r{};
+        for (size_t i = 0; i < MERKLE_HASH_SIZE; ++i) { h[i] = hash[i]; r[i] = root[i]; }
+
+        Crypto::Sha256HashList proof;
+        proof.reserve(proof_count);
+        for (size_t k = 0; k < proof_count; ++k) {
+            Crypto::Sha256Hash ph{};
+            for (size_t j = 0; j < MERKLE_HASH_SIZE; ++j) {
+                ph[j] = proof_data[k * MERKLE_HASH_SIZE + j];
+            }
+            proof.push_back(ph);
+        }
+        return Equity::MerkleTree::verify(h, index, proof, r);
+    } catch (...) { return false; }
 }

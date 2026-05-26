@@ -1,121 +1,103 @@
-//! ECC (Elliptic Curve Cryptography) functions
+//! ECC over secp256k1 via the `secp256k1` Rust crate.
 
-use crate::ffi;
+use secp256k1::{Message, PublicKey as SecpPublicKey, SECP256K1, SecretKey, ecdsa::Signature};
+use sha2::{Digest, Sha256};
 
-// Rust wrapper types
-pub type PrivateKey = [u8; 32]; // 256 bits / 8 = 32 bytes
+pub type PrivateKey = [u8; 32];
 pub type PublicKey = Vec<u8>;
-pub type Signature = Vec<u8>;
+pub type SignatureBytes = Vec<u8>;
 
-// Constants
 pub const PRIVATE_KEY_SIZE: usize = 32;
 pub const COMPRESSED_PUBLIC_KEY_SIZE: usize = 33;
 pub const UNCOMPRESSED_PUBLIC_KEY_SIZE: usize = 65;
 
-// Safe Rust wrappers for basic validation
 pub fn public_key_is_valid(key: &[u8]) -> bool {
-    unsafe {
-        ffi::eccPublicKeyIsValid(key.as_ptr(), key.len())
-    }
+    SecpPublicKey::from_slice(key).is_ok()
 }
 
 pub fn private_key_is_valid(key: &PrivateKey) -> bool {
-    unsafe {
-        ffi::eccPrivateKeyIsValid(key.as_ptr(), key.len())
-    }
+    SecretKey::from_slice(key).is_ok()
 }
 
-/// Derive a public key from a private key
-pub fn derive_public_key(private_key: &PrivateKey, uncompressed: bool) -> Result<PublicKey, &'static str> {
-    let mut public_key = Vec::new();
-    
-    let success = unsafe {
-        ffi::eccDerivePublicKey(private_key.as_ptr(), &mut public_key, uncompressed)
-    };
-    
-    if success {
-        Ok(public_key)
+pub fn derive_public_key(
+    private_key: &PrivateKey,
+    uncompressed: bool,
+) -> Result<PublicKey, &'static str> {
+    let sk = SecretKey::from_slice(private_key).map_err(|_| "invalid private key")?;
+    let pk = SecpPublicKey::from_secret_key(SECP256K1, &sk);
+    Ok(if uncompressed {
+        pk.serialize_uncompressed().to_vec()
     } else {
-        Err("Failed to derive public key")
-    }
+        pk.serialize().to_vec()
+    })
 }
 
-/// Sign a message with a private key
-pub fn sign(message: &[u8], private_key: &PrivateKey) -> Result<Signature, &'static str> {
-    let mut signature = Vec::new();
-    
-    let success = unsafe {
-        ffi::eccSign(message.as_ptr(), message.len(), private_key.as_ptr(), &mut signature)
+fn message_digest(message: &[u8]) -> Message {
+    let digest: [u8; 32] = Sha256::digest(message).into();
+    Message::from_digest(digest)
+}
+
+pub fn sign(message: &[u8], private_key: &PrivateKey) -> Result<SignatureBytes, &'static str> {
+    let sk = SecretKey::from_slice(private_key).map_err(|_| "invalid private key")?;
+    let sig = SECP256K1.sign_ecdsa(&message_digest(message), &sk);
+    Ok(sig.serialize_der().to_vec())
+}
+
+pub fn verify(message: &[u8], public_key: &PublicKey, signature: &SignatureBytes) -> bool {
+    let Ok(pk) = SecpPublicKey::from_slice(public_key) else {
+        return false;
     };
-    
-    if success {
-        Ok(signature)
-    } else {
-        Err("Failed to sign message")
-    }
-}
-
-/// Verify a message signature with a public key
-pub fn verify(message: &[u8], public_key: &PublicKey, signature: &Signature) -> bool {
-    unsafe {
-        ffi::eccVerify(message.as_ptr(), message.len(), public_key, signature)
-    }
+    let Ok(sig) = Signature::from_der(signature) else {
+        return false;
+    };
+    SECP256K1
+        .verify_ecdsa(&message_digest(message), &sig, &pk)
+        .is_ok()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn test_key() -> PrivateKey {
+        let mut k = [0u8; 32];
+        k[31] = 1;
+        k
+    }
+
     #[test]
     fn test_private_key_validation() {
-        // Test with zeros (should be invalid)
-        let zero_key = [0u8; 32];
-        // Note: depending on implementation, all zeros might be invalid
-        let _is_valid = private_key_is_valid(&zero_key);
-        // Don't assert result since it depends on implementation
+        assert!(!private_key_is_valid(&[0u8; 32]));
+        assert!(private_key_is_valid(&test_key()));
     }
 
     #[test]
     fn test_public_key_validation() {
-        // Test with invalid public key
-        let invalid_key = vec![0u8; 33];
-        let _is_valid = public_key_is_valid(&invalid_key);
-        // Don't assert result since it depends on implementation
+        assert!(!public_key_is_valid(&[0u8; 33]));
+        let pk = derive_public_key(&test_key(), false).unwrap();
+        assert!(public_key_is_valid(&pk));
     }
 
     #[test]
-    fn test_key_derivation() {
-        // Test key derivation with a test private key
-        // Note: This test may fail if the crypto implementation is not complete
-        let test_key = [1u8; 32]; // Simple test key
-        
-        if private_key_is_valid(&test_key) {
-            match derive_public_key(&test_key, false) {
-                Ok(public_key) => {
-                    assert!(!public_key.is_empty());
-                    assert_eq!(public_key.len(), COMPRESSED_PUBLIC_KEY_SIZE);
-                }
-                Err(_) => {
-                    // Key derivation failed, which is acceptable for testing
-                }
-            }
-        }
+    fn test_key_derivation_sizes() {
+        let sk = test_key();
+        assert_eq!(
+            derive_public_key(&sk, false).unwrap().len(),
+            COMPRESSED_PUBLIC_KEY_SIZE
+        );
+        assert_eq!(
+            derive_public_key(&sk, true).unwrap().len(),
+            UNCOMPRESSED_PUBLIC_KEY_SIZE
+        );
     }
 
     #[test]
     fn test_signing_and_verification() {
-        // Test signing and verification
-        let test_key = [1u8; 32];
+        let sk = test_key();
+        let pk = derive_public_key(&sk, true).unwrap();
         let message = b"test message";
-        
-        if private_key_is_valid(&test_key) {
-            if let Ok(public_key) = derive_public_key(&test_key, false) {
-                if let Ok(signature) = sign(message, &test_key) {
-                    let is_valid = verify(message, &public_key, &signature);
-                    // Note: We can't assert this will be true since it depends on the crypto implementation
-                    let _ = is_valid;
-                }
-            }
-        }
+        let signature = sign(message, &sk).unwrap();
+        assert!(verify(message, &pk, &signature));
+        assert!(!verify(b"different message", &pk, &signature));
     }
 }

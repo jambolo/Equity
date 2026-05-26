@@ -1,11 +1,14 @@
+// Thin shim over the Rust `sha2` crate (see libs/crypto/src/hash_ffi.rs).
+
 #include "Sha256.h"
 
-#include <wolfssl/options.h>
-#include <wolfssl/wolfcrypt/settings.h>
-#include <wolfssl/wolfcrypt/sha256.h>
-
 #include <algorithm>
-#include <cassert>
+#include <cstddef>
+#include <cstdint>
+
+extern "C" void crypto_sha256(uint8_t const * input, size_t length, uint8_t * out);
+extern "C" void crypto_double_sha256(uint8_t const * input, size_t length, uint8_t * out);
+extern "C" void crypto_checksum(uint8_t const * input, size_t length, uint8_t * out);
 
 namespace Crypto
 {
@@ -15,31 +18,23 @@ Sha256Hash sha256(std::vector<uint8_t> const & input)
     return sha256(input.data(), input.size());
 }
 
-// Sha256Hash sha256(Sha256Hash const & input)
-// {
-//     return sha256(input.data(), input.size());
-// }
-
 Sha256Hash sha256(uint8_t const * input, size_t length)
 {
-    Sha256Hash hash = {};
-    
-    wc_Sha256 sha;
-    wc_InitSha256(&sha);
-    wc_Sha256Update(&sha, input, static_cast<word32>(length));
-    wc_Sha256Final(&sha, hash.data());
-    
-    return hash;
+    Sha256Hash out{};
+    crypto_sha256(input, length, out.data());
+    return out;
 }
 
 Sha256Hash doubleSha256(std::vector<uint8_t> const & input)
 {
-    return sha256(sha256(input.data(), input.size()).data(), SHA256_HASH_SIZE);
+    return doubleSha256(input.data(), input.size());
 }
 
 Sha256Hash doubleSha256(uint8_t const * input, size_t length)
 {
-    return sha256(sha256(input, length).data(), SHA256_HASH_SIZE);
+    Sha256Hash out{};
+    crypto_double_sha256(input, length, out.data());
+    return out;
 }
 
 Checksum checksum(std::vector<uint8_t> const & input)
@@ -49,10 +44,9 @@ Checksum checksum(std::vector<uint8_t> const & input)
 
 Checksum checksum(uint8_t const * input, size_t length)
 {
-    Checksum c;
-    Sha256Hash hash = doubleSha256(input, length);
-    std::copy(hash.begin(), hash.begin() + CHECKSUM_SIZE, c.begin());
-    return c;
+    Checksum out{};
+    crypto_checksum(input, length, out.data());
+    return out;
 }
 
 } // namespace Crypto

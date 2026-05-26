@@ -1,9 +1,9 @@
 //! Address module for Bitcoin addresses
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin addresses.
 
 use crate::ffi::{self, AddressCpp};
-use crate::{Result, EquityError, Network};
+use crate::{EquityError, Network, Result};
 
 /// A Bitcoin address
 pub struct Address {
@@ -40,7 +40,9 @@ impl Address {
         if ffi::addressIsValid(&inner) {
             Ok(Address { inner })
         } else {
-            Err(EquityError("Invalid public key for address generation".to_string()))
+            Err(EquityError(
+                "Invalid public key for address generation".to_string(),
+            ))
         }
     }
 

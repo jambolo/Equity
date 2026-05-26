@@ -1,6 +1,7 @@
 #include "VerackMessage.h"
 
 #include "p2p/Serialize.h"
+#include <nlohmann/json.hpp>
 
 using namespace Network;
 
@@ -18,4 +19,9 @@ VerackMessage::VerackMessage(uint8_t const * & in, size_t & size)
 
 void VerackMessage::serialize(std::vector<uint8_t> & out) const
 {
+}
+
+nlohmann::json VerackMessage::toJson() const
+{
+    return nlohmann::json::object();
 }

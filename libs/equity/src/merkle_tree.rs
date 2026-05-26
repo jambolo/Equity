@@ -1,5 +1,5 @@
 //! Merkle Tree functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating and working with Bitcoin Merkle trees.
 
 use crate::ffi;
@@ -58,10 +58,10 @@ impl MerkleTree {
 
     /// Verify that a transaction is included in a block with the given Merkle root
     pub fn verify_inclusion(
-        tx_hash: &[u8], 
-        tx_index: usize, 
-        merkle_proof: &[Vec<u8>], 
-        merkle_root: &[u8]
+        tx_hash: &[u8],
+        tx_index: usize,
+        merkle_proof: &[Vec<u8>],
+        merkle_root: &[u8],
     ) -> bool {
         Self::verify(tx_hash, tx_index, merkle_proof, merkle_root)
     }
@@ -75,32 +75,27 @@ mod tests {
     fn test_single_transaction_merkle_tree() {
         let tx_hash = vec![1u8; 32];
         let hashes = vec![tx_hash.clone()];
-        
+
         let tree_data = MerkleTree::create(&hashes);
         assert!(!tree_data.is_empty());
-        
+
         let root = MerkleTree::get_root(&tree_data);
         assert_eq!(root.len(), 32);
-        
+
         // For a single transaction, root should equal the transaction hash
         assert_eq!(root, tx_hash);
     }
 
     #[test]
     fn test_multiple_transaction_merkle_tree() {
-        let hashes = vec![
-            vec![1u8; 32],
-            vec![2u8; 32],
-            vec![3u8; 32],
-            vec![4u8; 32],
-        ];
-        
+        let hashes = vec![vec![1u8; 32], vec![2u8; 32], vec![3u8; 32], vec![4u8; 32]];
+
         let tree_data = MerkleTree::create(&hashes);
         assert!(!tree_data.is_empty());
-        
+
         let root = MerkleTree::get_root(&tree_data);
         assert_eq!(root.len(), 32);
-        
+
         // Test proof generation and verification
         let proof = MerkleTree::get_proof(&tree_data, 0);
         let is_valid = MerkleTree::verify(&hashes[0], 0, &proof, &root);
@@ -109,21 +104,18 @@ mod tests {
 
     #[test]
     fn test_merkle_proof_verification() {
-        let hashes = vec![
-            vec![10u8; 32],
-            vec![20u8; 32],
-        ];
-        
+        let hashes = vec![vec![10u8; 32], vec![20u8; 32]];
+
         let root = MerkleTree::compute_root(&hashes);
-        
+
         // Create tree for proof generation
         let tree_data = MerkleTree::create(&hashes);
         let proof = MerkleTree::get_proof(&tree_data, 0);
-        
+
         // Verify the first transaction
         let is_valid = MerkleTree::verify_inclusion(&hashes[0], 0, &proof, &root);
         assert!(is_valid);
-        
+
         // Verify the second transaction
         let proof1 = MerkleTree::get_proof(&tree_data, 1);
         let is_valid1 = MerkleTree::verify_inclusion(&hashes[1], 1, &proof1, &root);

@@ -41,10 +41,9 @@ cargo build --no-default-features   # skip C++ compilation (Rust-only paths)
 
 | Var | Default | Purpose |
 | --- | --- | --- |
-| `WOLFSSL_ROOT` | `C:/Users/John/Projects/3rdParty/wolfssl` | WolfSSL include + lib search path |
 | `NLOHMANN_ROOT` | `C:/Users/John/Projects/3rdParty/nlohmann_json/include` | nlohmann_json header-only |
 
-WolfSSL links via `cargo:rustc-link-lib=wolfssl`. Windows MSVC also pulls in `advapi32`, `user32`, `ws2_32`.
+WolfSSL is no longer used — all crypto primitives (sha1/sha256/sha512/ripemd160/hmac/pbkdf2/ecc/random) are pure Rust via `sha1`, `sha2`, `ripemd`, `hmac`, `pbkdf2`, `secp256k1` crates + `std::random_device`. The `secp256k1` crate vendors `libsecp256k1`, so no system C library is required for crypto.
 
 ### Current build/test state
 
@@ -52,9 +51,9 @@ WolfSSL links via `cargo:rustc-link-lib=wolfssl`. Windows MSVC also pulls in `ad
 | --- | --- | --- |
 | utility | OK | 21/21 |
 | p2p | OK | 5/5 |
-| crypto | OK | runtime abort — `Hmac.cpp:18` is unimplemented stub |
-| equity | OK | runtime abort — `Base58.cpp:75` is unimplemented stub |
-| network | OK | link fail — missing `Utility::toHex`, `Message::toJson` vtable symbols |
+| crypto | OK | 36/36 |
+| equity | OK | 43/43 |
+| network | OK | 23/23 |
 
 If editing `network/build.rs`, follow the equity pattern: include both `../../utility/Utility.cpp` and `../../utility/Endian.cpp` so dependent symbols resolve.
 
@@ -70,6 +69,10 @@ C++ source compilation happens in `build.rs` via `cxx_build::bridge("src/lib.rs"
 
 `equity` depends on `crypto` and `utility` (Cargo). C++ sources from those crates are compiled *into equity's bridge*, not linked from sibling crates — each crate's `build.rs` re-compiles whatever C++ TU it touches. This is intentional during migration: it avoids needing to publish a static archive between crates.
 
+### Rust→C++ FFI for cross-crate symbols
+
+`crypto/{Ecc,Sha1,Sha256,Sha512,Ripemd,Hmac,Pbkdf2}.cpp` are now thin C++ shims that delegate to `extern "C"` Rust exports defined in [libs/crypto/src/ecc_ffi.rs](libs/crypto/src/ecc_ffi.rs) + [libs/crypto/src/hash_ffi.rs](libs/crypto/src/hash_ffi.rs). The crypto rlib alone does not preserve those symbols across the rlib boundary, so [libs/equity/src/lib.rs](libs/equity/src/lib.rs) holds a `#[used] static` keepalive that names every `extern "C"` function it transitively depends on. Add a new entry whenever a new `crypto::*_ffi` symbol is added.
+
 ### Circular-reference history
 
 Some C++ files used to have circular includes that the C++ compiler tolerated but cxx-bindgen / Rust would not. Commit `7ce5f86` cleaned these. When adding new bridge surface, do not reintroduce headers that include each other.
@@ -77,6 +80,7 @@ Some C++ files used to have circular includes that the C++ compiler tolerated bu
 ## Migration Conventions
 
 - Default to porting logic to pure Rust where a quality crate exists (`hmac` + `sha2`, `secp256k1`, `bs58`, `serde_json`). Drop the corresponding C++ source from `build.rs` once the bridge points at Rust internals.
+- When the C++ side still has callers that need the symbol (e.g. `Mnemonic.cpp` calls `Crypto::pbkdf2HmacSha512`), keep the `.cpp` file but reduce it to a thin shim calling the Rust impl via `extern "C"`. Pattern: see [crypto/Sha256.cpp](crypto/Sha256.cpp) + [libs/crypto/src/hash_ffi.rs](libs/crypto/src/hash_ffi.rs). Don't forget to extend the keepalive in [libs/equity/src/lib.rs](libs/equity/src/lib.rs).
 - Until a function is ported, keep the cxx bridge stable — Rust callers should not care whether the body is C++ or Rust.
 - Tests: inline `#[cfg(test)] mod tests` in the crate that owns the type. The legacy `test/` directory holds gtest cases still being translated.
 - Apps in `apps/*` are `clap` hello-world stubs; original behavior lives in the C++ `apps/<name>/main.cpp` equivalents (`bits/`, `list-prefixes/`, `view-transaction/`).

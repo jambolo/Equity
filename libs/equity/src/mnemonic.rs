@@ -10,7 +10,10 @@ impl Mnemonic {
         if ffi::mnemonicGenerate(strength, &mut output) {
             Ok(output)
         } else {
-            Err(format!("Failed to generate mnemonic with strength {}", strength))
+            Err(format!(
+                "Failed to generate mnemonic with strength {}",
+                strength
+            ))
         }
     }
 
@@ -52,17 +55,17 @@ mod tests {
         // Test with 128-bit strength (should work with our test implementation)
         let result = generate_mnemonic(128);
         assert!(result.is_ok());
-        
+
         let mnemonic = result.unwrap();
         assert!(!mnemonic.is_empty());
-        
+
         // Test validation
         assert!(validate_mnemonic(&mnemonic));
-        
+
         // Test seed generation
         let seed_result = mnemonic_to_seed(&mnemonic, "");
         assert!(seed_result.is_ok());
-        
+
         let seed = seed_result.unwrap();
         assert_eq!(seed.len(), 64); // Expected seed length
     }

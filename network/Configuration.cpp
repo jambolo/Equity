@@ -3,13 +3,8 @@
 #include "p2p/Message.h"
 #include <cstdint>
 
-namespace
-{
-
-Network::Configuration instance_ =
+Network::Configuration Network::Configuration::instance_ =
 {
     P2p::Message::Header::MAGIC_MAIN,
     8333
 };
-
-}

@@ -1,50 +1,16 @@
 #include "Base58.h"
 
-#include "utility/Debug.h"
-
-#include <wolfssl/options.h>
-#include <wolfssl/wolfcrypt/settings.h>
-#include <wolfssl/wolfcrypt/sp_int.h>
-
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <cstring>
 
 using namespace Equity;
 
-static char const ENCODE_MAP[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-static int const DECODE_MAP[]  =
+static char const ALPHABET[] =
+    "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+static int decodeChar(char c)
 {
-    0,  1,  2,  3,  4,  5,  6,  7,  8,                     // '1' - '9' (49 - 57)
-    -1, -1, -1, -1, -1, -1, -1,                            // ':' - '@' (58 - 64)
-    9,  10, 11, 12, 13, 14, 15, 16,                        // 'A' - 'H' (65 - 72)
-    -1,                                                    // 'I'       (73)
-    17, 18, 19, 20, 21,                                    // 'J' - 'N' (74 - 78)
-    -1,                                                    // 'O'       (79)
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,            // 'P' - 'Z' (80 - 90)
-    -1, -1, -1, -1, -1, -1,                                // '[' - '`' (91 - 96)
-    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,            // 'a' - 'k' (97 - 107)
-    -1,                                                    // 'l'       (108)
-    44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57 // 'm' - 'z' (109 - 122)
-};
-static size_t const DECODE_MAP_SIZE = sizeof(DECODE_MAP) / sizeof(DECODE_MAP[0]);
-
-static char encode(int x)
-{
-    return ENCODE_MAP[x];
-}
-
-static int decode(int c)
-{
-    c -= '1';    // first valid char is '1'
-
-    // Valid range is '1' to 'z'
-    if (c < 0 || c >= DECODE_MAP_SIZE)
-    {
-        return -1;
-    }
-
-    return DECODE_MAP[c];
+    char const * p = std::strchr(ALPHABET, c);
+    return p ? static_cast<int>(p - ALPHABET) : -1;
 }
 
 std::string Base58::encode(std::vector<uint8_t> const & input)
@@ -54,9 +20,38 @@ std::string Base58::encode(std::vector<uint8_t> const & input)
 
 std::string Base58::encode(uint8_t const * input, size_t length)
 {
-    NOT_YET_IMPLEMENTED();
+    // Leading zero bytes encode as leading '1' characters.
+    size_t zeros = 0;
+    while (zeros < length && input[zeros] == 0)
+    {
+        ++zeros;
+    }
+
+    // Worst-case base58 digit count: ceil(N * log(256) / log(58)) ~= N * 138 / 100 + 1.
+    size_t const digits_capacity = (length - zeros) * 138 / 100 + 1;
+    std::vector<uint8_t> digits(digits_capacity, 0);
+    size_t digits_len = 0;
+
+    for (size_t i = zeros; i < length; ++i)
+    {
+        int carry = input[i];
+        size_t j = 0;
+        for (auto it = digits.rbegin(); (carry != 0 || j < digits_len) && it != digits.rend(); ++it, ++j)
+        {
+            carry += 256 * (*it);
+            *it = static_cast<uint8_t>(carry % 58);
+            carry /= 58;
+        }
+        digits_len = j;
+    }
 
     std::string output;
+    output.reserve(zeros + digits_len);
+    output.assign(zeros, '1');
+    for (auto it = digits.end() - digits_len; it != digits.end(); ++it)
+    {
+        output.push_back(ALPHABET[*it]);
+    }
     return output;
 }
 
@@ -67,11 +62,46 @@ bool Base58::decode(std::string const & input, std::vector<uint8_t> & output)
 
 bool Base58::decode(char const * input, std::vector<uint8_t> & output)
 {
-    if (*input == 0)
+    output.clear();
+    if (input == nullptr)
     {
         return false;
     }
 
-    NOT_YET_IMPLEMENTED();
-    return false;
+    // Count and skip leading '1' characters (each = one zero byte).
+    size_t zeros = 0;
+    while (*input == '1')
+    {
+        ++zeros;
+        ++input;
+    }
+
+    size_t const input_len = std::strlen(input);
+    // Worst-case byte count: ceil(N * log(58) / log(256)) ~= N * 733 / 1000 + 1.
+    size_t const bytes_capacity = input_len * 733 / 1000 + 1;
+    std::vector<uint8_t> bytes(bytes_capacity, 0);
+    size_t bytes_len = 0;
+
+    for (size_t i = 0; i < input_len; ++i)
+    {
+        int digit = decodeChar(input[i]);
+        if (digit < 0)
+        {
+            return false;
+        }
+
+        int carry = digit;
+        size_t j = 0;
+        for (auto it = bytes.rbegin(); (carry != 0 || j < bytes_len) && it != bytes.rend(); ++it, ++j)
+        {
+            carry += 58 * (*it);
+            *it = static_cast<uint8_t>(carry & 0xff);
+            carry >>= 8;
+        }
+        bytes_len = j;
+    }
+
+    output.assign(zeros, 0);
+    output.insert(output.end(), bytes.end() - bytes_len, bytes.end());
+    return true;
 }

@@ -42,45 +42,45 @@ impl InventoryId {
         if hash.len() != 32 {
             return Err("Hash must be exactly 32 bytes (SHA256)");
         }
-        
+
         Ok(InventoryId { inv_type, hash })
     }
-    
+
     /// Create transaction inventory
     pub fn transaction(hash: Vec<u8>) -> Result<Self, &'static str> {
         Self::new(InventoryType::Transaction, hash)
     }
-    
+
     /// Create block inventory
     pub fn block(hash: Vec<u8>) -> Result<Self, &'static str> {
         Self::new(InventoryType::Block, hash)
     }
-    
+
     /// Create filtered block inventory
     pub fn filtered_block(hash: Vec<u8>) -> Result<Self, &'static str> {
         Self::new(InventoryType::FilteredBlock, hash)
     }
-    
+
     /// Serialize the inventory ID to bytes
     pub fn serialize(&self) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::new();
         let success = ffi::networkInventorySerialize(self.inv_type.into(), &self.hash, &mut output);
-        
+
         if success {
             Ok(output)
         } else {
             Err("Failed to serialize inventory")
         }
     }
-    
+
     /// Deserialize inventory ID from bytes
     pub fn deserialize(data: &[u8]) -> Result<Self, &'static str> {
         let data_vec = data.to_vec();
         let mut type_id = 0u32;
         let mut hash = Vec::new();
-        
+
         let success = ffi::networkInventoryDeserialize(&data_vec, &mut type_id, &mut hash);
-        
+
         if success {
             Ok(InventoryId {
                 inv_type: InventoryType::from(type_id),
@@ -90,12 +90,12 @@ impl InventoryId {
             Err("Failed to deserialize inventory")
         }
     }
-    
+
     /// Convert to JSON string
     pub fn to_json(&self) -> Result<String, &'static str> {
         let mut json = String::new();
         let success = ffi::networkInventoryToJson(self.inv_type.into(), &self.hash, &mut json);
-        
+
         if success {
             Ok(json)
         } else {
@@ -109,7 +109,7 @@ pub fn create_inventory(inv_type: InventoryType, hash: &[u8; 32]) -> Result<Vec<
     let hash_vec = hash.to_vec();
     let mut serialized = Vec::new();
     let success = ffi::networkInventoryCreate(inv_type.into(), &hash_vec, &mut serialized);
-    
+
     if success {
         Ok(serialized)
     } else {
@@ -128,52 +128,52 @@ mod tests {
         assert_eq!(InventoryType::from(2), InventoryType::Block);
         assert_eq!(InventoryType::from(3), InventoryType::FilteredBlock);
         assert_eq!(InventoryType::from(999), InventoryType::Error); // Unknown becomes Error
-        
+
         assert_eq!(u32::from(InventoryType::Error), 0);
         assert_eq!(u32::from(InventoryType::Transaction), 1);
         assert_eq!(u32::from(InventoryType::Block), 2);
         assert_eq!(u32::from(InventoryType::FilteredBlock), 3);
     }
-    
+
     #[test]
     fn test_inventory_creation() {
         let hash = vec![0u8; 32];
         let inv = InventoryId::new(InventoryType::Transaction, hash.clone());
         assert!(inv.is_ok());
-        
+
         let inv = inv.unwrap();
         assert_eq!(inv.inv_type, InventoryType::Transaction);
         assert_eq!(inv.hash, hash);
-        
+
         // Test invalid hash size
         let invalid_hash = vec![0u8; 20]; // Wrong size
         let inv = InventoryId::new(InventoryType::Transaction, invalid_hash);
         assert!(inv.is_err());
     }
-    
+
     #[test]
     fn test_inventory_convenience_constructors() {
         let hash = vec![1u8; 32];
-        
+
         let tx_inv = InventoryId::transaction(hash.clone()).unwrap();
         assert_eq!(tx_inv.inv_type, InventoryType::Transaction);
-        
+
         let block_inv = InventoryId::block(hash.clone()).unwrap();
         assert_eq!(block_inv.inv_type, InventoryType::Block);
-        
+
         let filtered_inv = InventoryId::filtered_block(hash.clone()).unwrap();
         assert_eq!(filtered_inv.inv_type, InventoryType::FilteredBlock);
     }
-    
+
     #[test]
     fn test_inventory_serialization() {
         let hash = vec![0u8; 32];
         let inv = InventoryId::new(InventoryType::Transaction, hash).unwrap();
-        
+
         // Test serialization
         if let Ok(serialized) = inv.serialize() {
             assert!(!serialized.is_empty());
-            
+
             // Test deserialization
             if let Ok(deserialized) = InventoryId::deserialize(&serialized) {
                 assert_eq!(inv.inv_type, deserialized.inv_type);

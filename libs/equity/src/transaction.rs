@@ -1,9 +1,9 @@
 //! Transaction functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin transactions.
 
 use crate::ffi::{self, TransactionCpp, TransactionInputCpp, TransactionOutputCpp};
-use crate::{Result, EquityError};
+use crate::{EquityError, Result};
 
 /// A Bitcoin transaction
 pub struct Transaction {
@@ -157,7 +157,7 @@ mod tests {
     fn test_transaction_from_json() {
         let json = r#"{"version":1,"locktime":0,"vin":[],"vout":[]}"#;
         let result = Transaction::from_json(json);
-        
+
         // Note: This might fail if the C++ implementation requires valid inputs/outputs
         match result {
             Ok(tx) => {

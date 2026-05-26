@@ -1,9 +1,9 @@
 //! Private key functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin private keys.
 
 use crate::ffi::{self, PrivateKeyCpp};
-use crate::{Result, EquityError};
+use crate::{EquityError, Result};
 
 /// A Bitcoin private key
 pub struct PrivateKey {
@@ -83,7 +83,7 @@ mod tests {
         // Example 32-byte private key
         let key_data = [1u8; 32];
         let private_key = PrivateKey::from_data(&key_data);
-        
+
         if let Ok(pk) = private_key {
             assert!(pk.is_valid());
             assert_eq!(pk.value().len(), 32);

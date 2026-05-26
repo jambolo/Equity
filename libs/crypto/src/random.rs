@@ -55,23 +55,23 @@ mod tests {
         // Test based on TestRandom.cpp
         let mut buffer1 = vec![0u8; SIZE];
         buffer1.fill(0);
-        
+
         let random_bytes1 = get_bytes(SAFE_SIZE);
         buffer1[..SAFE_SIZE].copy_from_slice(&random_bytes1);
-        
+
         // Ensure that too many bytes were not generated (remaining bytes should be zero)
-        let zeros = vec![0u8; SIZE - SAFE_SIZE];
+        let zeros = [0u8; SIZE - SAFE_SIZE];
         assert_eq!(&buffer1[SAFE_SIZE..], &zeros[..]);
-        
+
         let mut buffer2 = vec![0u8; SIZE];
         buffer2.fill(0);
-        
+
         let random_bytes2 = get_bytes(SAFE_SIZE);
         buffer2[..SAFE_SIZE].copy_from_slice(&random_bytes2);
-        
+
         // Ensure that the bytes vary between calls (extremely likely for good RNG)
         assert_ne!(&buffer1[..SAFE_SIZE], &buffer2[..SAFE_SIZE]);
-        
+
         // Ensure that too few bytes were not generated (at least one should be non-zero)
         assert!(buffer1[SAFE_SIZE - 1] != 0 || buffer2[SAFE_SIZE - 1] != 0);
     }
@@ -81,10 +81,10 @@ mod tests {
         let size = 32;
         let bytes1 = get_bytes_vec(size);
         let bytes2 = get_bytes_vec(size);
-        
+
         assert_eq!(bytes1.len(), size);
         assert_eq!(bytes2.len(), size);
-        
+
         // Two calls should produce different results
         assert_ne!(bytes1, bytes2);
     }
@@ -94,7 +94,7 @@ mod tests {
         for size in [1, 16, 32, 64, 128].iter() {
             let bytes = get_bytes(*size);
             assert_eq!(bytes.len(), *size);
-            
+
             let bytes_vec = get_bytes_vec(*size);
             assert_eq!(bytes_vec.len(), *size);
         }
@@ -105,15 +105,15 @@ mod tests {
         // Test that consecutive calls produce different results
         let bytes1 = get_bytes(32);
         let bytes2 = get_bytes(32);
-        
+
         // Basic sanity checks for randomness
         assert_eq!(bytes1.len(), 32);
         assert_eq!(bytes2.len(), 32);
-        
+
         // Should not be all zeros (extremely unlikely)
         assert!(bytes1.iter().any(|&x| x != 0));
         assert!(bytes2.iter().any(|&x| x != 0));
-        
+
         // Should not be all the same value (extremely unlikely)
         let first_byte1 = bytes1[0];
         assert!(bytes1.iter().any(|&x| x != first_byte1));

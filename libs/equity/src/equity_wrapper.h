@@ -47,14 +47,6 @@ rust::Vec<uint8_t> publicKeyValue(const PublicKeyCpp& pubkey);
 bool publicKeyIsValid(const PublicKeyCpp& pubkey);
 bool publicKeyIsCompressed(const PublicKeyCpp& pubkey);
 
-// Base58
-rust::String base58Encode(rust::Slice<const uint8_t> input);
-bool base58Decode(rust::Str input, rust::Vec<uint8_t>& output);
-
-// Base58Check
-rust::String base58CheckEncode(rust::Slice<const uint8_t> input, uint32_t version);
-bool base58CheckDecode(rust::Str input, rust::Vec<uint8_t>& output, uint32_t& version);
-
 // Transaction
 TransactionCpp transactionFromJson(rust::Str json);
 TransactionCpp transactionFromData(rust::Slice<const uint8_t> data);

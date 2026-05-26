@@ -1,9 +1,9 @@
 //! Script functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for creating, validating, and converting Bitcoin scripts.
 
 use crate::ffi;
-use crate::{Result, EquityError};
+use crate::{EquityError, Result};
 
 /// A Bitcoin script
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,7 +26,7 @@ impl Script {
     pub fn from_hex(hex: &str) -> Result<Self> {
         match hex::decode(hex) {
             Ok(data) => Self::from_data(&data),
-            Err(_) => Err(EquityError("Invalid hex string".to_string()))
+            Err(_) => Err(EquityError("Invalid hex string".to_string())),
         }
     }
 
@@ -78,7 +78,7 @@ mod tests {
     fn test_empty_script() {
         let empty_data = vec![];
         let script = Script::from_data(&empty_data);
-        
+
         match script {
             Ok(s) => {
                 assert!(s.is_empty());
@@ -96,7 +96,7 @@ mod tests {
         if let Ok(script) = Script::from_data(&test_data) {
             let hex = script.to_hex();
             assert!(!hex.is_empty());
-            
+
             let parsed = Script::from_hex(&hex);
             assert!(parsed.is_ok());
         }

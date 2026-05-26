@@ -1,5 +1,5 @@
 //! Target functionality for Bitcoin
-//! 
+//!
 //! Provides functionality for working with Bitcoin difficulty targets.
 
 use crate::ffi;
@@ -45,7 +45,7 @@ mod tests {
         let compact = 0x1d00ffff; // Bitcoin genesis block target
         let target = Target::from_compact(compact);
         assert!(!target.is_empty());
-        
+
         let converted_compact = Target::to_compact(&target);
         // Note: Conversion might not be exact due to precision loss
         assert!(converted_compact > 0);
@@ -56,7 +56,7 @@ mod tests {
         let compact = 0x1d00ffff; // Maximum target (difficulty 1)
         let difficulty = Target::difficulty_from_compact(compact);
         assert!(difficulty > 0.0);
-        
+
         // For maximum target, difficulty should be close to 1
         assert!((difficulty - 1.0).abs() < 0.1);
     }
@@ -65,7 +65,7 @@ mod tests {
     fn test_max_target() {
         let max_target = Target::max_target();
         assert!(!max_target.is_empty());
-        
+
         let difficulty = Target::get_difficulty(&max_target);
         assert!((difficulty - 1.0).abs() < 0.1);
     }

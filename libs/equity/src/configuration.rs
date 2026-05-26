@@ -1,4 +1,4 @@
-use crate::{ffi, Network};
+use crate::{Network, ffi};
 
 /// Configuration utilities for the Equity library
 pub struct Configuration;
@@ -52,12 +52,12 @@ mod tests {
         let network = Configuration::network();
         let address_version = Configuration::address_version();
         let private_key_version = Configuration::private_key_version();
-        
+
         println!("Network ID: {}", network_id);
         println!("Network: {:?}", network);
         println!("Address Version: 0x{:02X}", address_version);
         println!("Private Key Version: 0x{:02X}", private_key_version);
-        
+
         // Basic sanity checks
         assert!(network_id <= 2); // Should be 0, 1, or 2 for mainnet, testnet, regtest
     }
@@ -66,7 +66,7 @@ mod tests {
     fn test_network_conversion() {
         let network = Configuration::network();
         let network_id = Configuration::network_id();
-        
+
         // Test round-trip conversion
         assert_eq!(u32::from(network), network_id);
         assert_eq!(Network::from(network_id), network);

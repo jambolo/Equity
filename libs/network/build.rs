@@ -8,9 +8,8 @@ fn main() {
         return;
     }
 
-    let nlohmann = std::env::var("NLOHMANN_ROOT").unwrap_or_else(|_| {
-        "C:/Users/John/Projects/3rdParty/nlohmann_json/include".to_string()
-    });
+    let nlohmann = std::env::var("NLOHMANN_ROOT")
+        .unwrap_or_else(|_| "C:/Users/John/Projects/3rdParty/nlohmann_json/include".to_string());
 
     let cpp_available = std::path::Path::new("../../network").exists();
     let nlohmann_available = std::path::Path::new(&nlohmann).exists()
@@ -20,7 +19,9 @@ fn main() {
     if !cpp_available || !nlohmann_available {
         println!("cargo:warning=Network C++ library not available, using Rust-only implementation");
         if !nlohmann_available {
-            println!("cargo:warning=nlohmann/json.hpp not found. Set NLOHMANN_ROOT or install nlohmann-json.");
+            println!(
+                "cargo:warning=nlohmann/json.hpp not found. Set NLOHMANN_ROOT or install nlohmann-json."
+            );
         }
         return;
     }
@@ -34,7 +35,9 @@ fn main() {
         .file("../../network/Inventory.cpp")
         .file("../../network/Message.cpp")
         .file("../../network/Utility.cpp")
-
+        // Utility sources (Utility::toHex, Endian helpers used by network/p2p)
+        .file("../../utility/Utility.cpp")
+        .file("../../utility/Endian.cpp")
         // Message types
         .file("../../network/Messages/AddressMessage.cpp")
         .file("../../network/Messages/AlertMessage.cpp")
@@ -61,15 +64,12 @@ fn main() {
         .file("../../network/Messages/TransactionMessage.cpp")
         .file("../../network/Messages/VerackMessage.cpp")
         .file("../../network/Messages/VersionMessage.cpp")
-
         // P2P sources (network calls P2p::serialize, P2p::deserialize, P2p::VarString, P2p::VASize)
         .file("../../p2p/Message.cpp")
         .file("../../p2p/Peer.cpp")
         .file("../../p2p/Serialize.cpp")
-
         // Network wrapper
         .file("src/network_wrapper.cpp")
-
         // Include paths
         .include("../../network")
         .include("../../include")
@@ -81,7 +81,6 @@ fn main() {
         .include("/usr/local/include")
         .include("/usr/include")
         .include(&nlohmann)
-
         // Compiler flags
         .flag_if_supported("-std=c++17")
         .flag_if_supported("-Wno-unused-parameter")

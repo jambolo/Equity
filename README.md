@@ -1,5 +1,8 @@
 # Equity
 
+[![CI](https://github.com/jambolo/Equity/actions/workflows/ci.yml/badge.svg)](https://github.com/jambolo/Equity/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/jambolo/Equity/branch/develop/graph/badge.svg)](https://codecov.io/gh/jambolo/Equity)
+
 Bitcoin protocol library and related applications
 
 Learning by doing. The plan is to implement a Bitcoin node from scratch. This is the library that will be used to build all the applications.
