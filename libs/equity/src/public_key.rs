@@ -14,7 +14,6 @@ pub const UNCOMPRESSED_SIZE: usize = ecc::UNCOMPRESSED_PUBLIC_KEY_SIZE; // 65
 #[derive(Clone)]
 pub struct PublicKey {
     value: Vec<u8>,
-    valid: bool,
     compressed: bool,
 }
 
@@ -31,7 +30,6 @@ impl PublicKey {
         }
         Ok(Self {
             value: data.to_vec(),
-            valid: true,
             compressed: data[0] != 4,
         })
     }
@@ -49,22 +47,17 @@ impl PublicKey {
     /// assert_eq!(PublicKey::from_private_key(&sk).unwrap().size(), COMPRESSED_SIZE);
     /// ```
     pub fn from_private_key(pk: &PrivateKey) -> Result<Self> {
-        if !pk.is_valid() {
-            return Err(EquityError("Source private key is invalid".to_string()));
-        }
         let value = ecc::derive_public_key(pk.value_array(), !pk.is_compressed())
             .map_err(|e| EquityError(e.to_string()))?;
         Ok(Self {
             value,
-            valid: true,
             compressed: pk.is_compressed(),
         })
     }
 
     /// Derive the public key from raw 32-byte private-key data (uncompressed).
     pub fn from_private_key_bytes(private_key_data: &[u8]) -> Result<Self> {
-        let pk = PrivateKey::from_data(private_key_data)?;
-        Self::from_private_key(&pk)
+        Self::from_private_key(&PrivateKey::from_data(private_key_data)?)
     }
 
     /// Serialized public-key bytes as an owned `Vec`.
@@ -75,11 +68,6 @@ impl PublicKey {
     /// Serialized public-key bytes as a borrowed slice.
     pub fn as_bytes(&self) -> &[u8] {
         &self.value
-    }
-
-    /// True if this key was constructed successfully.
-    pub fn is_valid(&self) -> bool {
-        self.valid
     }
 
     /// True if encoded in compressed (33-byte) form.
@@ -101,7 +89,6 @@ impl PublicKey {
 impl std::fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PublicKey")
-            .field("valid", &self.valid)
             .field("compressed", &self.compressed)
             .field("size", &self.size())
             .finish()
@@ -125,15 +112,14 @@ mod tests {
     }
 
     #[test]
-    fn test_public_key_from_private_key() {
+    fn from_private_key_is_uncompressed_by_default() {
         let pk = PublicKey::from_private_key(&one_key()).unwrap();
-        assert!(pk.is_valid());
-        assert_eq!(pk.size(), UNCOMPRESSED_SIZE); // uncompressed by default
+        assert_eq!(pk.size(), UNCOMPRESSED_SIZE);
         assert!(!pk.is_compressed());
     }
 
     #[test]
-    fn test_public_key_compressed_derivation() {
+    fn compressed_derivation() {
         let mut sk = one_key();
         sk.set_compressed(true);
         let pk = PublicKey::from_private_key(&sk).unwrap();
@@ -142,20 +128,19 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_public_key_length() {
+    fn rejects_wrong_length() {
         assert!(PublicKey::from_data(&[1u8; 32]).is_err());
         assert!(PublicKey::from_data(&[0u8; 10]).is_err());
     }
 
     #[test]
-    fn test_invalid_public_key_bytes() {
-        // Right length, wrong content
+    fn rejects_invalid_point() {
         let bad = [0u8; COMPRESSED_SIZE];
         assert!(PublicKey::from_data(&bad).is_err());
     }
 
     #[test]
-    fn test_compressed_vs_uncompressed_round_trip() {
+    fn compressed_and_uncompressed_share_x() {
         let sk_bytes = [3u8; 32];
         let pk_u = PublicKey::from_private_key_bytes(&sk_bytes).unwrap();
         assert_eq!(pk_u.size(), UNCOMPRESSED_SIZE);
@@ -165,22 +150,20 @@ mod tests {
         let pk_c = PublicKey::from_private_key(&sk).unwrap();
         assert_eq!(pk_c.size(), COMPRESSED_SIZE);
 
-        // Compressed and uncompressed must reduce to the same X coordinate
         assert_eq!(&pk_c.as_bytes()[1..33], &pk_u.as_bytes()[1..33]);
     }
 
     #[test]
-    fn test_from_data_round_trip_uncompressed() {
+    fn from_data_round_trip_uncompressed() {
         let sk = [5u8; 32];
         let pk = PublicKey::from_private_key_bytes(&sk).unwrap();
-        let bytes = pk.value();
-        let parsed = PublicKey::from_data(&bytes).unwrap();
+        let parsed = PublicKey::from_data(&pk.value()).unwrap();
         assert_eq!(parsed.as_bytes(), pk.as_bytes());
         assert!(!parsed.is_compressed());
     }
 
     #[test]
-    fn test_from_data_round_trip_compressed() {
+    fn from_data_round_trip_compressed() {
         let mut sk = PrivateKey::from_data(&[7u8; 32]).unwrap();
         sk.set_compressed(true);
         let pk = PublicKey::from_private_key(&sk).unwrap();
@@ -190,7 +173,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_hex_length() {
+    fn to_hex_length() {
         let pk = PublicKey::from_private_key_bytes(&[1u8; 32]).unwrap();
         assert_eq!(pk.to_hex().len(), pk.size() * 2);
     }
@@ -198,7 +181,6 @@ mod tests {
     proptest::proptest! {
         #[test]
         fn prop_pubkey_serialize_round_trip(seed: [u8; 32], compressed: bool) {
-            // secp256k1 SecretKey rejects 0 and values >= group order. Reject those.
             let mut sk = match PrivateKey::from_data(&seed) {
                 Ok(k) => k,
                 Err(_) => return Ok(()),

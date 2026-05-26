@@ -12,7 +12,7 @@ use crypto::{pbkdf2, sha256};
 const BITS_PER_WORD: usize = 11;
 const BYTES_PER_CHECK_BIT: usize = 4; // 32 entropy bits per checksum bit
 const SEED_SIZE: usize = 64;
-const PBKDF2_ROUNDS: i32 = 2048;
+const PBKDF2_ROUNDS: u32 = 2048;
 
 /// BIP-39 wordlist language. Only English is supported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

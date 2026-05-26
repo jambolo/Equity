@@ -129,7 +129,7 @@ impl Wallet {
 
 impl WalletEntry {
     /// Get the private key in WIF format
-    pub fn private_key_wif(&self, version: u32) -> String {
+    pub fn private_key_wif(&self, version: u8) -> String {
         self.private_key.to_wif(version)
     }
 
@@ -159,27 +159,13 @@ mod tests {
     #[test]
     fn test_add_private_key() {
         let mut wallet = Wallet::new(Network::Testnet);
-        let key_data = [1u8; 32];
+        let private_key = PrivateKey::from_data(&[1u8; 32]).unwrap();
+        let index = wallet.add_private_key(private_key).unwrap();
 
-        if let Ok(private_key) = PrivateKey::from_data(&key_data) {
-            let result = wallet.add_private_key(private_key);
-
-            match result {
-                Ok(index) => {
-                    assert_eq!(index, 0);
-                    assert_eq!(wallet.len(), 1);
-                    assert!(!wallet.is_empty());
-
-                    let entry = wallet.get_entry(0).unwrap();
-                    assert!(entry.private_key.is_valid());
-                    assert!(entry.public_key.is_valid());
-                    assert!(entry.address.is_valid());
-                }
-                Err(_) => {
-                    // Key generation might fail if the test key is invalid
-                }
-            }
-        }
+        assert_eq!(index, 0);
+        assert_eq!(wallet.len(), 1);
+        assert!(!wallet.is_empty());
+        assert!(wallet.get_entry(0).is_some());
     }
 
     #[test]

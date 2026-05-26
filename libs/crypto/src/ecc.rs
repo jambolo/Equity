@@ -1,5 +1,6 @@
 //! ECC over secp256k1 via the `secp256k1` Rust crate.
 
+use anyhow::{Context, Result};
 use secp256k1::{Message, PublicKey as SecpPublicKey, SECP256K1, SecretKey, ecdsa::Signature};
 use sha2::{Digest, Sha256};
 
@@ -32,9 +33,6 @@ pub fn private_key_is_valid(key: &PrivateKey) -> bool {
 /// Set `uncompressed = true` for the 65-byte uncompressed form, or `false`
 /// for the 33-byte compressed form.
 ///
-/// Returns `Err` if `private_key` is not a valid scalar (zero or above the
-/// group order).
-///
 /// # Examples
 ///
 /// ```
@@ -47,11 +45,8 @@ pub fn private_key_is_valid(key: &PrivateKey) -> bool {
 /// assert_eq!(compressed.len(), COMPRESSED_PUBLIC_KEY_SIZE);
 /// assert_eq!(uncompressed.len(), UNCOMPRESSED_PUBLIC_KEY_SIZE);
 /// ```
-pub fn derive_public_key(
-    private_key: &PrivateKey,
-    uncompressed: bool,
-) -> Result<PublicKey, &'static str> {
-    let sk = SecretKey::from_slice(private_key).map_err(|_| "invalid private key")?;
+pub fn derive_public_key(private_key: &PrivateKey, uncompressed: bool) -> Result<PublicKey> {
+    let sk = SecretKey::from_slice(private_key).context("invalid private key")?;
     let pk = SecpPublicKey::from_secret_key(SECP256K1, &sk);
     Ok(if uncompressed {
         pk.serialize_uncompressed().to_vec()
@@ -61,8 +56,7 @@ pub fn derive_public_key(
 }
 
 fn message_digest(message: &[u8]) -> Message {
-    let digest: [u8; 32] = Sha256::digest(message).into();
-    Message::from_digest(digest)
+    Message::from_digest(Sha256::digest(message).into())
 }
 
 /// Sign SHA-256(`message`) with `private_key`. Returns a DER-encoded ECDSA signature.
@@ -78,8 +72,8 @@ fn message_digest(message: &[u8]) -> Message {
 /// let sig = sign(b"hello", &sk).unwrap();
 /// assert!(verify(b"hello", &pk, &sig));
 /// ```
-pub fn sign(message: &[u8], private_key: &PrivateKey) -> Result<SignatureBytes, &'static str> {
-    let sk = SecretKey::from_slice(private_key).map_err(|_| "invalid private key")?;
+pub fn sign(message: &[u8], private_key: &PrivateKey) -> Result<SignatureBytes> {
+    let sk = SecretKey::from_slice(private_key).context("invalid private key")?;
     let sig = SECP256K1.sign_ecdsa(&message_digest(message), &sk);
     Ok(sig.serialize_der().to_vec())
 }
@@ -108,20 +102,20 @@ mod tests {
     }
 
     #[test]
-    fn test_private_key_validation() {
+    fn private_key_validation() {
         assert!(!private_key_is_valid(&[0u8; 32]));
         assert!(private_key_is_valid(&test_key()));
     }
 
     #[test]
-    fn test_public_key_validation() {
+    fn public_key_validation() {
         assert!(!public_key_is_valid(&[0u8; 33]));
         let pk = derive_public_key(&test_key(), false).unwrap();
         assert!(public_key_is_valid(&pk));
     }
 
     #[test]
-    fn test_key_derivation_sizes() {
+    fn key_derivation_sizes() {
         let sk = test_key();
         assert_eq!(
             derive_public_key(&sk, false).unwrap().len(),
@@ -134,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn test_signing_and_verification() {
+    fn signing_and_verification() {
         let sk = test_key();
         let pk = derive_public_key(&sk, true).unwrap();
         let message = b"test message";

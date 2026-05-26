@@ -16,7 +16,7 @@ fn build_json(tx: &Transaction) -> Value {
         .iter()
         .map(|i| {
             json!({
-                "txid": i.txid.to_hex_be(),
+                "txid": i.txid.to_hex(),
                 "outputIndex": i.output_index,
                 "script": hex::encode(&i.script),
                 "sequence": i.sequence,

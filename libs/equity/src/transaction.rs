@@ -8,7 +8,7 @@
 //!   [Output]
 //!   u32 locktime_le
 
-use crate::txid::{TXID_SIZE, Txid};
+use crate::txid::Txid;
 use crate::{EquityError, Result};
 use p2p::{deserialize_var_int, serialize_var_int};
 
@@ -41,7 +41,6 @@ pub struct Transaction {
     inputs: Vec<Input>,
     outputs: Vec<Output>,
     lock_time: u32,
-    valid: bool,
 }
 
 impl Input {
@@ -86,14 +85,13 @@ impl Output {
 }
 
 impl Transaction {
-    /// Construct from fields. Marks the transaction as valid.
+    /// Construct from fields.
     pub fn new(version: u32, inputs: Vec<Input>, outputs: Vec<Output>, lock_time: u32) -> Self {
         Self {
             version,
             inputs,
             outputs,
             lock_time,
-            valid: true,
         }
     }
 
@@ -129,7 +127,6 @@ impl Transaction {
             inputs,
             outputs,
             lock_time,
-            valid: true,
         })
     }
 
@@ -188,11 +185,6 @@ impl Transaction {
     pub fn get_output(&self, i: usize) -> Option<&Output> {
         self.outputs.get(i)
     }
-
-    /// True if this transaction was constructed or parsed successfully.
-    pub fn is_valid(&self) -> bool {
-        self.valid
-    }
 }
 
 fn read_u32_le(stream: &mut &[u8]) -> Result<u32> {
@@ -236,11 +228,6 @@ fn read_varbytes(stream: &mut &[u8]) -> Result<Vec<u8>> {
     *stream = rest;
     Ok(v)
 }
-
-// Silence unused warning when TXID_SIZE is referenced only via Txid::deserialize.
-const _: () = {
-    let _ = TXID_SIZE;
-};
 
 #[cfg(test)]
 mod tests {

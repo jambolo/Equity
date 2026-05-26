@@ -10,7 +10,6 @@ pub struct Instruction {
     data: Vec<u8>,
     location: usize,
     size: usize,
-    valid: bool,
 }
 
 /// Returned when [`Instruction::parse`] encounters malformed bytes.
@@ -275,11 +274,6 @@ impl Instruction {
         self.size
     }
 
-    /// True if this instruction was successfully parsed.
-    pub fn is_valid(&self) -> bool {
-        self.valid
-    }
-
     /// Static metadata for this instruction's opcode.
     pub fn description(&self) -> Description {
         DESCRIPTIONS[self.op as usize]
@@ -357,16 +351,11 @@ impl Instruction {
             data,
             location,
             size,
-            valid: true,
         })
     }
 
     /// Append the on-wire encoding of this instruction to `out`.
     pub fn serialize(&self, out: &mut Vec<u8>) {
-        if !self.valid {
-            out.push(OpCode::OP_INVALID as u8);
-            return;
-        }
         out.push(self.op);
         if (0x01..=0x4b).contains(&self.op) {
             out.extend_from_slice(&self.data);
@@ -414,7 +403,6 @@ mod tests {
             data: vec![0x11, 0x22, 0x33],
             location: 0,
             size: 5,
-            valid: true,
         };
         let mut out = Vec::new();
         i.serialize(&mut out);

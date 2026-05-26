@@ -113,18 +113,11 @@ mod tests {
         },
     ];
 
-    fn hex_decode(hex: &str) -> Vec<u8> {
-        (0..hex.len())
-            .step_by(2)
-            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
-            .collect()
-    }
-
     #[test]
     fn test_hmac_sha512_comprehensive() {
         for (i, case) in HMAC_SHA512_CASES.iter().enumerate() {
-            let key = hex_decode(case.key);
-            let message = hex_decode(case.message);
+            let key = hex::decode(case.key).unwrap();
+            let message = hex::decode(case.message).unwrap();
             let result = hmac_sha512(&key, &message);
 
             assert_eq!(

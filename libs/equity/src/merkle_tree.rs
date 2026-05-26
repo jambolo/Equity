@@ -44,7 +44,7 @@ impl MerkleTree {
 
         // Round leaf count up to even.
         let padded = (n_leaves + 1) & !1;
-        let offset = smallest_power_of_two(padded);
+        let offset = padded.next_power_of_two();
 
         let mut tree = vec![[0u8; HASH_SIZE]; offset];
         tree.extend_from_slice(hashes);
@@ -130,13 +130,6 @@ fn right_child(i: usize) -> usize {
     i * 2 + 1
 }
 
-fn smallest_power_of_two(mut x: usize) -> usize {
-    while x & (x.wrapping_sub(1)) != 0 {
-        x = (x | (x.wrapping_sub(1))).wrapping_add(1);
-    }
-    x
-}
-
 fn concat(left: &Hash, right: &Hash) -> [u8; HASH_SIZE * 2] {
     let mut out = [0u8; HASH_SIZE * 2];
     out[..HASH_SIZE].copy_from_slice(left);
@@ -199,16 +192,6 @@ mod tests {
         }
         // Out of range
         assert_eq!(t.hash_at(99), [0u8; HASH_SIZE]);
-    }
-
-    #[test]
-    fn test_smallest_power_of_two() {
-        assert_eq!(smallest_power_of_two(1), 1);
-        assert_eq!(smallest_power_of_two(2), 2);
-        assert_eq!(smallest_power_of_two(3), 4);
-        assert_eq!(smallest_power_of_two(5), 8);
-        assert_eq!(smallest_power_of_two(8), 8);
-        assert_eq!(smallest_power_of_two(9), 16);
     }
 
     #[test]

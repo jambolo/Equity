@@ -52,23 +52,7 @@ pub fn double_sha256(input: &[u8]) -> Sha256Hash {
 /// assert_eq!(sha256::checksum(b""), [0x5d, 0xf6, 0xe0, 0xe2]);
 /// ```
 pub fn checksum(input: &[u8]) -> Checksum {
-    let h = double_sha256(input);
-    [h[0], h[1], h[2], h[3]]
-}
-
-/// `sha256` as a `Vec<u8>`.
-pub fn sha256_vec(input: &[u8]) -> Vec<u8> {
-    Sha256::digest(input).to_vec()
-}
-
-/// `double_sha256` as a `Vec<u8>`.
-pub fn double_sha256_vec(input: &[u8]) -> Vec<u8> {
-    double_sha256(input).to_vec()
-}
-
-/// `checksum` as a `Vec<u8>`.
-pub fn checksum_vec(input: &[u8]) -> Vec<u8> {
-    checksum(input).to_vec()
+    double_sha256(input)[..CHECKSUM_SIZE].try_into().unwrap()
 }
 
 #[cfg(test)]
@@ -151,7 +135,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_sha256_ptr() {
+    fn sha256_matches_known_vectors() {
         for case in SHA256_CASES {
             assert_eq!(
                 sha256(case.input.as_bytes()),
@@ -163,20 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sha256_vector() {
-        for case in SHA256_CASES {
-            assert_eq!(sha256_vec(case.input.as_bytes()), case.expected.to_vec());
-        }
-    }
-
-    #[test]
-    fn test_sha256_array() {
-        let expected = SHA256_CASES[1].expected;
-        assert_eq!(sha256(b"abc"), expected);
-    }
-
-    #[test]
-    fn test_double_sha256_ptr() {
+    fn double_sha256_matches_known_vectors() {
         for case in DOUBLE_SHA256_CASES {
             assert_eq!(
                 double_sha256(case.input.as_bytes()),
@@ -188,43 +159,15 @@ mod tests {
     }
 
     #[test]
-    fn test_double_sha256_vector() {
+    fn checksum_takes_first_four_bytes() {
         for case in DOUBLE_SHA256_CASES {
-            assert_eq!(
-                double_sha256_vec(case.input.as_bytes()),
-                case.expected.to_vec()
-            );
-        }
-    }
-
-    #[test]
-    fn test_checksum_ptr() {
-        for case in DOUBLE_SHA256_CASES {
-            let expected = [
-                case.expected[0],
-                case.expected[1],
-                case.expected[2],
-                case.expected[3],
-            ];
+            let expected: [u8; 4] = case.expected[..4].try_into().unwrap();
             assert_eq!(
                 checksum(case.input.as_bytes()),
                 expected,
                 "checksum failed for: '{}'",
                 case.input
             );
-        }
-    }
-
-    #[test]
-    fn test_checksum_vector() {
-        for case in DOUBLE_SHA256_CASES {
-            let expected = vec![
-                case.expected[0],
-                case.expected[1],
-                case.expected[2],
-                case.expected[3],
-            ];
-            assert_eq!(checksum_vec(case.input.as_bytes()), expected);
         }
     }
 }

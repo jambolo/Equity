@@ -18,7 +18,6 @@ const MINI_KEY_LEN: usize = 30;
 #[derive(Clone)]
 pub struct PrivateKey {
     value: [u8; PRIVATE_KEY_SIZE],
-    valid: bool,
     compressed: bool,
 }
 
@@ -31,20 +30,14 @@ impl PrivateKey {
     /// use equity::private_key::PrivateKey;
     ///
     /// let sk = PrivateKey::from_data(&[1u8; 32]).unwrap();
-    /// assert!(sk.is_valid());
     /// assert!(!sk.is_compressed());
     /// ```
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        if data.len() != PRIVATE_KEY_SIZE {
-            return Err(EquityError(format!(
-                "Private key data must be {PRIVATE_KEY_SIZE} bytes"
-            )));
-        }
-        let mut value = [0u8; PRIVATE_KEY_SIZE];
-        value.copy_from_slice(data);
+        let value: [u8; PRIVATE_KEY_SIZE] = data
+            .try_into()
+            .map_err(|_| EquityError(format!("Private key data must be {PRIVATE_KEY_SIZE} bytes")))?;
         Ok(Self {
             value,
-            valid: true,
             compressed: false,
         })
     }
@@ -63,38 +56,32 @@ impl PrivateKey {
         }
         let mut check_input = s.as_bytes().to_vec();
         check_input.push(b'?');
-        let check = Sha256::digest(&check_input);
-        if check[0] != 0 {
+        if Sha256::digest(&check_input)[0] != 0 {
             return Err(EquityError("Mini-key failed type check".to_string()));
         }
-        let value: [u8; PRIVATE_KEY_SIZE] = Sha256::digest(s.as_bytes()).into();
         Ok(Self {
-            value,
-            valid: true,
+            value: Sha256::digest(s.as_bytes()).into(),
             compressed: false,
         })
     }
 
     fn from_wif(s: &str) -> Result<Self> {
         let (mut decoded, _version) = base58_check::decode(s)?;
-        let compressed = if decoded.len() == PRIVATE_KEY_SIZE + 1
-            && *decoded.last().unwrap() == COMPRESSED_FLAG
-        {
-            decoded.pop();
-            true
-        } else if decoded.len() == PRIVATE_KEY_SIZE {
-            false
-        } else {
-            return Err(EquityError(format!(
-                "WIF payload must be {PRIVATE_KEY_SIZE} or {} bytes",
-                PRIVATE_KEY_SIZE + 1
-            )));
+        let compressed = match decoded.len() {
+            n if n == PRIVATE_KEY_SIZE + 1 && *decoded.last().unwrap() == COMPRESSED_FLAG => {
+                decoded.pop();
+                true
+            }
+            PRIVATE_KEY_SIZE => false,
+            _ => {
+                return Err(EquityError(format!(
+                    "WIF payload must be {PRIVATE_KEY_SIZE} or {} bytes",
+                    PRIVATE_KEY_SIZE + 1
+                )));
+            }
         };
-        let mut value = [0u8; PRIVATE_KEY_SIZE];
-        value.copy_from_slice(&decoded);
         Ok(Self {
-            value,
-            valid: true,
+            value: decoded.as_slice().try_into().unwrap(),
             compressed,
         })
     }
@@ -107,11 +94,6 @@ impl PrivateKey {
     /// Raw 32-byte scalar as a borrowed fixed-size array.
     pub fn value_array(&self) -> &[u8; PRIVATE_KEY_SIZE] {
         &self.value
-    }
-
-    /// True if this key was constructed successfully.
-    pub fn is_valid(&self) -> bool {
-        self.valid
     }
 
     /// True if WIF encoding should mark the derived public key as compressed.
@@ -139,10 +121,7 @@ impl PrivateKey {
     /// let pk = PrivateKey::from_data(&sk).unwrap();
     /// assert_eq!(pk.to_wif(0x80), "5HpHagT65TZzG1PH3CSu63k8DbpvD8s5ip4nEB3kEsreAnchuDf");
     /// ```
-    pub fn to_wif(&self, version: u32) -> String {
-        if !self.valid {
-            return String::new();
-        }
+    pub fn to_wif(&self, version: u8) -> String {
         if self.compressed {
             let mut extended = self.value.to_vec();
             extended.push(COMPRESSED_FLAG);
@@ -154,18 +133,13 @@ impl PrivateKey {
 
     /// Lower-case hex encoding of the raw scalar.
     pub fn to_hex(&self) -> String {
-        if !self.valid {
-            String::new()
-        } else {
-            hex::encode(self.value)
-        }
+        hex::encode(self.value)
     }
 }
 
 impl std::fmt::Debug for PrivateKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PrivateKey")
-            .field("valid", &self.valid)
             .field("compressed", &self.compressed)
             .finish()
     }
@@ -176,22 +150,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_private_key_from_data() {
-        let key_data = [1u8; PRIVATE_KEY_SIZE];
-        let pk = PrivateKey::from_data(&key_data).unwrap();
-        assert!(pk.is_valid());
+    fn from_data_yields_uncompressed() {
+        let pk = PrivateKey::from_data(&[1u8; PRIVATE_KEY_SIZE]).unwrap();
         assert_eq!(pk.value().len(), PRIVATE_KEY_SIZE);
         assert!(!pk.is_compressed());
     }
 
     #[test]
-    fn test_invalid_private_key_length() {
+    fn from_data_rejects_wrong_length() {
         assert!(PrivateKey::from_data(&[1u8; 16]).is_err());
         assert!(PrivateKey::from_data(&[1u8; 33]).is_err());
     }
 
     #[test]
-    fn test_wif_round_trip_uncompressed() {
+    fn wif_round_trip_uncompressed() {
         let key_data = {
             let mut k = [0u8; PRIVATE_KEY_SIZE];
             k[31] = 1;
@@ -207,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn test_wif_round_trip_compressed() {
+    fn wif_round_trip_compressed() {
         let mut pk = PrivateKey::from_data(&[7u8; PRIVATE_KEY_SIZE]).unwrap();
         pk.set_compressed(true);
         let wif = pk.to_wif(0x80);
@@ -217,22 +189,21 @@ mod tests {
     }
 
     #[test]
-    fn test_to_hex() {
+    fn to_hex_full_length() {
         let pk = PrivateKey::from_data(&[0xABu8; PRIVATE_KEY_SIZE]).unwrap();
         assert_eq!(pk.to_hex().len(), PRIVATE_KEY_SIZE * 2);
         assert!(pk.to_hex().chars().all(|c| c == 'a' || c == 'b'));
     }
 
     #[test]
-    fn test_private_key_display() {
+    fn debug_format() {
         let pk = PrivateKey::from_data(&[1u8; PRIVATE_KEY_SIZE]).unwrap();
         let dbg = format!("{pk:?}");
-        assert!(dbg.contains("valid: true"));
+        assert!(dbg.contains("compressed"));
     }
 
     #[test]
-    fn test_wif_known_compressed_vector() {
-        // Bitcoin test vector: priv=1, compressed → WIF starting with 'K'/'L'.
+    fn wif_known_compressed_vector() {
         let mut k = [0u8; PRIVATE_KEY_SIZE];
         k[31] = 1;
         let mut pk = PrivateKey::from_data(&k).unwrap();
@@ -242,20 +213,18 @@ mod tests {
     }
 
     #[test]
-    fn test_wif_invalid_string_rejected() {
+    fn invalid_wif_rejected() {
         assert!(PrivateKey::from_string("not a real wif").is_err());
     }
 
     #[test]
-    fn test_mini_key_rejects_non_s_prefix() {
-        // 30 chars but doesn't start with 'S'.
+    fn mini_key_rejects_non_s_prefix() {
         let s = "X".repeat(30);
         assert!(PrivateKey::from_string(&s).is_err());
     }
 
     #[test]
-    fn test_wif_invalid_payload_length() {
-        // Base58Check-encoded payload that is not 32 or 33 bytes.
+    fn wif_invalid_payload_length() {
         let bogus = base58_check::encode(&[0u8; 20], 0x80);
         assert!(PrivateKey::from_string(&bogus).is_err());
     }

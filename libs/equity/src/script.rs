@@ -79,10 +79,10 @@ impl Script {
 
     fn parse(&mut self) -> std::result::Result<(), ScriptParsingError> {
         self.instructions.clear();
+        let total = self.data.len();
         let mut cursor = &self.data[..];
-        let start = self.data.as_ptr();
         while !cursor.is_empty() {
-            let location = unsafe { cursor.as_ptr().offset_from(start) } as usize;
+            let location = total - cursor.len();
             let ins = Instruction::parse(&mut cursor, location)?;
             self.instructions.push(ins);
         }

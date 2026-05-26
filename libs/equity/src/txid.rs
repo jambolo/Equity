@@ -55,7 +55,7 @@ impl Txid {
 
     /// Render as a JSON string literal (with surrounding quotes), display-order hex.
     pub fn to_json(&self) -> String {
-        format!("\"{}\"", self.to_hex_be())
+        format!("\"{}\"", self.to_hex())
     }
 
     /// Wire-format serialization: 32 bytes, little-endian.
@@ -74,16 +74,11 @@ impl Txid {
     pub fn to_hex(&self) -> String {
         hex::encode(self.hash)
     }
-
-    /// Same as `to_hex` since internal storage is already big-endian.
-    pub fn to_hex_be(&self) -> String {
-        hex::encode(self.hash)
-    }
 }
 
 impl std::fmt::Display for Txid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_hex_be())
+        write!(f, "{}", self.to_hex())
     }
 }
 
@@ -112,7 +107,7 @@ mod tests {
         let hash_data: [u8; 32] = std::array::from_fn(|i| i as u8);
         let txid = Txid::from_data(&hash_data).unwrap();
 
-        let hex_be = txid.to_hex_be();
+        let hex_be = txid.to_hex();
         assert_eq!(hex_be.len(), 64);
 
         // `serialize` is little-endian — reverse and re-encode should differ from BE.
@@ -127,7 +122,7 @@ mod tests {
     fn test_txid_from_hex_string() {
         let hex_string = "0101010101010101010101010101010101010101010101010101010101010101";
         let txid: Txid = hex_string.parse().unwrap();
-        assert_eq!(txid.to_hex_be(), hex_string);
+        assert_eq!(txid.to_hex(), hex_string);
     }
 
     #[test]

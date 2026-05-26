@@ -8,7 +8,6 @@ serde.workspace = true
 anyhow.workspace = true
 crypto = { path = "../crypto" }
 p2p = { path = "../p2p" }
-utility = { path = "../utility" }
 hex = "0.4"
 bs58 = { version = "0.5", features = ["check"] }
 sha2 = "0.10"

@@ -77,13 +77,15 @@ pub enum Network {
     Regtest = 2,
 }
 
-impl From<u32> for Network {
-    fn from(value: u32) -> Self {
+impl TryFrom<u32> for Network {
+    type Error = EquityError;
+
+    fn try_from(value: u32) -> Result<Self> {
         match value {
-            0 => Network::Mainnet,
-            1 => Network::Testnet,
-            2 => Network::Regtest,
-            _ => Network::Mainnet,
+            0 => Ok(Network::Mainnet),
+            1 => Ok(Network::Testnet),
+            2 => Ok(Network::Regtest),
+            _ => Err(EquityError(format!("unknown network id {value}"))),
         }
     }
 }
@@ -109,13 +111,20 @@ impl std::fmt::Display for EquityError {
 
 impl std::error::Error for EquityError {}
 
+impl From<&str> for EquityError {
+    fn from(msg: &str) -> Self {
+        EquityError(msg.to_string())
+    }
+}
+
+impl From<String> for EquityError {
+    fn from(msg: String) -> Self {
+        EquityError(msg)
+    }
+}
+
 /// Crate-local `Result` alias using [`EquityError`].
 pub type Result<T> = std::result::Result<T, EquityError>;
-
-/// Build an [`EquityError`] from a message string.
-pub fn error(msg: &str) -> EquityError {
-    EquityError(msg.to_string())
-}
 
 #[cfg(test)]
 mod lib_tests {
@@ -124,18 +133,18 @@ mod lib_tests {
     #[test]
     fn network_round_trip() {
         for n in [Network::Mainnet, Network::Testnet, Network::Regtest] {
-            assert_eq!(Network::from(u32::from(n)), n);
+            assert_eq!(Network::try_from(u32::from(n)).unwrap(), n);
         }
     }
 
     #[test]
-    fn network_unknown_maps_to_mainnet() {
-        assert_eq!(Network::from(999), Network::Mainnet);
+    fn network_unknown_rejected() {
+        assert!(Network::try_from(999).is_err());
     }
 
     #[test]
     fn equity_error_display_and_source() {
-        let e = error("boom");
+        let e: EquityError = "boom".into();
         assert_eq!(format!("{e}"), "Equity error: boom");
         let _: &dyn std::error::Error = &e;
     }

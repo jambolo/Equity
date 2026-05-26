@@ -22,9 +22,10 @@ pub enum InventoryType {
     FilteredBlock = 3,
 }
 
-impl InventoryType {
-    /// Parse from the on-wire `u32` tag.
-    pub fn from_u32(v: u32) -> Result<Self> {
+impl TryFrom<u32> for InventoryType {
+    type Error = anyhow::Error;
+
+    fn try_from(v: u32) -> Result<Self> {
         match v {
             0 => Ok(Self::Error),
             1 => Ok(Self::Transaction),
@@ -79,8 +80,7 @@ impl InventoryId {
 
     /// Parse from `stream`, advancing the cursor by [`INVENTORY_SIZE`].
     pub fn deserialize(stream: &mut &[u8]) -> Result<Self> {
-        let t = read_u32(stream)?;
-        let inv_type = InventoryType::from_u32(t)?;
+        let inv_type = InventoryType::try_from(read_u32(stream)?)?;
         let hash: [u8; HASH_SIZE] = read_array(stream)?;
         Ok(Self { inv_type, hash })
     }

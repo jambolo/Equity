@@ -1,11 +1,10 @@
 //! PBKDF2-HMAC-SHA512 via the `pbkdf2` + `hmac` + `sha2` Rust crates.
 
+use anyhow::{Result, anyhow, bail};
 use hmac::Hmac;
 use sha2::Sha512;
 
 /// Derive `output_size` bytes via PBKDF2-HMAC-SHA-512 with the given iteration `count`.
-///
-/// Returns `Err` if `count <= 0`.
 ///
 /// # Examples
 ///
@@ -18,26 +17,16 @@ use sha2::Sha512;
 pub fn pbkdf2_hmac_sha512(
     password: &[u8],
     salt: &[u8],
-    count: i32,
+    count: u32,
     output_size: usize,
-) -> Result<Vec<u8>, &'static str> {
-    if count <= 0 {
-        return Err("PBKDF2 iteration count must be positive");
+) -> Result<Vec<u8>> {
+    if count == 0 {
+        bail!("PBKDF2 iteration count must be positive");
     }
     let mut output = vec![0u8; output_size];
-    pbkdf2::pbkdf2::<Hmac<Sha512>>(password, salt, count as u32, &mut output)
-        .map_err(|_| "PBKDF2 operation failed")?;
+    pbkdf2::pbkdf2::<Hmac<Sha512>>(password, salt, count, &mut output)
+        .map_err(|e| anyhow!("PBKDF2 failed: {e}"))?;
     Ok(output)
-}
-
-/// Alias for [`pbkdf2_hmac_sha512`] kept for API compatibility.
-pub fn pbkdf2_hmac_sha512_vec(
-    password: &[u8],
-    salt: &[u8],
-    count: i32,
-    output_size: usize,
-) -> Result<Vec<u8>, &'static str> {
-    pbkdf2_hmac_sha512(password, salt, count, output_size)
 }
 
 #[cfg(test)]
@@ -47,7 +36,7 @@ mod tests {
     struct Pbkdf2HmacSha512TestCase {
         password: &'static str,
         salt: &'static str,
-        count: i32,
+        count: u32,
         expected: [u8; 64],
     }
 
@@ -91,7 +80,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_pbkdf2_comprehensive() {
+    fn matches_known_vectors() {
         for (i, case) in PBKDF2_HMAC_SHA512_CASES.iter().enumerate() {
             let key = pbkdf2_hmac_sha512(
                 case.password.as_bytes(),
@@ -100,36 +89,13 @@ mod tests {
                 64,
             )
             .unwrap_or_else(|e| panic!("PBKDF2 case {} failed: {e}", i + 1));
-            assert_eq!(key.len(), 64);
-            let mut actual = [0u8; 64];
-            actual.copy_from_slice(&key);
+            let actual: [u8; 64] = key.as_slice().try_into().unwrap();
             assert_eq!(actual, case.expected, "PBKDF2 case {}", i + 1);
         }
     }
 
     #[test]
-    fn test_pbkdf2_vector_consistency() {
-        for case in PBKDF2_HMAC_SHA512_CASES.iter().take(2) {
-            let r1 = pbkdf2_hmac_sha512(
-                case.password.as_bytes(),
-                case.salt.as_bytes(),
-                case.count,
-                64,
-            )
-            .unwrap();
-            let r2 = pbkdf2_hmac_sha512_vec(
-                case.password.as_bytes(),
-                case.salt.as_bytes(),
-                case.count,
-                64,
-            )
-            .unwrap();
-            assert_eq!(r1, r2);
-        }
-    }
-
-    #[test]
-    fn test_pbkdf2_output_sizes() {
+    fn output_size_honored() {
         for size in [16usize, 32, 48, 64, 80] {
             let key = pbkdf2_hmac_sha512(b"test_password", b"test_salt", 1000, size).unwrap();
             assert_eq!(key.len(), size);
@@ -137,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pbkdf2_edge_cases() {
+    fn edge_cases() {
         assert!(pbkdf2_hmac_sha512(b"password", b"salt", 1, 32).is_ok());
         assert!(pbkdf2_hmac_sha512(&[], b"salt", 1000, 32).is_ok());
         assert!(pbkdf2_hmac_sha512(b"password", &[], 1000, 32).is_ok());

@@ -12,11 +12,6 @@ pub fn sha512(input: &[u8]) -> Sha512Hash {
     Sha512::digest(input).into()
 }
 
-/// `sha512` as a `Vec<u8>`.
-pub fn sha512_vec(input: &[u8]) -> Vec<u8> {
-    Sha512::digest(input).to_vec()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -70,7 +65,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_sha512_ptr() {
+    fn matches_known_vectors() {
         for case in SHA512_CASES {
             assert_eq!(
                 sha512(case.input.as_bytes()),
@@ -79,18 +74,5 @@ mod tests {
                 case.input
             );
         }
-    }
-
-    #[test]
-    fn test_sha512_vector() {
-        for case in SHA512_CASES {
-            assert_eq!(sha512_vec(case.input.as_bytes()), case.expected.to_vec());
-        }
-    }
-
-    #[test]
-    fn test_sha512_array() {
-        let expected: [u8; 64] = SHA512_CASES[1].expected;
-        assert_eq!(sha512(b"abc"), expected);
     }
 }

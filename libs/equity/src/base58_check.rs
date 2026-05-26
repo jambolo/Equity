@@ -1,19 +1,12 @@
 //! Base58Check (version byte + 4-byte SHA256d checksum) on top of the `bs58` crate.
 
 use crate::{EquityError, Result};
-use sha2::{Digest, Sha256};
-
-fn checksum(data: &[u8]) -> [u8; 4] {
-    let first = Sha256::digest(data);
-    let second = Sha256::digest(first);
-    [second[0], second[1], second[2], second[3]]
-}
+use crypto::sha256;
 
 /// Encode `input` as Base58Check with a single-byte `version` prefix.
 ///
-/// The lower 8 bits of `version` are used as the prefix byte; common values
-/// are `0x00` (mainnet P2PKH), `0x05` (mainnet P2SH), `0x80` (mainnet WIF),
-/// and `0x6F` (testnet P2PKH).
+/// Common values are `0x00` (mainnet P2PKH), `0x05` (mainnet P2SH),
+/// `0x80` (mainnet WIF), and `0x6F` (testnet P2PKH).
 ///
 /// # Examples
 ///
@@ -23,12 +16,11 @@ fn checksum(data: &[u8]) -> [u8; 4] {
 /// let s = base58_check::encode(&[0u8; 20], 0x00);
 /// assert!(s.starts_with('1'));
 /// ```
-pub fn encode(input: &[u8], version: u32) -> String {
-    let mut buf = Vec::with_capacity(1 + input.len() + 4);
-    buf.push(version as u8);
+pub fn encode(input: &[u8], version: u8) -> String {
+    let mut buf = Vec::with_capacity(1 + input.len() + sha256::CHECKSUM_SIZE);
+    buf.push(version);
     buf.extend_from_slice(input);
-    let check = checksum(&buf);
-    buf.extend_from_slice(&check);
+    buf.extend_from_slice(&sha256::checksum(&buf));
     bs58::encode(buf).into_string()
 }
 
@@ -44,19 +36,18 @@ pub fn encode(input: &[u8], version: u32) -> String {
 /// assert_eq!(payload, b"hello");
 /// assert_eq!(version, 0x05);
 /// ```
-pub fn decode(input: &str) -> Result<(Vec<u8>, u32)> {
+pub fn decode(input: &str) -> Result<(Vec<u8>, u8)> {
     let raw = bs58::decode(input)
         .into_vec()
         .map_err(|e| EquityError(format!("Failed to decode Base58 string: {e}")))?;
-    if raw.len() < 1 + 4 {
+    if raw.len() < 1 + sha256::CHECKSUM_SIZE {
         return Err(EquityError("Base58Check payload too short".to_string()));
     }
-    let (body, tail) = raw.split_at(raw.len() - 4);
-    if checksum(body) != tail[..4] {
+    let (body, tail) = raw.split_at(raw.len() - sha256::CHECKSUM_SIZE);
+    if sha256::checksum(body) != tail {
         return Err(EquityError("Base58Check checksum mismatch".to_string()));
     }
-    let version = body[0] as u32;
-    Ok((body[1..].to_vec(), version))
+    Ok((body[1..].to_vec(), body[0]))
 }
 
 #[cfg(test)]
@@ -64,7 +55,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_base58check_encode_known_vectors() {
+    fn encode_matches_known_vectors() {
         assert_eq!(encode(&[0u8; 20], 0), "1111111111111111111114oLvT2");
 
         let addr_data = [
@@ -89,8 +80,8 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_round_trip() {
-        let cases: &[(u32, &[u8])] = &[
+    fn round_trip() {
+        let cases: &[(u8, &[u8])] = &[
             (0, &[0u8; 20]),
             (0x80, &[0u8; 32]),
             (0x05, b"test_data"),
@@ -105,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_decode_known_vectors() {
+    fn decode_known_vectors() {
         let (data, version) = decode("1111111111111111111114oLvT2").unwrap();
         assert_eq!(version, 0);
         assert_eq!(data, vec![0u8; 20]);
@@ -118,8 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_bad_checksum_rejected() {
-        // Flip a trailing char — checksum should fail.
+    fn bad_checksum_rejected() {
         let mut s = String::from("16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM");
         let last = s.pop().unwrap();
         let alt = if last == 'M' { 'N' } else { 'M' };
@@ -128,8 +118,8 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_versions() {
-        for version in [0x00u32, 0x05, 0x80, 0xEF, 0xFF] {
+    fn versions() {
+        for version in [0x00u8, 0x05, 0x80, 0xEF, 0xFF] {
             let data = b"test_data_for_version_testing";
             let encoded = encode(data, version);
             let (decoded, decoded_version) = decode(&encoded).unwrap();
@@ -139,8 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_p2sh_vector() {
-        // BIP-13 / Bitcoin test vector: version=5 ("3..." mainnet P2SH address).
+    fn p2sh_vector() {
         let h160 = [
             0x74, 0xf2, 0x09, 0xf6, 0xea, 0x90, 0x7e, 0x2e, 0xa4, 0x8f, 0x74, 0xfa, 0xe0, 0x5d,
             0xd0, 0x6c, 0xae, 0xa1, 0x86, 0x05,
@@ -153,16 +142,15 @@ mod tests {
     }
 
     #[test]
-    fn test_base58check_decode_too_short() {
-        // Encode something too short to have 1 version + 4 checksum bytes.
+    fn decode_too_short() {
         let s = bs58::encode([0u8; 3]).into_string();
         assert!(decode(&s).is_err());
     }
 
     proptest::proptest! {
         #[test]
-        fn prop_base58check_round_trip(
-            version in 0u32..256,
+        fn prop_round_trip(
+            version: u8,
             data in proptest::collection::vec(any::<u8>(), 0..64),
         ) {
             let encoded = encode(&data, version);

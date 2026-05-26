@@ -12,11 +12,6 @@ pub fn sha1(input: &[u8]) -> Sha1Hash {
     Sha1::digest(input).into()
 }
 
-/// `sha1` as a `Vec<u8>`.
-pub fn sha1_vec(input: &[u8]) -> Vec<u8> {
-    Sha1::digest(input).to_vec()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,26 +74,14 @@ mod tests {
     ];
 
     #[test]
-    fn test_sha1_ptr() {
+    fn matches_known_vectors() {
         for case in SHA1_CASES {
-            let result = sha1(case.input.as_bytes());
-            assert_eq!(result, case.expected, "SHA1 failed for: '{}'", case.input);
+            assert_eq!(
+                sha1(case.input.as_bytes()),
+                case.expected,
+                "SHA1 failed for: '{}'",
+                case.input
+            );
         }
-    }
-
-    #[test]
-    fn test_sha1_vector() {
-        for case in SHA1_CASES {
-            assert_eq!(sha1_vec(case.input.as_bytes()), case.expected.to_vec());
-        }
-    }
-
-    #[test]
-    fn test_sha1_array() {
-        let expected = [
-            0xa9, 0x99, 0x3e, 0x36, 0x47, 0x06, 0x81, 0x6a, 0xba, 0x3e, 0x25, 0x71, 0x78, 0x50,
-            0xc2, 0x6c, 0x9c, 0xd0, 0xd8, 0x9d,
-        ];
-        assert_eq!(sha1(b"abc"), expected);
     }
 }

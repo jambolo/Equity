@@ -12,11 +12,6 @@ pub fn ripemd160(input: &[u8]) -> Ripemd160Hash {
     Ripemd160::digest(input).into()
 }
 
-/// `ripemd160` as a `Vec<u8>`.
-pub fn ripemd160_vec(input: &[u8]) -> Vec<u8> {
-    Ripemd160::digest(input).to_vec()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,7 +81,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_ripemd160_ptr() {
+    fn matches_known_vectors() {
         for case in RIPEMD160_CASES {
             assert_eq!(
                 ripemd160(case.input.as_bytes()),
@@ -95,21 +90,5 @@ mod tests {
                 case.input
             );
         }
-    }
-
-    #[test]
-    fn test_ripemd160_vector() {
-        for case in RIPEMD160_CASES {
-            assert_eq!(ripemd160_vec(case.input.as_bytes()), case.expected.to_vec());
-        }
-    }
-
-    #[test]
-    fn test_ripemd160_array() {
-        let expected = [
-            0x8e, 0xb2, 0x08, 0xf7, 0xe0, 0x5d, 0x98, 0x7a, 0x9b, 0x04, 0x4a, 0x8e, 0x98, 0xc6,
-            0xb0, 0x87, 0xf1, 0x5a, 0x0b, 0xfc,
-        ];
-        assert_eq!(ripemd160(b"abc"), expected);
     }
 }
