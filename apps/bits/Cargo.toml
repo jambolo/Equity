@@ -4,6 +4,5 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-clap.workspace = true
-anyhow.workspace = true
-utility = { path = "../../libs/utility" }
+equity = { path = "../../libs/equity" }
+hex = "0.4"

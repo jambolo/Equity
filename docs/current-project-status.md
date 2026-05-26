@@ -54,10 +54,6 @@ Recent session changes (uncommitted):
 | `network` | Bitcoin P2P message types, `WireMessage` envelope with checksum |
 | `equity` | Bitcoin core: addresses, keys, scripts, transactions, blocks, merkle, mnemonic |
 
-### Remaining FFI surface
-
-`libs/crypto/src/{ecc_ffi,hash_ffi}.rs` still export `extern "C"` wrappers, and [libs/equity/src/lib.rs](../libs/equity/src/lib.rs) holds a `#[used]` keepalive that referenced them from the C++ shims. With no C++ left, these are dead code and may be deleted; not removed in this session to keep the diff scoped.
-
 ### Apps not wired
 
 All three CLI stubs are `clap` hello-worlds ([apps/bits/src/main.rs](../apps/bits/src/main.rs), [apps/list-prefixes/src/main.rs](../apps/list-prefixes/src/main.rs), [apps/view-transactions/src/main.rs](../apps/view-transactions/src/main.rs)).
@@ -72,9 +68,9 @@ All three CLI stubs are `clap` hello-worlds ([apps/bits/src/main.rs](../apps/bit
 
 ## Suggested next actions (priority order)
 
-1. Implement real CLI behavior in `apps/*/main.rs` against the Rust lib APIs.
-2. Delete the now-unused `ecc_ffi.rs`/`hash_ffi.rs` `extern "C"` shims and the equity keepalive.
-3. Update CI to use `cargo build --workspace` and `cargo test --workspace`.
+1. Update CI to use `cargo build --workspace` and `cargo test --workspace`.
+2. Wire async networking (tokio) on top of `network`'s wire-format types.
+3. Refresh README + add usage examples.
 4. Tag a release marking the first fully Rust-based version of the project.
 
 ## Toolchain / env notes

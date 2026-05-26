@@ -1,23 +1,86 @@
-use clap::Parser;
+//! Port of the legacy C++ `view-transaction` CLI: decodes a raw Bitcoin
+//! transaction hex string and prints its fields as pretty-printed JSON,
+//! preserving field insertion order (4-space indent) to match the original
+//! `nlohmann::json::dump(4)` output.
+//!
+//! Usage: `view-transactions <hex>`
 
-#[derive(Parser)]
-#[command(name = "view-transactions")]
-#[command(about = "A tool for viewing equity transactions")]
-struct Cli {
-    #[arg(short, long)]
-    transaction_id: Option<String>,
+use equity::transaction::Transaction;
+use serde_json::{Value, json};
+use std::process::ExitCode;
 
-    #[arg(short, long)]
-    format: Option<String>,
+fn syntax(prog: &str) {
+    eprintln!("syntax: {prog} <hash>");
 }
 
-fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+fn build_json(tx: &Transaction) -> Value {
+    let inputs: Vec<Value> = tx
+        .inputs()
+        .iter()
+        .map(|i| {
+            json!({
+                "txid": i.txid.to_hex_be(),
+                "outputIndex": i.output_index,
+                "script": hex::encode(&i.script),
+                "sequence": i.sequence,
+            })
+        })
+        .collect();
 
-    println!("Viewing transactions...");
-    if let Some(id) = cli.transaction_id {
-        println!("Transaction ID: {}", id);
+    let outputs: Vec<Value> = tx
+        .outputs()
+        .iter()
+        .map(|o| {
+            // Match legacy `(double)value` serialization.
+            json!({
+                "value": o.value as f64,
+                "script": hex::encode(&o.script),
+            })
+        })
+        .collect();
+
+    json!({
+        "version": tx.version(),
+        "inputs": inputs,
+        "outputs": outputs,
+        "locktime": tx.lock_time(),
+    })
+}
+
+fn dump_pretty(value: &Value) -> String {
+    use serde::Serialize;
+    let mut buf = Vec::new();
+    let formatter = serde_json::ser::PrettyFormatter::with_indent(b"    ");
+    let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
+    value.serialize(&mut ser).expect("serialize");
+    String::from_utf8(buf).expect("utf8")
+}
+
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().collect();
+    let prog = args.first().map(String::as_str).unwrap_or("view-transactions");
+
+    if args.len() < 2 {
+        syntax(prog);
+        return ExitCode::from(1);
     }
 
-    Ok(())
+    let data = match hex::decode(&args[1]) {
+        Ok(v) => v,
+        Err(_) => {
+            eprintln!("Invalid transaction.");
+            return ExitCode::from(2);
+        }
+    };
+
+    let tx = match Transaction::from_data(&data) {
+        Ok(t) => t,
+        Err(_) => {
+            eprintln!("Invalid transaction.");
+            return ExitCode::from(2);
+        }
+    };
+
+    println!("{}", dump_pretty(&build_json(&tx)));
+    ExitCode::SUCCESS
 }

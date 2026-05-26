@@ -55,10 +55,6 @@ No `build.rs`, no C++ toolchain required. `secp256k1-sys` vendors `libsecp256k1`
 | `network` | Bitcoin P2P message types and envelope (`Header`, `Address`, `InventoryId`, `Message` enum with 22 variants, `WireMessage` with double-SHA256 checksum) |
 | `equity` | Bitcoin core: addresses, keys, scripts, transactions, blocks, merkle tree, mnemonic |
 
-### Rust-internal FFI
-
-`libs/crypto/src/{ecc_ffi,hash_ffi}.rs` still expose `#[unsafe(no_mangle)] extern "C"` wrappers. These existed so the legacy C++ shims could call Rust; with no C++ left they are now dead code, but harmless. They can be deleted along with the keepalive in [libs/equity/src/lib.rs](libs/equity/src/lib.rs) at any time.
-
 ## Migration Conventions
 
 - Default to porting logic to pure Rust where a quality crate exists (`hmac` + `sha2`, `secp256k1`, `bs58`, `serde_json`, `getrandom`, `hex`).

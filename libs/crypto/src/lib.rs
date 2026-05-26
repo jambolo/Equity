@@ -1,8 +1,6 @@
 //! Cryptographic utilities and functions.
 
 pub mod ecc;
-pub mod ecc_ffi;
-pub mod hash_ffi;
 pub mod hmac;
 pub mod pbkdf2;
 pub mod random;

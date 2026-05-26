@@ -1,20 +1,23 @@
-use clap::Parser;
+//! Port of the legacy C++ `list-prefixes` CLI: enumerates Base58Check
+//! encodings of the all-zero and all-FF 20- and 32-byte hashes across every
+//! version byte (0..=255).
 
-#[derive(Parser)]
-#[command(name = "list-prefixes")]
-#[command(about = "A tool for listing network prefixes")]
-struct Cli {
-    #[arg(short, long)]
-    format: Option<String>,
-}
+use equity::base58_check;
 
-fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
-
-    println!("Listing prefixes...");
-    if let Some(format) = cli.format {
-        println!("Using format: {}", format);
+fn main() {
+    let hash_low_20 = [0u8; 20];
+    let hash_high_20 = [0xffu8; 20];
+    for i in 0u32..256 {
+        let low = base58_check::encode(&hash_low_20, i);
+        let high = base58_check::encode(&hash_high_20, i);
+        println!("0x{i:02x}: low: {low:<35} high: {high:<35}");
     }
 
-    Ok(())
+    let hash_low_32 = [0u8; 32];
+    let hash_high_32 = [0xffu8; 32];
+    for i in 0u32..256 {
+        let low = base58_check::encode(&hash_low_32, i);
+        let high = base58_check::encode(&hash_high_32, i);
+        println!("0x{i:02x}: low: {low:<51} high: {high:<51}");
+    }
 }

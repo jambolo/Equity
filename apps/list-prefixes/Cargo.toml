@@ -4,7 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-clap.workspace = true
-anyhow.workspace = true
-network = { path = "../../libs/network" }
-utility = { path = "../../libs/utility" }
+equity = { path = "../../libs/equity" }
