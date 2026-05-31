@@ -61,3 +61,12 @@ cargo test --workspace              # all crates
 ## Code Style
 
 Standard Rust 2024 idioms. `anyhow::Result` for fallible APIs at crate boundaries; concrete error types only where callers need to discriminate. No `unsafe`. Hex via the `hex` crate, not handrolled.
+
+## Reference Documentation
+
+Authoritative Bitcoin protocol references — consult these before guessing protocol behavior:
+
+- [Bitcoin developer guide](https://developer.bitcoin.org/devguide/) — narrative overview. Especially [`devguide/p2p_network.html`](https://developer.bitcoin.org/devguide/p2p_network.html) for handshake, IBD, block/tx relay, banning.
+- [Bitcoin developer reference](https://developer.bitcoin.org/reference/) — wire-format details for every message and RPC.
+- [`github.com/bitcoin/bips`](https://github.com/bitcoin/bips) — authoritative source for every BIP. Cite specific BIPs by number (e.g. BIP-152) and link the file in that repository when implementing one.
+- Project design docs: [`docs/technical-design.md`](docs/technical-design.md), [`docs/p2p-design.md`](docs/p2p-design.md), [`docs/blockchain-plan.md`](docs/blockchain-plan.md).

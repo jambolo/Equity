@@ -68,47 +68,79 @@ Not implemented (this document defines them):
 ### 3.1 Layered view
 
 ```text
-+------------------------------------------------------------+
-|  apps/node           apps/{bits,list-prefixes,view-tx}     |
-+------------------------------------------------------------+
-|  rpc          (JSON-RPC server)                            |
-+------------------------------------------------------------+
-|  sync         (headers-first IBD, block relay)             |
-|  mempool      (unconfirmed-tx pool)                        |
-+------------------------------------------------------------+
-|  peers        (connection manager, peer state machines)    |
-|  addrman      (peer address book, eviction)                |
-+------------------------------------------------------------+
-|  validator    (consensus rules, block + tx checks)         |
-+------------------------------------------------------------+
-|  blockchain   (UTXO store, block store)                    |
-+------------------------------------------------------------+
-|  equity       (consensus types: tx, block, script, target) |
-|  network      (P2P message types, WireMessage)             |
-|  p2p          (varint, var-string)                         |
-|  crypto       (hashes, ECC, RNG)                           |
-|  utility      (small helpers)                              |
-+------------------------------------------------------------+
++----------------------------------------------------------------------+
+|                              APPLICATION                             |
+| apps/node                                                            |
+|   ├─ TCP listener / dialer       (tokio::net, sockets)               |
+|   ├─ WireCodec                   (length-prefixed frames)            |
+|   ├─ TokioTransport              (implements p2p::Transport)         |
+|   └─ RPC HTTP server                                                 |
+| apps/{bits,list-prefixes,view-tx}  (small CLI utilities)             |
++======================================================================+   <-- library / application boundary
+|                                LIBRARIES                             |
+|  sync         (headers-first IBD, block relay; consumes Transport)   |
+|  mempool      (unconfirmed-tx pool)                                  |
+|  peers        (per-peer state machine; pure logic, no sockets)       |
+|  addrman      (peer address book, eviction; pure data structure)     |
+|  validator    (consensus rules, block + tx checks)                   |
+|  blockchain   (UTXO store, block store)                              |
+|  equity       (consensus types: tx, block, script, target)           |
+|  network      (P2P message types, WireMessage)                       |
+|  p2p          (varint, var-string, **Transport trait**, NetEvent)    |
+|  crypto       (hashes, ECC, RNG)                                     |
+|  utility      (small helpers)                                        |
++----------------------------------------------------------------------+
 ```
 
-Lower layers are dependency-only; they do not call upward. The flow is data-down (received messages parsed and dispatched) and event-up (validator signals to sync, sync signals to peers).
+The double-line band separates library crates from the application. **No library crate touches a socket.** Library logic interacts with the network only through the `p2p::Transport` trait (commands) and a `mpsc::Receiver<NetEvent>` (events). Both are defined in §4.14. The actual TCP implementation lives entirely in `apps/node`.
+
+Lower layers are dependency-only; they do not call upward. The flow is data-down (received messages parsed and dispatched) and event-up (validator signals to sync, sync issues commands through the Transport trait to the app's network code).
 
 ### 3.2 Crate dependency graph (target end-state)
 
 ```text
-node ──┬─► rpc ──────────────► sync ──┬─► mempool ──┐
-       │                                │            │
-       ├─► peers ─► addrman              │            │
-       │                                ▼            │
-       ▼                            validator ◄──────┘
-   blockchain ──► equity ──► network ──► p2p ──► crypto ──► (none)
-                                                  └─► utility
+                       === application ===
+node ── (tokio, hyper) ──► rpc ─┐
+  │                              ▼
+  ├──────────────────────────► sync ──┬─► mempool ──┐
+  │                                    │             │
+  ├──► peers ─► addrman                 │             │
+  │      └─────────────────► p2p ◄──────┴─► validator│
+  │                           ▲                       │
+  ▼                           │                       ▼
+blockchain ──► equity ──► network ──► p2p ──► crypto ──► (none)
+                                        └─► utility
+                       === libraries ===
 ```
 
+Notable edges:
+
+- `node` is the **only** crate that pulls `tokio` and `tokio-util` from `[workspace.dependencies]`. Library crates may pull `futures-core` for type abstractions but **must not** depend on a specific async runtime.
+- `peers` (pure-logic peer state machine) depends on `p2p`'s Transport trait and on `network` for the message types. It does not depend on `tokio`.
+- `sync` depends on `p2p::Transport` to push commands and on a `mpsc::Receiver<NetEvent>` supplied by the app. The receiver type comes from the futures-core API, not Tokio specifically.
+- `node` depends on every library crate and is the assembly point.
+
 Rules:
+
 - No back-edges. `equity` may not depend on `network`. `network` already depends on `equity` for `Block`/`Transaction` payload types; that is the only upward-looking edge below the storage layer and is acceptable because both crates share consensus types.
+- **No library crate may open a TCP socket, bind a listener, spawn a Tokio task, or call `tokio::spawn`.** This is enforced by code review and (long-term) by a CI lint that greps for forbidden symbols in lib crates.
 - `validator` depends on `blockchain` and `equity` but not on `peers` or `sync`. Validation is pure given the chain state.
 - `sync` orchestrates `peers` + `validator` + `mempool` + `blockchain`. It is the highest-traffic crate.
+
+### 3.3 Library / Application boundary
+
+This is a project-wide design rule, not just a P2P-layer note:
+
+> **Library crates contain no networking code.** All TCP I/O, async runtime usage, and connection lifecycle management lives in `apps/node`. The library expresses its needs through traits (commands to the network) and event channels (events from the network). The application implements the traits and produces the events.
+
+Rationale:
+
+1. **Testability.** Library logic can be tested with an in-memory fake `Transport` that records calls and a hand-fed event stream. No `tokio::test`, no port allocation, no fixture sockets.
+2. **Runtime neutrality.** A consumer of the library may want to use a different async runtime, or no runtime (e.g. for fuzzing). The library compiles and runs without `tokio` available.
+3. **Clear blast radius.** Network bugs are in one crate (`apps/node`). Consensus bugs are in another set (`equity`, `validator`, `blockchain`). Misbehavior reports cannot be ambiguously routed.
+4. **Reusability.** A second binary (e.g. a future block-relay-only node, or a regression-test harness) reuses every library crate without inheriting `apps/node`'s policy choices.
+
+The complete interface that crosses this boundary is specified in §4.14.
 
 ---
 
@@ -130,15 +162,27 @@ Public surface:
 - `random::get_bytes`
 
 Notes:
+
 - Fallible APIs at crate boundary use `anyhow::Result`. Per workspace policy.
 - No constant-time helpers exposed; rely on the upstream crates.
 - `secp256k1` global context is used (`SECP256K1`). Single-threaded contention is not a concern; the crate supports concurrent use.
 
-### 4.2 Wire-format primitives (`libs/p2p`) — implemented
+### 4.2 P2P crate (`libs/p2p`) — partly implemented
 
-CompactSize varint, var-string, a minimal `Message { command, payload }` envelope. The deserializers return a result type carrying `(value, bytes_read)`; `bytes_read == 0` signals a short or malformed buffer.
+The `p2p` crate has two responsibilities:
 
-This is older than the `network` crate's reader/writer style (`read_var_int(&mut &[u8]) -> Result<u64>`). Both exist for historical reasons. The cleaner `network::serialize` API is the long-term direction. **Open question:** consolidate by deleting `p2p` or by moving the cursor-style readers into `p2p` and having `network` re-export.
+1. **Wire-format primitives** *(implemented)* — CompactSize varint, var-string, a minimal `Message { command, payload }` envelope. Deserializers return a result type carrying `(value, bytes_read)`; `bytes_read == 0` signals a short or malformed buffer. The newer cursor-style reader/writer functions in `libs/network::serialize` co-exist; consolidation tracked in §13.
+2. **Library / application boundary** *(planned)* — the `p2p::transport` module defines the `Transport` trait, `NetEvent` enum, `PeerId`, `Direction`, `VersionInfo`, `DisconnectReason`, and `TransportError`. These are the only types that cross the library/application line. Full specification, examples, and rationale in §4.14.
+
+Crate role summary:
+
+| Module | Purpose |
+| --- | --- |
+| `p2p::varint`, `p2p::var_string` | Bitcoin CompactSize encodings (existing). |
+| `p2p::message` | `Message { command, payload }` envelope (existing; predates `network::WireMessage`). |
+| `p2p::transport` *(new)* | `Transport` trait, `NetEvent`, `PeerId`, related types. **No I/O.** Re-exports `network::messages::Message` for ergonomic consumer code. |
+
+The `transport` module deliberately depends only on `std`, `thiserror`, `futures-core` (for the `Stream` trait used in event-side examples), and the `network` crate. It does **not** depend on `tokio`. This makes `Transport` implementable on any async runtime or none.
 
 ### 4.3 Consensus types (`libs/equity`) — implemented
 
@@ -179,6 +223,7 @@ Alert, SendHeaders, Mempool
 Each typed message provides `serialize(&mut Vec<u8>)`, `deserialize(&mut &[u8]) -> Result<Self>`, a `COMMAND: &'static str`, and (for diagnostics) `to_json()`.
 
 Notable details:
+
 - `VersionMessage` honors protocol version gates: fields after `to` only serialize when `version >= 106`; `relay` only when `version >= 70001`.
 - `FilterLoad` enforces `MAX_FILTER_LOAD_SIZE = 36_000` and `MAX_FILTER_HASH_FUNCS = 50`.
 - `FilterAdd` enforces `MAX_FILTER_ADD_SIZE = 520`.
@@ -255,6 +300,7 @@ struct Mempool {
 ```
 
 Operations:
+
 - `add(tx)` — runs `validator::check_transaction` against the mempool context; updates the graph.
 - `remove(txid, reason)` — on confirm, eviction, conflict, or RBF.
 - `apply_block(block)` — bulk remove confirmed; re-evaluate dependents.
@@ -264,9 +310,9 @@ Limits: `MAX_MEMPOOL_BYTES` default 300 MB. Below limit, no eviction; above, evi
 
 **Open questions:** RBF (BIP-125) policy, package relay, full-RBF flag, ancestor/descendant limits. Defer until validator is solid.
 
-### 4.8 Peer manager (`libs/peers`) — planned
+### 4.8 Peer state machine (`libs/peers`) — planned
 
-One connected peer = one async task driving one TCP socket through a finite state machine.
+`libs/peers` is the pure-logic per-peer state machine. **It does not touch sockets.** It accepts decoded `Message` values and emits commands to be sent; the surrounding application is responsible for the bytes. This is the library half of the design decision documented in §3.3.
 
 #### 4.8.1 Per-peer state machine
 
@@ -276,29 +322,57 @@ Connecting ──► HandshakeSent ──► HandshakeReceived ──► Ready
                   └──────────────► Disconnecting ◄───────┘
 ```
 
-- `Connecting` — TCP connect in progress.
+- `Connecting` — TCP connect in progress (the *application* is in this state on behalf of the peer; the library is told once the socket is up via a `NetEvent::Connected`).
 - `HandshakeSent` — local `version` sent, waiting for peer's `version` + `verack`.
 - `HandshakeReceived` — peer's `version` arrived, `verack` sent; waiting for peer's `verack`.
 - `Ready` — full duplex. Heartbeat via `ping`/`pong` every 2 minutes; idle timeout 90 minutes.
-- `Disconnecting` — flushing then closing.
+- `Disconnecting` — the library has decided to disconnect; the actual close is performed by the application after the library calls `Transport::disconnect`.
 
-#### 4.8.2 Async architecture
+#### 4.8.2 Pure-logic shape
 
-Tokio. One task per peer. Inside each peer:
+The `Peer` type is a plain struct, not a task:
 
-- **Reader task** — `framed.read_frame()` loop, decodes `WireMessage`, hands typed `Message` to the peer's inbox.
-- **Writer task** — `mpsc::Receiver<Message>` drained, encoded, written.
-- **Logic task** — owns the state machine, processes inbox, emits commands to the writer, emits events upward.
+```rust
+pub struct Peer {
+    id: PeerId,
+    state: PeerState,
+    banscore: u32,
+    last_seen: Instant,
+    pings: HashMap<u64, Instant>,
+    // ...
+}
 
-The reader/writer split keeps slow peers from blocking reads of well-behaved peers.
+impl Peer {
+    /// Feed an inbound message. Returns the commands the application must execute.
+    pub fn handle(&mut self, msg: Message, now: Instant) -> Vec<PeerAction>;
 
-#### 4.8.3 Peer manager (top-level)
+    /// Periodic tick to drive pings, timeouts. Returns commands.
+    pub fn tick(&mut self, now: Instant) -> Vec<PeerAction>;
+}
 
-Owns a `HashMap<PeerId, PeerHandle>`. Listens on the configured local port. Maintains the outbound connection count (default 8) by polling the `addrman` for fresh candidates.
+pub enum PeerAction {
+    Send(Message),
+    Disconnect(&'static str),
+    Ban(Duration),
+    Emit(NetEvent),  // upward event toward sync
+}
+```
+
+This shape is trivially unit-testable with no runtime. The application wires it to real I/O.
+
+#### 4.8.3 Peer registry (in `apps/node`)
+
+The peer manager lives in `apps/node`, not in `libs/peers`. It owns:
+
+- The Tokio listener and dialer.
+- A `HashMap<PeerId, PeerTask>` where each `PeerTask` is the reader/writer/logic task trio for one TCP connection.
+- The `TokioTransport` value passed to the library logic so that `Peer::handle` → `PeerAction::Send` ultimately reaches the socket.
+
+Async architecture (one task per peer, reader/writer split) and outbound slot maintenance are detailed in [p2p-design.md](p2p-design.md) §3.2, §7.
 
 #### 4.8.4 Banscore
 
-Each peer carries a misbehavior score; bad-message events add points. Reaching 100 triggers a 24-hour ban. Bans persist via a `banlist.json` in the data dir. **Open question:** whether to also evict on slow message rate or only on protocol violations.
+Each `Peer` carries a misbehavior score; the library's `PeerAction::Ban(duration)` is the only way it asks for a ban. The application maintains the persistent `banlist.json`. Reaching 100 triggers a 24-hour ban. **Open question:** whether to also evict on slow message rate or only on protocol violations.
 
 ### 4.9 Address manager (`libs/addrman`) — planned
 
@@ -328,6 +402,7 @@ The brain. Subscribes to peer events, drives chain progress.
 #### 4.10.2 Steady-state
 
 After IBD:
+
 - Listen for `inv` messages, request unknown items via `getdata`.
 - Relay accepted blocks and txs via `inv` to other peers.
 - Compact-block relay (BIP-152) is a follow-up, not v0.1.
@@ -335,6 +410,7 @@ After IBD:
 #### 4.10.3 Reorg
 
 When a block extends a sibling chain whose accumulated work exceeds the current tip:
+
 1. Walk back to common ancestor.
 2. Undo each block on the old branch using undo data (see [blockchain-plan.md](blockchain-plan.md) open questions).
 3. Apply new branch blocks.
@@ -378,7 +454,392 @@ CLI flags via `clap`, optional `equity.conf` file (TOML). Resolution order: CLI 
 
 ### 4.13 Node binary (`apps/node`) — planned
 
-Wires everything: parse config, open `Database`, start `addrman`, start peer manager listener, spawn the sync task, start the RPC server, install Ctrl-C handler for graceful shutdown. Drop order on shutdown is the reverse of startup.
+Wires everything: parse config, open `Database`, start `addrman`, start the listener, dial outbound peers, construct a `TokioTransport`, spawn the sync task with the transport handle, start the RPC server, install Ctrl-C handler for graceful shutdown. Drop order on shutdown is the reverse of startup.
+
+`apps/node` is the **only** crate that links `tokio`, `tokio-util`, `hyper`, and `directories`. Everything below the application line uses synchronous, runtime-neutral types.
+
+### 4.14 P2P transport interface (`p2p::transport`) — planned
+
+The library / application boundary in §3.3 has exactly two crossings:
+
+1. **Commands** flow from library to application through the `Transport` trait (a normal Rust trait, synchronous methods, runtime-neutral).
+2. **Events** flow from application to library through a `futures::channel::mpsc::Receiver<NetEvent>` (or `tokio::sync::mpsc::Receiver` in the `apps/node` case — both implement `futures::Stream`, so the consumer is generic).
+
+This whole interface lives in `libs/p2p` under `p2p::transport`. The `network` crate's `Message` type is re-exported here so library consumers do not need to depend on `network` directly.
+
+#### 4.14.1 Types
+
+```rust
+//! libs/p2p/src/transport.rs
+//!
+//! Interface between the consensus and sync logic (library crates) and
+//! the network I/O implementation (the node application). The library
+//! never touches sockets; it talks to the network only through this
+//! module.
+
+use std::net::SocketAddr;
+use std::time::Duration;
+use thiserror::Error;
+
+pub use network::Message;  // re-exported for convenience
+
+/// Opaque per-connection identifier minted by the Transport implementer.
+/// Monotonic within one process; never reused.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PeerId(pub u64);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    Inbound,
+    Outbound,
+}
+
+#[derive(Debug, Clone)]
+pub struct VersionInfo {
+    pub protocol_version: u32,
+    pub services: u64,
+    pub user_agent: String,
+    pub height: u32,
+    pub relay: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DisconnectReason {
+    PeerClosed,
+    Idle,
+    PingTimeout,
+    HandshakeTimeout,
+    BadFrame,
+    BadMessage,
+    Banned,
+    DialFailed,
+    SelfConnect,
+    Eviction,
+    LocalShutdown,
+}
+
+/// Events the application pushes to the library through a channel.
+#[derive(Debug, Clone)]
+pub enum NetEvent {
+    /// A TCP connection has been established. Handshake has not yet completed.
+    Connected {
+        peer: PeerId,
+        addr: SocketAddr,
+        direction: Direction,
+    },
+    /// Handshake (`version` ↔ `verack`) finished; full duplex is open.
+    Ready { peer: PeerId, info: VersionInfo },
+    /// A decoded message arrived from the peer.
+    Message { peer: PeerId, msg: Message },
+    /// The connection has been torn down (either side, for any reason).
+    Disconnected {
+        peer: PeerId,
+        reason: DisconnectReason,
+    },
+}
+
+#[derive(Debug, Error)]
+pub enum TransportError {
+    #[error("peer no longer connected")]
+    PeerGone,
+    #[error("outbound queue is full; backpressure")]
+    Backpressure,
+    #[error("transport is shutting down")]
+    Shutdown,
+}
+
+/// Commands the library issues to the application.
+///
+/// Implementations live in `apps/node` (typically a thin wrapper around
+/// per-peer `tokio::sync::mpsc::Sender<Message>` handles).
+///
+/// All methods are synchronous and non-blocking. None of them perform
+/// I/O on the calling thread; they enqueue work for the per-peer writer
+/// task to drain.
+pub trait Transport: Send + Sync + 'static {
+    /// Send `msg` to a specific peer. Returns immediately.
+    ///
+    /// - `Err(PeerGone)` — the peer disconnected or was never known.
+    /// - `Err(Backpressure)` — the per-peer outbound queue is full.
+    ///   The caller chooses whether to drop, retry, or escalate.
+    fn send(&self, peer: PeerId, msg: Message) -> Result<(), TransportError>;
+
+    /// Send `msg` to **every** connected peer that has reached the
+    /// `Ready` state. Returns the number of peers that accepted the
+    /// message into their queue. Peers experiencing backpressure are
+    /// silently skipped.
+    fn broadcast(&self, msg: Message) -> usize;
+
+    /// Disconnect `peer` with a textual reason (logged, not sent on the wire).
+    /// Idempotent; calling on an unknown peer is a no-op.
+    fn disconnect(&self, peer: PeerId, reason: &'static str);
+
+    /// Disconnect `peer` and refuse new connections from its IP for `duration`.
+    /// Idempotent; safe to call repeatedly.
+    fn ban(&self, peer: PeerId, duration: Duration);
+}
+```
+
+#### 4.14.2 Ownership and lifetime
+
+The application creates exactly one `Transport` value at startup and shares it via `Arc<dyn Transport>` with every library consumer that needs to issue commands. The corresponding `NetEvent` channel has exactly one consumer — typically the `sync` task — which fans out events internally if multiple subsystems care about them.
+
+```text
+                            ┌──────────────────────┐
+                            │  apps/node           │
+                            │   TokioTransport ◄───┼─── Arc<dyn Transport>  (commands)
+                            │     │                │
+   sockets ◄── reader/writer ─────┤                │
+                            │     │                │
+                            │     ▼                │
+                            │   events_tx ────────►│─── mpsc::Receiver<NetEvent>  (events)
+                            └──────────────────────┘                 │
+                                                                     ▼
+                                                            ┌────────────────┐
+                                                            │ libs/sync      │
+                                                            │  consumes      │
+                                                            │  events,       │
+                                                            │  calls send()  │
+                                                            └────────────────┘
+```
+
+#### 4.14.3 Threading and async neutrality
+
+The trait is **runtime-neutral**:
+
+- Methods are synchronous. `send` does not `.await`; it pushes onto a bounded `mpsc::Sender` via `try_send`.
+- The trait is `Send + Sync + 'static`. Implementations may freely share via `Arc`.
+- Returning errors instead of awaiting backpressure puts the policy decision (drop / retry / disconnect) in the library, where it belongs.
+
+The event side uses a channel rather than a callback because:
+
+- The library wants a single point to `select!` events against timers and other inputs.
+- Channels keep the application free to choose its backpressure policy on the event side too (if the library is slow, `Sender::send().await` in the application naturally stalls socket reads).
+
+#### 4.14.4 Example — library side (a tiny header-sync consumer)
+
+```rust
+use std::sync::Arc;
+use std::time::Duration;
+use anyhow::Result;
+use p2p::transport::{NetEvent, PeerId, Transport};
+use p2p::Message;
+use network::messages::{LocatorMessage, GetHeadersMessage};
+
+/// Drive header sync against whichever peers the application provides.
+///
+/// `transport`: shared handle the application supplied at startup.
+/// `events`:    receiver of NetEvents pushed by the application.
+pub async fn run_header_sync<R>(
+    transport: Arc<dyn Transport>,
+    mut events: R,
+) -> Result<()>
+where
+    R: futures::Stream<Item = NetEvent> + Unpin,
+{
+    use futures::StreamExt;
+
+    while let Some(event) = events.next().await {
+        match event {
+            NetEvent::Ready { peer, info } => {
+                tracing::info!(?peer, height = info.height, "peer ready");
+                let getheaders = GetHeadersMessage(LocatorMessage {
+                    version: 70015,
+                    hashes: vec![[0u8; 32]],   // genesis-only locator for brevity
+                    last:   [0u8; 32],
+                });
+                // Library calls into the application. Synchronous, non-blocking.
+                if let Err(e) = transport.send(peer, Message::GetHeaders(getheaders)) {
+                    tracing::warn!(?peer, error = %e, "failed to send getheaders");
+                }
+            }
+            NetEvent::Message {
+                peer,
+                msg: Message::Headers(h),
+            } => {
+                if !validate_headers(&h.blocks) {
+                    transport.ban(peer, Duration::from_secs(86_400));
+                    continue;
+                }
+                store_headers(&h.blocks);
+            }
+            NetEvent::Disconnected { peer, reason } => {
+                tracing::info!(?peer, ?reason, "peer disconnected");
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn validate_headers(_: &[equity::block::Block]) -> bool { /* ... */ true }
+fn store_headers(_: &[equity::block::Block]) { /* ... */ }
+```
+
+Note: the function takes any `Stream<Item = NetEvent>`. In tests we pass `futures::stream::iter([...])`; in production the application passes a `tokio::sync::mpsc::Receiver` (which implements `Stream` via `tokio_stream::wrappers::ReceiverStream`).
+
+#### 4.14.5 Example — application side (`TokioTransport` skeleton)
+
+```rust
+use std::collections::HashMap;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use std::time::Duration;
+
+use parking_lot::RwLock;
+use tokio::sync::mpsc;
+
+use p2p::transport::{
+    Direction, DisconnectReason, NetEvent, PeerId, Transport, TransportError, VersionInfo,
+};
+use p2p::Message;
+
+/// Lives in `apps/node/src/transport.rs`. The library never sees this type
+/// directly; it only sees `Arc<dyn Transport>`.
+pub struct TokioTransport {
+    inner: Arc<Inner>,
+}
+
+struct Inner {
+    /// One bounded sender per connected peer; the receiver lives in the
+    /// per-peer writer task that owns the socket's write half.
+    peers: RwLock<HashMap<PeerId, PeerHandle>>,
+    /// Sent to the library so it can observe lifecycle events.
+    events_tx: mpsc::Sender<NetEvent>,
+    /// Persistent IP-level ban list.
+    banlist: Arc<crate::ban::BanList>,
+}
+
+struct PeerHandle {
+    addr: SocketAddr,
+    direction: Direction,
+    out_tx: mpsc::Sender<Message>,
+}
+
+impl TokioTransport {
+    pub fn new(
+        events_tx: mpsc::Sender<NetEvent>,
+        banlist: Arc<crate::ban::BanList>,
+    ) -> Arc<Self> {
+        Arc::new(Self {
+            inner: Arc::new(Inner {
+                peers: RwLock::new(HashMap::new()),
+                events_tx,
+                banlist,
+            }),
+        })
+    }
+
+    /// Called by the accept/dial loops after a socket is up.
+    pub fn register(&self, peer: PeerId, addr: SocketAddr, dir: Direction, out_tx: mpsc::Sender<Message>) {
+        self.inner.peers.write().insert(peer, PeerHandle {
+            addr,
+            direction: dir,
+            out_tx,
+        });
+        let _ = self.inner.events_tx.try_send(NetEvent::Connected {
+            peer,
+            addr,
+            direction: dir,
+        });
+    }
+
+    /// Called by the per-peer reader task when the socket closes.
+    pub fn drop_peer(&self, peer: PeerId, reason: DisconnectReason) {
+        self.inner.peers.write().remove(&peer);
+        let _ = self.inner.events_tx.try_send(NetEvent::Disconnected { peer, reason });
+    }
+}
+
+impl Transport for TokioTransport {
+    fn send(&self, peer: PeerId, msg: Message) -> Result<(), TransportError> {
+        let peers = self.inner.peers.read();
+        let handle = peers.get(&peer).ok_or(TransportError::PeerGone)?;
+        match handle.out_tx.try_send(msg) {
+            Ok(()) => Ok(()),
+            Err(mpsc::error::TrySendError::Full(_)) => Err(TransportError::Backpressure),
+            Err(mpsc::error::TrySendError::Closed(_)) => Err(TransportError::PeerGone),
+        }
+    }
+
+    fn broadcast(&self, msg: Message) -> usize {
+        let peers = self.inner.peers.read();
+        peers
+            .values()
+            .filter(|h| h.out_tx.try_send(msg.clone()).is_ok())
+            .count()
+    }
+
+    fn disconnect(&self, peer: PeerId, reason: &'static str) {
+        tracing::info!(?peer, %reason, "disconnect requested by library");
+        // Removing the sender drops the per-peer writer task's mpsc::Receiver,
+        // which causes the writer to exit; its cancellation token then closes
+        // the reader, and the reader emits Disconnected.
+        self.inner.peers.write().remove(&peer);
+    }
+
+    fn ban(&self, peer: PeerId, duration: Duration) {
+        if let Some(handle) = self.inner.peers.write().remove(&peer) {
+            self.inner.banlist.ban(handle.addr.ip(), duration);
+        }
+    }
+}
+```
+
+The per-peer reader task (not shown) decodes frames via `WireCodec` and pushes each decoded `Message` into `events_tx` as `NetEvent::Message { peer, msg }`. The matching writer task drains `out_tx` and writes to the socket. Both are owned by `apps/node`, never by a library crate.
+
+#### 4.14.6 Example — testing a library consumer
+
+Because `Transport` is a trait and `NetEvent` is a plain enum, no async runtime is needed to test logic that consumes them:
+
+```rust
+use std::sync::{Arc, Mutex};
+use p2p::transport::{NetEvent, PeerId, Transport, TransportError};
+use p2p::Message;
+
+#[derive(Default)]
+struct FakeTransport {
+    sent: Mutex<Vec<(PeerId, Message)>>,
+    banned: Mutex<Vec<PeerId>>,
+}
+
+impl Transport for FakeTransport {
+    fn send(&self, peer: PeerId, msg: Message) -> Result<(), TransportError> {
+        self.sent.lock().unwrap().push((peer, msg));
+        Ok(())
+    }
+    fn broadcast(&self, _msg: Message) -> usize { 0 }
+    fn disconnect(&self, _peer: PeerId, _reason: &'static str) {}
+    fn ban(&self, peer: PeerId, _duration: std::time::Duration) {
+        self.banned.lock().unwrap().push(peer);
+    }
+}
+
+#[test]
+fn header_sync_sends_getheaders_on_ready() {
+    let fake = Arc::new(FakeTransport::default());
+    let events = futures::stream::iter([NetEvent::Ready {
+        peer: PeerId(1),
+        info: dummy_version_info(),
+    }]);
+    futures::executor::block_on(run_header_sync(fake.clone(), events)).unwrap();
+    let sent = fake.sent.lock().unwrap();
+    assert_eq!(sent.len(), 1);
+    assert!(matches!(sent[0].1, Message::GetHeaders(_)));
+}
+```
+
+No `tokio::test`, no port allocation, no fixture sockets — the test exercises only library logic.
+
+#### 4.14.7 Why a trait and not a concrete type
+
+A concrete `Transport` struct would force every library to link `tokio` transitively. The trait keeps three things separable:
+
+- The **library** depends only on the trait and `Message`.
+- The **application** picks an implementation.
+- The **tests** mock the trait.
+
+Other implementations are possible without library changes: an in-process pipe transport for two-node integration tests; a recording transport for capture-and-replay; a future `quictransport` for BIP-324 layered over QUIC.
 
 ---
 
@@ -500,6 +961,7 @@ Per module, inline `#[cfg(test)] mod tests`. Already convention in the workspace
 ### 9.3 Vector tests
 
 External test vectors:
+
 - BIP-39 vectors — done.
 - Bitcoin Core script test JSON (`script_tests.json`) — pending. Will live under `libs/equity/tests/vectors/`.
 - Bitcoin Core tx test JSON (`tx_valid.json`, `tx_invalid.json`) — pending.
@@ -554,6 +1016,15 @@ Where this document had to invent something, the choice is grounded in one of:
 - **Floresta** (Rust) — utreexo-based pruned node. Reviewed for crate organization in a Rust context; we do **not** adopt utreexo for v0.1.
 - **rust-bitcoin** — primitive types (script, transaction). We have intentionally re-implemented rather than depend on it, because Equity is a learning exercise; but the rust-bitcoin API shapes informed ours.
 
+### 11.1 Authoritative protocol references
+
+When this document, the code, and the BIPs disagree, the BIPs win for consensus rules and wire format. Use these as primary sources, in this order:
+
+1. [`github.com/bitcoin/bips`](https://github.com/bitcoin/bips) — authoritative BIP repository. Cite BIPs by number and link to the file in this repository (e.g. `bips/bip-0152.mediawiki`).
+2. [Bitcoin developer guide](https://developer.bitcoin.org/devguide/) — readable narrative covering the same material at a higher level. The [P2P network](https://developer.bitcoin.org/devguide/p2p_network.html) page is the most relevant for this project; the IBD, block-relay, and banscore sections are summarized in [p2p-design.md](p2p-design.md).
+3. [Bitcoin developer reference](https://developer.bitcoin.org/reference/) — message layouts, RPC schema, opcode tables.
+4. Bitcoin Core source — last resort when a detail is in none of the above. Treat as informative, not normative.
+
 ---
 
 ## 12. Roadmap (suggested phase order)
@@ -584,6 +1055,8 @@ Tracked here so they are not forgotten. Each blocks at least one phase of the ro
 8. **BIP-9/BIP-8.** Hard-code soft-fork activations for mainnet/testnet3, or implement the deployment state machine?
 9. **Compact block relay (BIP-152).** v0.1 or follow-up?
 10. **SegWit cutover.** Bolt onto existing transaction type, or introduce a parallel witness-aware type?
+11. **Lib/app boundary enforcement.** Should CI add a lint (e.g. cargo-deny `bans.deny` for `tokio` in lib crates, or a custom check) that fails if a library crate gains a `tokio` import? Manual review alone is fragile.
+12. **Runtime-neutral event channel type.** Should the `NetEvent` channel in `p2p::transport` expose `futures::channel::mpsc` or just require any `Stream`? Current draft is `Stream`-generic — verify that the resulting Tokio bridge does not require `tokio-stream` in any lib crate.
 
 ---
 
@@ -611,3 +1084,5 @@ Tracked here so they are not forgotten. Each blocks at least one phase of the ro
 | Date | Change | Author |
 | --- | --- | --- |
 | 2026-05-26 | Initial draft. | Claude (Opus 4.7), session-authored |
+| 2026-05-26 | Added authoritative protocol references (BIPs repo, devguide). | Claude (Opus 4.7), session-authored |
+| 2026-05-26 | Recorded library/application boundary decision: no library crate touches a socket. Updated §3.1 layered diagram, §3.2 dep graph, added §3.3 boundary rule, rewrote §4.2 (p2p crate gains `transport` module), rewrote §4.8 (peer FSM is now pure logic), added §4.14 transport interface with `Transport` trait, `NetEvent` enum, and three worked examples (library consumer, `TokioTransport` skeleton, fake-transport test). | Claude (Opus 4.7), session-authored |

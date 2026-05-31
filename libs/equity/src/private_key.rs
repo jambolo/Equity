@@ -33,9 +33,9 @@ impl PrivateKey {
     /// assert!(!sk.is_compressed());
     /// ```
     pub fn from_data(data: &[u8]) -> Result<Self> {
-        let value: [u8; PRIVATE_KEY_SIZE] = data
-            .try_into()
-            .map_err(|_| EquityError(format!("Private key data must be {PRIVATE_KEY_SIZE} bytes")))?;
+        let value: [u8; PRIVATE_KEY_SIZE] = data.try_into().map_err(|_| {
+            EquityError(format!("Private key data must be {PRIVATE_KEY_SIZE} bytes"))
+        })?;
         Ok(Self {
             value,
             compressed: false,
