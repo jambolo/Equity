@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "apps/bits",
-    "apps/list-prefixes", 
+    "apps/list-prefixes",
     "apps/view-transactions",
     "libs/crypto",
     "libs/equity",
